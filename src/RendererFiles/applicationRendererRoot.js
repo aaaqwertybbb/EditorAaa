@@ -32,7 +32,7 @@ function sendTransaction_MessageKind_string(messageString) {
     let index = 0;
 
     send_buffer[0] = '1'.charCodeAt(0);
-    send_buffer[1] = '_'.charCodeAt(0);
+    send_buffer[1] = 95; // '_'
 
     index += 2;
 
@@ -44,7 +44,7 @@ function sendTransaction_MessageKind_string(messageString) {
 
     index += writtenAaa.written;
 
-    send_buffer[index] = '_'.charCodeAt(0);
+    send_buffer[index] = 95; // '_'
     index += 1;
 
     const writtenBbb = EDI_encoder.encodeInto(messageString, send_buffer.subarray(index, send_buffer.length));
@@ -69,7 +69,7 @@ function sendTransaction_MessageKind_textDocument_didOpen(filePath) {
     let index = 0;
 
     send_buffer[0] = '2'.charCodeAt(0);
-    send_buffer[1] = '_'.charCodeAt(0);
+    send_buffer[1] = 95; // '_'
 
     index += 2;
 
@@ -81,7 +81,7 @@ function sendTransaction_MessageKind_textDocument_didOpen(filePath) {
 
     index += writtenAaa.written;
 
-    send_buffer[index] = '_'.charCodeAt(0);
+    send_buffer[index] = 95; // '_'
     index += 1;
 
     const writtenBbb = EDI_encoder.encodeInto(filePath, send_buffer.subarray(index, send_buffer.length));
@@ -105,7 +105,7 @@ function sendTransaction_MessageKind_textDocument_definition(positionIndex) {
     let index = 0;
 
     send_buffer[0] = '3'.charCodeAt(0);
-    send_buffer[1] = '_'.charCodeAt(0);
+    send_buffer[1] = 95; // '_'
 
     index += 2;
 
@@ -119,7 +119,7 @@ function sendTransaction_MessageKind_textDocument_definition(positionIndex) {
 
     index += writtenAaa.written;
 
-    send_buffer[index] = '_'.charCodeAt(0);
+    send_buffer[index] = 95; // '_'
     index += 1;
 
     const writtenBbb = EDI_encoder.encodeInto(positionIndexString, send_buffer.subarray(index, send_buffer.length));
@@ -143,7 +143,7 @@ function sendTransaction_MessageKind_custom_editorGetNodesAdjacentToCursor(posit
     let index = 0;
 
     send_buffer[0] = '4'.charCodeAt(0);
-    send_buffer[1] = '_'.charCodeAt(0);
+    send_buffer[1] = 95; // '_'
 
     index += 2;
 
@@ -157,7 +157,7 @@ function sendTransaction_MessageKind_custom_editorGetNodesAdjacentToCursor(posit
 
     index += writtenAaa.written;
 
-    send_buffer[index] = '_'.charCodeAt(0);
+    send_buffer[index] = 95; // '_'
     index += 1;
 
     const writtenBbb = EDI_encoder.encodeInto(positionIndexString, send_buffer.subarray(index, send_buffer.length));
@@ -181,7 +181,7 @@ function sendTransaction_MessageKind_custom_saveFile() {
     let index = 0;
 
     send_buffer[0] = '5'.charCodeAt(0);
-    send_buffer[1] = '_'.charCodeAt(0);
+    send_buffer[1] = 95; // '_'
 
     index += 2;
 
@@ -195,7 +195,7 @@ function sendTransaction_MessageKind_custom_saveFile() {
 //
     //index += writtenAaa.written;
 //
-    //send_buffer[index] = '_'.charCodeAt(0);
+    //send_buffer[index] = 95; // '_'
     //index += 1;
 //
     //const writtenBbb = EDI_encoder.encodeInto(positionIndexString, send_buffer.subarray(index, send_buffer.length));
@@ -219,7 +219,7 @@ function sendTransaction_MessageKind_custom_edit_InsertLtr(positionIndex, bytes)
     let index = 0;
 
     send_buffer[0] = '6'.charCodeAt(0);
-    send_buffer[1] = '_'.charCodeAt(0);
+    send_buffer[1] = 95; // '_'
 
     index += 2;
 
@@ -235,13 +235,13 @@ function sendTransaction_MessageKind_custom_edit_InsertLtr(positionIndex, bytes)
     const writtenAaa = EDI_encoder.encodeInto(byteLengthString, send_buffer.subarray(index, send_buffer.length));
     index += writtenAaa.written;
 
-    send_buffer[index] = '_'.charCodeAt(0);
+    send_buffer[index] = 95; // '_'
     index += 1;
 
     const writtenBbb = EDI_encoder.encodeInto(positionIndexString, send_buffer.subarray(index, send_buffer.length));
     index += writtenBbb.written;
 
-    send_buffer[index] = '_'.charCodeAt(0);
+    send_buffer[index] = 95; // '_'
     index += 1;
 
     send_buffer.set(bytes, index);
@@ -264,7 +264,7 @@ function sendTransaction_MessageKind_custom_edit_Remove(positionIndex, length) {
     let index = 0;
 
     send_buffer[0] = '7'.charCodeAt(0);
-    send_buffer[1] = '_'.charCodeAt(0);
+    send_buffer[1] = 95; // '_'
 
     index += 2;
 
@@ -281,13 +281,13 @@ function sendTransaction_MessageKind_custom_edit_Remove(positionIndex, length) {
     const writtenAaa = EDI_encoder.encodeInto(byteLengthString, send_buffer.subarray(index, send_buffer.length));
     index += writtenAaa.written;
 
-    send_buffer[index] = '_'.charCodeAt(0);
+    send_buffer[index] = 95; // '_'
     index += 1;
 
     const writtenBbb = EDI_encoder.encodeInto(positionIndexString, send_buffer.subarray(index, send_buffer.length));
     index += writtenBbb.written;
 
-    send_buffer[index] = '_'.charCodeAt(0);
+    send_buffer[index] = 95; // '_'
     index += 1;
 
     const writtenCcc = EDI_encoder.encodeInto(length, send_buffer.subarray(index, send_buffer.length));
