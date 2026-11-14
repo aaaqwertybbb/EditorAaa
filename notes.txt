@@ -11,3 +11,31 @@ I went the way of "canvas API" eventually because I figured essentially two thin
 - 1 VSCode gets away with using HTML nodes because they understand how layout works and have likely removed all the overhead, whereas the alternative is that your editor is incredibly slow due to the browser assuming the need for various layout related calculations.
 - 1.1 If I understood layout to the same degree as VSCode then I'd too be able to get away with using HTML nodes. And that it would be more customizable from an end user perspective.
 - 1.2 The garbage collection overhead isn't actually that big of a deal (it is non zero) but that the lack of layout understanding is what destroys performance. (also paint and etc... like is the entire app painting cause you clicked the editor and such).
+
+
+
+
+<
+...
+
+
+
+
+> 
+I realize I actually lost my train of thought in the original question and only listed "1 thing".
+
+Number 2 is: could it be that HTML will render my text more efficiently than my usage of canvas API?
+
+I say this because I each time I draw the UI I have to clear the canvas and redraw the entire thing.
+This is extremely fast because I have cached EVERYTHING.
+
+But nevertheless as the screen size grows.
+
+I'm wondering if the browser has highly intelligent "partitioning" so that it doesn't have to "redraw the entire canvas"
+
+
+
+
+
+
+
