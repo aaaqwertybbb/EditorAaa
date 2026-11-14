@@ -1,0 +1,1910 @@
+//__#__
+// preprocessor.cjs
+import "./fieldBuffer"
+//__#__
+
+/*
+When collapse maybe you reset the length of the longest line or something
+
+===
+
+also need to update the width of the cursor to the largest width seen div thing so it visually looks correct
+need to make sure the code does a min-width esque logic. Probably don't want the css but just for the code that sets the style to consider it for you avoids min-width overhead if exists?
+
+
+NO ASYNC EVENTS
+- higher likelihood of memory leaking PerformanceEventTiming due to inability for browser to clear buffer on time requiring manual clearing of the long term buffer.
+*/
+
+/*
+############################################################################
+# Awkward explicit inlining of 'EXPLORER_indexItemTo_ringBufferIndexItem': #
+############################################################################
+
+// TODO: This is an awkward explicit inlining of 'EXPLORER_indexItemTo_ringBufferIndexItem'...
+// ...the initial declaration of 'let ringBufferIndex' is assigned what I refer to as the "virtualIndex"
+// but 'ringBufferIndex' is the output of the function, and a 'virtualIndex' variable is only needed temporarily
+// for the calculation. So by storing the 'virtualIndex' in 'ringBufferIndex' at the start I skip a variable declaration.
+|
+(retrospective comment): I see what I was doing.
+It isn't just the single variable declaration.
+You can't do the modulo logic UNLESS the virtual index is valid (that the line of text is actually being drawn in the UI).
+BUT I think this was an assumption on my end.
+I wonder if the modulo math would work out such that I could...
+well I guess I'd need to add an if to verify that the modulo math went correctly
+thus the same thing happens but now I can't just re-use that I'm virtual index first then you're safe thus the if else part...
+*/
+
+// start CONSTRUCTOR
+/////
+///// start treeViewComponent.js
+/////
+const EXPLORER_rootElement = document.createElement('div');
+EXPLORER_rootElement.classList.add('TREEVIEWexplorer', 'unselectable');
+EXPLORER_rootElement.tabIndex = 0;
+EXPLORER_rootElement.style.height = '100%';
+
+const EXPLORER_scroll_viewport = document.createElement('div');
+EXPLORER_scroll_viewport.id = 'EXPLORER_scroll_viewport';
+const EXPLORER_scrollbar_space_generator = document.createElement('div');
+EXPLORER_scrollbar_space_generator.id = 'EXPLORER_scrollbar_space_generator';
+EXPLORER_scroll_viewport.appendChild(EXPLORER_scrollbar_space_generator);
+EXPLORER_rootElement.appendChild(EXPLORER_scroll_viewport);
+
+const EXPLORER_visual_canvas = document.createElement('div');
+EXPLORER_visual_canvas.id = 'EXPLORER_visual_canvas';
+const EXPLORER_text = document.createElement('div');
+EXPLORER_text.id = 'EXPLORER_text';
+EXPLORER_visual_canvas.appendChild(EXPLORER_text);
+EXPLORER_rootElement.appendChild(EXPLORER_visual_canvas);
+
+/** Consider the existence of such methods as 'state_cursor_setIndex' before mutating state directly */
+const EXPLORER_cursorElement = document.createElement('div');
+EXPLORER_cursorElement.className = 'TREEVIEW_cursor';
+EXPLORER_text.appendChild(EXPLORER_cursorElement);
+
+const EXPLORER_itemListElement = document.createElement('div');
+EXPLORER_itemListElement.className = 'TREEVIEW_itemList';
+EXPLORER_text.appendChild(EXPLORER_itemListElement);
+
+let EXPLORER_ringBuffer = [];
+
+let EXPLORER_draw_create_request_parentElement = null;
+let EXPLORER_draw_create_request_insertBeforeThisChild = null;
+
+let EXPLORER_itemHeightStyleAttributeValueString = '20px';
+
+let EXPLORER_SET_ITEMS_itemHeightStyleAttributeValueString = '';
+
+/////
+///// end treeViewComponent.js
+/////
+
+/** @type {string} */
+let EXPLORER_chosenDirectory = null;
+let EXPLORER_chosenDirectoryAbsolutePathId = -1;
+let EXPLORER_chosenWorkspace = -1;
+
+/**
+ * @type {TreeViewNodeList}
+ * */
+const EXPLORER_treeViewNodes = new TreeViewNodeList(32);
+
+/** Starting with an empty array so I can have undefined/null signify that the "TreeViewDirector" is "opting out" of this feature, thus the component should not allocate this on the "TreeViewDirector"'s behalf. */
+let EXPLORER_pullData_array = new Uint32Array(0);
+let EXPLORER_pullData_result = EXPLORER_pullData_array; // immediately allocated avoiding a null
+
+let EXPLORER_arrayEntries = null;
+
+// Google AI'd the bit logic
+// Configuration matching our table above
+//let EXPLORER_KEY_MASK = (1 << CONST_EXPLORER_KEY_BITS) - 1; // Binary: 00000000000000000000111111111111 (0xFFF)
+// end CONSTRUCTOR
+
+/** // Invoke this?: 'this.draw_render_fullReset_request();' */
+function EXPLORER_setChosenDirectory(chosenDirectory, chosenDirectoryAbsolutePathId) {
+    EXPLORER_chosenDirectory = chosenDirectory;
+    EXPLORER_chosenDirectoryAbsolutePathId = chosenDirectoryAbsolutePathId;
+
+    EXPLORER_treeViewNodes.clear();
+
+    if (!EXPLORER_chosenDirectory) return;
+
+    let nodeKind = TreeViewNodeKind_isExpandable_NOTisExpanded;
+    EXPLORER_treeViewNodes.insert(EXPLORER_treeViewNodes.count_abstract, nodeKind, EXPLORER_chosenDirectoryAbsolutePathId, 0);
+    INTS[fEXPLORER_itemHeightTotal] = EXPLORER_treeViewNodes.count_abstract * INTS[fEXPLORER_itemHeightNumber];
+    EXPLORER_scrollbar_space_generator.style.height = INTS[fEXPLORER_itemHeightTotal] + 'px';
+}
+
+/** // Invoke this?: 'this.draw_render_fullReset_request();' */
+function EXPLORER_setChosenWorkspace(chooseWorkspaceResult) {
+    EXPLORER_chosenWorkspace = chooseWorkspaceResult.workspaceFileAbsolutePath;
+
+    if (EXPLORER_chosenWorkspace === "C:\\Users\\hunte\\Repos\\New folder (7)\\Editor2.code-workspace") {
+        // enable experimental behavior only if the path matches my own.
+        // This is not 100% fool proof but for my temporary use case it is likely 100% secure
+        // given the extremely small amount of people running the code i.e.: maybe I'm the only one that even runs this code I don't know.
+        // Nevertheless for this sample size this statistically I imagine approaches 100% security.
+        shouldUseCSharpToSaveFileWhenPossible = true;
+    }
+
+    EXPLORER_treeViewNodes.clear();
+
+    if (!EXPLORER_chosenWorkspace) return;
+
+    for (let i = 0; i < chooseWorkspaceResult.directories.length; i++) {
+        let directory = chooseWorkspaceResult.directories[i];
+        let nodeKind = TreeViewNodeKind_isExpandable_NOTisExpanded;
+        EXPLORER_treeViewNodes.insert(EXPLORER_treeViewNodes.count_abstract, nodeKind, directory.id, 0);
+    }
+
+    INTS[fEXPLORER_itemHeightTotal] = EXPLORER_treeViewNodes.count_abstract * INTS[fEXPLORER_itemHeightNumber];
+    EXPLORER_scrollbar_space_generator.style.height = INTS[fEXPLORER_itemHeightTotal] + 'px';
+}
+
+function EXPLORER_drawItem_BATCH_trailingEdge() {
+    BYTES[byteEXPLORER_isCheckingTrailingEdge] = 0;
+    if (BYTES[byteEXPLORER_scrollIsFetchingData] === 0) {
+        BYTES[byteEXPLORER_scrollIsFetchingData] = 1;
+        EXPLORER_drawItem_BATCH_pullData(); // no await
+    }
+}
+
+/** 
+ * @param {number} caseThreeOrigin if left undefined or (falsey but not 0), this will default to 'INTS[fEXPLORER_ringBufferIndexZero]'
+ */
+function EXPLORER_drawItem_BATCH(start, length, onePositiveDiff_twoNegativeDiff_orThreeFullScreen, caseThreeOrigin) {
+
+    clearTimeout(INTS[fEXPLORER_render_do_ScrollTrailingEdgeCheckTimeoutId]);
+    INTS[fEXPLORER_render_do_ScrollTrailingEdgeCheckTimeoutId] = setTimeout(EXPLORER_drawItem_BATCH_trailingEdge, 200);
+
+    let upperBound = start + length;
+    let totalCount = EXPLORER_treeViewNodes.count_abstract;
+    let loopCounter = 0;
+
+    let lastIndex = (INTS[fEXPLORER_ringBufferIndexZero] - 1 + INTS[fEXPLORER_virtualCount]) % INTS[fEXPLORER_virtualCount]; // TODO: 'INTS[fEXPLORER_virtualCount]' or 'EXPLORER_ringBuffer.length'
+
+    let loopTotalIterations = upperBound - start;
+
+    let caseTwoDivIndex = (lastIndex - (loopTotalIterations - 1) + INTS[fEXPLORER_ringBuffer_length]) % INTS[fEXPLORER_ringBuffer_length];
+
+    let verticalStyleNumber = start * INTS[fEXPLORER_itemHeightNumber];
+
+    if (!caseThreeOrigin && caseThreeOrigin !== 0) {
+        caseThreeOrigin = INTS[fEXPLORER_ringBufferIndexZero];
+    }
+    if (caseThreeOrigin < 0 || caseThreeOrigin >= INTS[fEXPLORER_ringBuffer_length]) {
+        throw new RangeError();
+    }
+
+    for (var indexItem = start; indexItem < upperBound; indexItem++) {
+
+        let depth = 0;
+        let nodeKind = TreeViewNodeKind_NOTisExpandable_NOTisExpanded;
+
+        let divItem;
+        let divIndex;
+
+        switch (onePositiveDiff_twoNegativeDiff_orThreeFullScreen) {
+            case 1:
+                divIndex = (INTS[fEXPLORER_ringBufferIndexZero] + loopCounter) % INTS[fEXPLORER_ringBuffer_length];
+                break;
+            case 2:
+                divIndex = (caseTwoDivIndex++) % INTS[fEXPLORER_ringBuffer_length];
+                break;
+            case 3:
+                divIndex = (caseThreeOrigin + loopCounter) % INTS[fEXPLORER_ringBuffer_length];
+                break;
+        }
+        divItem = EXPLORER_ringBuffer[divIndex];
+
+        const textNode = divItem.firstChild;
+
+        if (indexItem >= totalCount) {
+            textNode.replaceData(1, textNode.length - 1, '~');
+            divItem.title = ''; // TODO: Optimized title setting?
+        }
+        else {
+            EXPLORER_treeViewNodes.getElementAt(indexItem);
+            depth = INTS[fTreeView_poolret_pooledNode_depth];
+            nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+            
+            //let entry = arrayEntries[loopCounter];
+            textNode.replaceData(1, textNode.length - 1, '...');//entry.basename;
+            divItem.title = '...';//entry.absolutePath;
+            divItem.className = 'tvnN';
+
+            //let isDirectory = nodeKind === TreeViewNodeKind_isExpandable_isExpanded ||
+            //                  nodeKind === TreeViewNodeKind_isExpandable_NOTisExpanded;
+            //
+            //if (false /*isDirectory*/ /*&& !entry.isDirectory*/) {
+            //    // A file was deleted then a directory was created with same absolute file path or vice versa.
+            //    EXPLORER_treeViewNodes.setNodeKind(indexItem, TreeViewNodeKind_NOTisExpandable_NOTisExpanded);
+            //    nodeKind = TreeViewNodeKind_NOTisExpandable_NOTisExpanded;
+            //}
+        }
+        
+        switch (nodeKind) {
+            case TreeViewNodeKind_isExpandable_isExpanded:
+                textNode.replaceData(0, 1, '-');
+                break;
+            case TreeViewNodeKind_isExpandable_NOTisExpanded:
+                textNode.replaceData(0, 1, '+');
+                break;
+            case TreeViewNodeKind_NOTisExpandable_isExpanded:
+                textNode.replaceData(0, 1, ' ');
+                break;
+            case TreeViewNodeKind_NOTisExpandable_NOTisExpanded:
+                textNode.replaceData(0, 1, ' ');
+                break;
+        }
+
+        // TODO: predict this when expanding/collapsing?????
+        if (depth > INTS[fEXPLORER_LARGEST_DEPTH_SEEN_NOT_THE_CSS_JUST_THE_DEPTH]) {
+            INTS[fEXPLORER_LARGEST_DEPTH_SEEN_NOT_THE_CSS_JUST_THE_DEPTH] = depth;
+        }
+
+        divItem.style.transform = `translate(${CONST_EXPLORER_offsetPerDepth * depth}px, ${verticalStyleNumber}px)`;
+        verticalStyleNumber += INTS[fEXPLORER_itemHeightNumber];
+
+        loopCounter++;
+    }
+
+    if (onePositiveDiff_twoNegativeDiff_orThreeFullScreen === 1) {
+        INTS[fEXPLORER_ringBufferIndexZero] = (INTS[fEXPLORER_ringBufferIndexZero] + loopCounter) % INTS[fEXPLORER_ringBuffer_length];
+    }
+    else if (onePositiveDiff_twoNegativeDiff_orThreeFullScreen === 2) {
+        INTS[fEXPLORER_ringBufferIndexZero] = (lastIndex - (loopTotalIterations - 1) + INTS[fEXPLORER_ringBuffer_length]) % INTS[fEXPLORER_ringBuffer_length];
+    }
+}
+
+async function EXPLORER_drawItem_BATCH_pullData() {
+    INTS[fEXPLORER_scrollFetchData_virtualIndex] = INTS[fEXPLORER_ONSCROLLvirtualIndex];
+    INTS[fEXPLORER_scrollFetchData_virtualCount] = INTS[fEXPLORER_ONSCROLLvirtualCount];
+    INTS[fEXPLORER_scrollFetchData_ringBufferIndexZero] = INTS[fEXPLORER_ringBufferIndexZero];
+
+    // This isn't the most optimal way of doing things.
+    //
+    let localEXPLORER_ringBuffer = EXPLORER_ringBuffer;
+    let localRingBufferLength = INTS[fEXPLORER_ringBuffer_length];
+
+    INTS[fEXPLORER_pullData_array_count] = 0;
+
+    // See comment "Awkward explicit inlining of 'EXPLORER_indexItemTo_ringBufferIndexItem'" for more information.
+    let ringBufferIndex_current = ((INTS[fEXPLORER_scrollFetchData_virtualIndex])) - INTS[fEXPLORER_virtualIndex_ofScrollTop];
+    if (ringBufferIndex_current >= INTS[fEXPLORER_ringBuffer_length] || ringBufferIndex_current < 0) ringBufferIndex_current = -1;
+    else ringBufferIndex_current = (ringBufferIndex_current + INTS[fEXPLORER_ringBufferIndexZero]) % INTS[fEXPLORER_virtualCount];
+
+    for (let i = 0; i < localRingBufferLength; i++) {
+
+        if (localEXPLORER_ringBuffer[ringBufferIndex_current].className === 'tvnN') {
+            let indexItem = INTS[fEXPLORER_scrollFetchData_virtualIndex] + i;
+            
+            // The index of the actual dom element within EXPLORER_itemListElement.children
+            // that is displaying the UI representation of what 'indexItem' points to.
+            let indexRingBuffer = ringBufferIndex_current;
+
+            EXPLORER_pullData_array[INTS[fEXPLORER_pullData_array_count]++] = ((indexRingBuffer << CONST_EXPLORER_KEY_BITS) | EXPLORER_treeViewNodes.getKey(indexItem));
+        }
+
+        ringBufferIndex_current = (ringBufferIndex_current + 1) % localRingBufferLength;
+    }
+
+    EXPLORER_arrayEntries = await window.myAPI.getFilesystemEntryById_ARRAY(EXPLORER_pullData_array.subarray(0, INTS[fEXPLORER_pullData_array_count]));
+
+    EXPLORER_pullData_result = EXPLORER_pullData_array;
+    INTS[fEXPLORER_pullData_result_count] = INTS[fEXPLORER_pullData_array_count];
+
+    BYTES[byteEXPLORER_scrollIsFetchingData] = 0; // TODO: try/catch/finally; put this in the finally.
+
+    EXPLORER_render_request(TREEVIEWrenderKind_Scroll_PullDataDrawResult);
+}
+
+function EXPLORER_drawItem_BATCH_PullDataDrawResult() {
+    if (INTS[fEXPLORER_scrollFetchData_virtualIndex] === INTS[fEXPLORER_ONSCROLLvirtualIndex] &&
+        INTS[fEXPLORER_scrollFetchData_virtualCount] === INTS[fEXPLORER_ONSCROLLvirtualCount] &&
+        INTS[fEXPLORER_scrollFetchData_ringBufferIndexZero] === INTS[fEXPLORER_ringBufferIndexZero]) {
+
+        // This isn't the most optimal way of doing things.
+        //
+        let itemListElement_children = EXPLORER_ringBuffer;
+        let itemListElement_childrenLength = INTS[fEXPLORER_ringBuffer_length];
+
+        let currentWIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING = INTS[fEXPLORER_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING];
+        let NEXT_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING = currentWIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING;
+
+        for (let i = 0; i < INTS[fEXPLORER_pullData_result_count]; i++) {
+            let packedInteger = EXPLORER_pullData_result[i];
+            const ringBufferIndexItem = packedInteger >> CONST_EXPLORER_KEY_BITS;
+
+            let nodeElement = itemListElement_children[ringBufferIndexItem];
+            nodeElement.className = 'tvn';
+            let textNode = nodeElement.firstChild;
+            let entry = EXPLORER_arrayEntries[i];
+            textNode.replaceData(1, textNode.length - 1, entry.basename);
+            nodeElement.title = entry.absolutePath;
+
+            // TODO: Reduce drawn width under some circumstance too
+            if (entry.basename.length > NEXT_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING) {
+                NEXT_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING = entry.basename.length;
+            }
+        }
+
+        if (NEXT_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING > currentWIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING) {
+            INTS[fEXPLORER_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING] = NEXT_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING;
+            let widthAttributeValueNumber = Math.ceil(((INTS[fEXPLORER_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING] + 2/*padding*/) * INTS[fEXPLORER_firstSpanWidthValue]) + CONST_EXPLORER_offsetPerDepth * INTS[fEXPLORER_LARGEST_DEPTH_SEEN_NOT_THE_CSS_JUST_THE_DEPTH]);
+
+            // This is actually more complicated you have to track whether you go above the minimum requirement lest you add 1 character over and over in width just to keep redrawing widths.
+            //if (widthAttributeValueNumber < INTS[fEXPLORER_lastReadNumber_offsetWidth]) {
+            //    widthAttributeValueNumber = INTS[fEXPLORER_lastReadNumber_offsetWidth];
+            //}
+            //INTS[fEXPLORER_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING]
+            let widthAttributeValueString = widthAttributeValueNumber + 'px';
+            EXPLORER_cursorElement.style.width = widthAttributeValueString;
+            for (let i = 0; i < itemListElement_childrenLength; i++) {
+                itemListElement_children[i].style.width = widthAttributeValueString;
+            }
+
+            EXPLORER_scrollbar_space_generator.style.width = widthAttributeValueString;
+        }
+
+        EXPLORER_pullData_result = null;
+        EXPLORER_arrayEntries = null;
+    }
+}
+
+/**
+ * Not every key invokes this. 
+ */
+async function EXPLORER_onkeydown(divItem, indexItem, eventKey) {
+    switch (eventKey) {
+        case ' ':
+        case 'Enter':
+            EXPLORER_treeViewNodes.getElementAt(indexItem);
+            let key = INTS[fTreeView_poolret_pooledNode_key];
+            let depth = INTS[fTreeView_poolret_pooledNode_depth];
+            let nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+            if (nodeKind === TreeViewNodeKind_NOTisExpandable_NOTisExpanded) {
+                // TODO: open the file by id in one ipc call
+                const entry = await window.myAPI.getFilesystemEntryById(key);
+                if (!entry) return;
+    
+                if (!entry.isDirectory) {
+                    let shouldFocus;
+                    if (eventKey === ' ') {
+                        shouldFocus = false;
+                    }
+                    else if (eventKey === 'Enter') {
+                        shouldFocus = true;
+                    }
+                    await EXPLORER_openInEditor(entry.absolutePath, shouldFocus);
+                }
+            }
+            break;
+    }
+}
+
+async function EXPLORER_ondblclick(divItem, indexItem) {
+    EXPLORER_treeViewNodes.getElementAt(indexItem);
+    let key = INTS[fTreeView_poolret_pooledNode_key];
+    let nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+
+    if (nodeKind === TreeViewNodeKind_NOTisExpandable_NOTisExpanded) {
+        // TODO: open the file by id in one ipc call
+        const entry = await window.myAPI.getFilesystemEntryById(key);
+        if (!entry) return;
+
+        if (!entry.isDirectory) {
+            await EXPLORER_openInEditor(entry.absolutePath, /*shouldFocus*/ true);
+        }
+    }
+}
+
+function EXPLORER_oncontextmenu(divItem, indexItem, event_button, event_clientX, event_clientY, relativeIndex) {
+    let optionList = [
+        MENU_MenuOption_factory(CommandKind_Copy, 'Copy'),
+        MENU_MenuOption_factory(CommandKind_CopyAbsolutePath, 'Copy Absolute Path'),
+    ];
+
+    EXPLORER_ensure_boundingClientRect();
+
+    // TODO: !!!! You might need to be careful with async and the TreeView_pooledNode; I'm not certain whether you do or don't have to be careful, and I don't feel like looking into it at the moment.
+    EXPLORER_treeViewNodes.getElementAt(indexItem);
+    let key = INTS[fTreeView_poolret_pooledNode_key];
+    let depth = INTS[fTreeView_poolret_pooledNode_depth];
+    let nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+
+    let target = {
+        id: key,
+        depth: depth,
+        nodeKind: nodeKind,
+        indexItem: indexItem,
+        divRelativeIndex: relativeIndex,
+    };
+
+    let left = 0;
+    let top = 0;
+
+    if (event_button === 2) {
+        EXPLORER_addSpecificMenuOptionsForTarget(optionList, divItem, target);
+        left = INTS[fEXPLORER_menuOptionX] = event_clientX;
+        top = INTS[fEXPLORER_menuOptionY] = event_clientY;
+    }
+    else {
+        EXPLORER_addSpecificMenuOptionsForTarget(optionList, divItem, target);
+        left = INTS[fEXPLORER_menuOptionX]=INTS[fEXPLORER_boundingClientRect_left];
+        top = INTS[fEXPLORER_menuOptionY] = (INTS[fEXPLORER_boundingClientRect_top] + ((INTS[fEXPLORER_cursorIndex] + 1) * INTS[fEXPLORER_itemHeightNumber]) - INTS[fEXPLORER_lastReadNumber_scrollTop]);
+    }
+
+    menuSet(optionList, left, top, EXPLORER_MenuOnClick, target, /*elementToFocusOnCompleted*/ null, /*disableFocusOnCompleted*/ false, /*index*/ 0);
+}
+
+/**
+ * TODO: To detect whether the "expand/collapse icon" was clicked, the logic 'if(event.target === nodeElement.children[0])' is used...
+ * ...this logic is flawed if one ever were to put an element within the span that became the target...
+ * ...thus, you should consider checking the x position of the event against the x position of the nodeElement.children[0].
+ * @param {*} event 
+ */
+async function EXPLORER_expandCollapseIconWasClicked(divItem, indexItem, ringBufferIndexItem) {
+    // TODO: !!!! You might need to be careful with async and the TreeView_pooledNode; I'm not certain whether you do or don't have to be careful, and I don't feel like looking into it at the moment.
+    EXPLORER_treeViewNodes.getElementAt(indexItem);
+    const key = INTS[fTreeView_poolret_pooledNode_key];
+    const depth = INTS[fTreeView_poolret_pooledNode_depth];
+    const nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+
+    // It isn't fully working
+    // I got a case to break when I collapsed while scroll top > 0
+    // and then the collapse causes a scroll at the same time I click the chevron.
+    //
+    // I think specifically the collapse has to make the content smaller than "scrollHeight?"
+    // and then the browser forces scroll top to 0 as a result.
+    //
+    // I'll put scrollHeight in quotes cause I'm iffy on whether I wanna say scrollHeight or the viewable height of the UI in question or like
+    // idk I'm tired but that's what I can confirm isn't working.
+
+    if (nodeKind === TreeViewNodeKind_isExpandable_NOTisExpanded) {
+
+        divItem.firstChild.replaceData(0, 1, '-');
+        EXPLORER_treeViewNodes.setNodeKind(indexItem, TreeViewNodeKind_isExpandable_isExpanded);
+
+        const childFilesystemEntries = await window.myAPI.getFilesystemEntries_argumentIsId(key);
+        const insertionCount = childFilesystemEntries.length;
+        if (insertionCount === 0) { return; }
+
+        for (let i = 0; i < insertionCount; i++) {
+            const entry = childFilesystemEntries[i];
+            const nodeKind = entry.isDirectory
+                ? TreeViewNodeKind_isExpandable_NOTisExpanded
+                : TreeViewNodeKind_NOTisExpandable_NOTisExpanded;
+            // TODO: Insert range, or at the least 'pre-emptively' resize the list so that it fits each insertion without resizing per insertion.
+            EXPLORER_treeViewNodes.insert(indexItem + 1 + i, nodeKind, entry.id, depth + 1);
+        }
+
+        INTS[fEXPLORER_itemHeightTotal] = EXPLORER_treeViewNodes.count_abstract * INTS[fEXPLORER_itemHeightNumber];
+        EXPLORER_scrollbar_space_generator.style.height = INTS[fEXPLORER_itemHeightTotal] + 'px';
+
+        const final_ringBufferIndexItem = get_final_ringBufferIndexItem();
+
+        // This case doesn't make sense, it means the virtualCount === 0
+        if (final_ringBufferIndexItem < 0) { EXPLORER_draw_render_fullReset_request(); return; }
+        // you can just "do nothing" so to speak (you need to "update the scrollbar" still / etc...) and you've already "update the scrollbar"ed so you just return.
+        if (ringBufferIndexItem === final_ringBufferIndexItem) { return; }
+
+        // If insertion count completely shifts visible TreeViewNodes that exist under the expanded TreeViewNode off screen you can just redraw every node below the one that was expanded.
+        // TODO: determine a more optimized way to calculate this than just looping over and over.
+        let availableRingBufferNodesVisuallyAfterExpandedOne = 0;
+        for (let n_index = ringBufferIndexItem;;) {
+            availableRingBufferNodesVisuallyAfterExpandedOne++;
+            n_index = n_index + 1;
+            if (n_index >= INTS[fEXPLORER_virtualCount]) {
+                n_index -= INTS[fEXPLORER_virtualCount];
+            }
+            if (n_index === final_ringBufferIndexItem) {
+                break;
+            }
+        }
+
+        const next_ringBufferIndex = ringBufferIndexItem + 1;
+        if (next_ringBufferIndex >= INTS[fEXPLORER_virtualCount]) {
+            next_ringBufferIndex -= INTS[fEXPLORER_virtualCount];
+        }
+
+        if (insertionCount >= availableRingBufferNodesVisuallyAfterExpandedOne) {
+            EXPLORER_draw_BATCH_request(indexItem + 1, availableRingBufferNodesVisuallyAfterExpandedOne, 3, next_ringBufferIndex);
+        }
+        else {
+            const final_indexItem = indexItem + availableRingBufferNodesVisuallyAfterExpandedOne; // TODO: This is a weird way to get the 'final_indexItem'
+            handleRingBufferNodesThatAreOffscreen_expand(final_ringBufferIndexItem, final_indexItem, indexItem, ringBufferIndexItem, insertionCount);
+            EXPLORER_draw_BATCH_request(indexItem + 1, insertionCount, 3, next_ringBufferIndex);
+        }
+    }
+    else if (nodeKind === TreeViewNodeKind_isExpandable_isExpanded) {
+
+        divItem.firstChild.replaceData(0, 1, '+');
+        EXPLORER_treeViewNodes.setNodeKind(indexItem, TreeViewNodeKind_isExpandable_NOTisExpanded);
+
+        let countChildren = 0;
+        for (let i = indexItem + 1; i < EXPLORER_treeViewNodes.count_abstract; i++) {
+            // If currentDepth < ithElementDepth; // then current is a parent of ithElement.
+            if (depth < EXPLORER_treeViewNodes.getDepth(i)) {
+                countChildren++;
+            }
+            else {
+                break;
+            }
+        }
+
+        if (countChildren === 0) { return; }
+
+        EXPLORER_treeViewNodes.removeAt(indexItem + 1, countChildren);
+        INTS[fEXPLORER_itemHeightTotal] = EXPLORER_treeViewNodes.count_abstract * INTS[fEXPLORER_itemHeightNumber];
+        EXPLORER_scrollbar_space_generator.style.height = INTS[fEXPLORER_itemHeightTotal] + 'px';
+
+        const final_ringBufferIndexItem = get_final_ringBufferIndexItem();
+
+        // This case doesn't make sense, it means the virtualCount === 0
+        if (final_ringBufferIndexItem < 0) { EXPLORER_draw_render_fullReset_request(); return; }
+        // you can just "do nothing" so to speak (you need to "update the scrollbar" still / etc...) and you've already "update the scrollbar"ed so you just return.
+        if (ringBufferIndexItem === final_ringBufferIndexItem) { return; }
+
+        let availableRingBufferNodesVisuallyAfterCollapsedOne = 0;
+        for (let n_index = ringBufferIndexItem;;) {
+            availableRingBufferNodesVisuallyAfterCollapsedOne++;
+            n_index = n_index + 1;
+            if (n_index >= INTS[fEXPLORER_virtualCount]) {
+                n_index -= INTS[fEXPLORER_virtualCount];
+            }
+            if (n_index === final_ringBufferIndexItem) {
+                break;
+            }
+        }
+
+        if (countChildren >= availableRingBufferNodesVisuallyAfterCollapsedOne) {
+            const next_ringBufferIndex = ringBufferIndexItem + 1;
+            if (next_ringBufferIndex >= INTS[fEXPLORER_virtualCount]) {
+                next_ringBufferIndex -= INTS[fEXPLORER_virtualCount];
+            }
+
+            EXPLORER_draw_BATCH_request(indexItem + 1, availableRingBufferNodesVisuallyAfterCollapsedOne, 3, next_ringBufferIndex);
+        }
+        else {
+            handleRingBufferNodesThatAreOffscreen_collapse(final_ringBufferIndexItem, indexItem, ringBufferIndexItem, countChildren, availableRingBufferNodesVisuallyAfterCollapsedOne);
+
+            let recycled_itemIndex = indexItem;
+            let recycled_ringBufferIndex = ringBufferIndexItem;
+            const displaced_count = availableRingBufferNodesVisuallyAfterCollapsedOne - countChildren;
+            // TODO: calculate the earliest displaced node faster than just "looping a minus 1 over and over"
+            for (let i = 0; i < (displaced_count + 1); i++) {
+                recycled_itemIndex++;
+                recycled_ringBufferIndex++;
+                if (recycled_ringBufferIndex >= INTS[fEXPLORER_virtualCount]) {
+                    recycled_ringBufferIndex -= INTS[fEXPLORER_virtualCount];
+                }
+            }
+
+            EXPLORER_draw_BATCH_request(recycled_itemIndex, countChildren, 3, recycled_ringBufferIndex);
+        }
+    }
+}
+
+function handleRingBufferNodesThatAreOffscreen_collapse(final_ringBufferIndex, indexItem_of_collapsed_node, ringBufferIndex_of_collapsed_node, recycleCount, availableRingBufferNodesVisuallyAfterCollapsedOne) {
+    let displaced_itemIndex = indexItem_of_collapsed_node;
+    let displaced_ringBufferIndex = ringBufferIndex_of_collapsed_node;
+    // TODO: calculate the earliest displaced node faster than just "looping a minus 1 over and over"
+    for (let i = 0; i < (recycleCount + 1); i++) {
+        displaced_itemIndex++;
+        displaced_ringBufferIndex++;
+        if (displaced_ringBufferIndex >= INTS[fEXPLORER_virtualCount]) {
+            displaced_ringBufferIndex -= INTS[fEXPLORER_virtualCount];
+        }
+    }
+
+    let recycle_itemIndex = indexItem_of_collapsed_node + 1;
+    let recycle_ringBufferIndex = ringBufferIndex_of_collapsed_node + 1;
+    if (recycle_ringBufferIndex >= INTS[fEXPLORER_virtualCount]) {
+        recycle_ringBufferIndex -= INTS[fEXPLORER_virtualCount]
+    }
+
+    // 3. Perform a block rotation via triple-reversal 
+    // This repositions all 'recycle(s)' and 'displaced(s)' in O(N) operations total, discarding the nested loops
+    
+    const inclusive_earliest_recycle_ringBufferIndex = recycle_ringBufferIndex;
+
+    const end_of_recycle_block = displaced_ringBufferIndex - 1;
+    if (end_of_recycle_block < 0) {
+        end_of_recycle_block = INTS[fEXPLORER_virtualCount] - 1;
+    }
+
+    const endOfDisplacedBlock = final_ringBufferIndex;
+
+    EXPLORER_reverseBufferSegment(inclusive_earliest_recycle_ringBufferIndex, end_of_recycle_block); // Reverse Recycle(s)
+    EXPLORER_reverseBufferSegment(displaced_ringBufferIndex, endOfDisplacedBlock);                   // Reverse Displaced(s)
+    EXPLORER_reverseBufferSegment(recycle_ringBufferIndex, endOfDisplacedBlock);                     // Reverse entire window
+
+    // The 'recycles' will be drawn with their text, depth, and translateY immediately after this function so you can skip them.
+    // Since everything was reversed in earlier steps this is the way to do exactly that.
+    displaced_ringBufferIndex = recycle_ringBufferIndex;
+    displaced_itemIndex = recycle_itemIndex;
+
+    const displacedCount = availableRingBufferNodesVisuallyAfterCollapsedOne - recycleCount;
+
+    for (let i = 0; i < displacedCount; i++) {
+        let depth = 0;
+        if (displaced_itemIndex < EXPLORER_treeViewNodes.count_abstract) {
+            depth = EXPLORER_treeViewNodes.getDepth(displaced_itemIndex);
+        }
+
+        EXPLORER_ringBuffer[displaced_ringBufferIndex].style.transform = `translate(${CONST_EXPLORER_offsetPerDepth * depth}px, ${INTS[fEXPLORER_itemHeightNumber] * displaced_itemIndex}px)`;
+
+        displaced_itemIndex++;
+
+        displaced_ringBufferIndex++;
+        if (displaced_ringBufferIndex >= INTS[fEXPLORER_virtualCount]) {
+            displaced_ringBufferIndex -= INTS[fEXPLORER_virtualCount]
+        }
+    }
+}
+
+function handleRingBufferNodesThatAreOffscreen_expand(final_ringBufferIndex, final_indexItem, indexItem_of_expanded_node, ringBufferIndex_of_expanded_node, recycleCount) {
+    let displaced_itemIndex = indexItem_of_expanded_node + 1;
+    let displaced_ringBufferIndex = ringBufferIndex_of_expanded_node + 1;
+    if (displaced_ringBufferIndex >= INTS[fEXPLORER_virtualCount]) {
+        displaced_ringBufferIndex -= INTS[fEXPLORER_virtualCount];
+    }
+
+    // TODO: calculate the earliest recycled node faster than just "looping a minus 1 over and over"
+    let recycle_itemIndex = final_indexItem;
+    let recycle_ringBufferIndex = final_ringBufferIndex;
+    for (let i = 1/* start at 1 so you skip a loop */; i < recycleCount; i++) {
+        recycle_itemIndex--;
+        recycle_ringBufferIndex--;
+        if (recycle_ringBufferIndex < 0) {
+            recycle_ringBufferIndex = INTS[fEXPLORER_virtualCount] - 1;
+        }
+    }
+
+    const inclusive_earliest_recycle_ringBufferIndex = recycle_ringBufferIndex;
+
+    // 3. Perform a block rotation via triple-reversal 
+    // This repositions all 'displaced(s)' and 'recycle(s)' in O(N) operations total, discarding the nested loops
+    const end_of_recycle_block = final_ringBufferIndex;
+    
+    const endOfDisplacedBlock = inclusive_earliest_recycle_ringBufferIndex - 1;
+    if (endOfDisplacedBlock < 0) {
+        endOfDisplacedBlock = INTS[fEXPLORER_virtualCount] - 1;
+    }
+
+    EXPLORER_reverseBufferSegment(displaced_ringBufferIndex, endOfDisplacedBlock);                   // Reverse Displaced(s)
+    EXPLORER_reverseBufferSegment(inclusive_earliest_recycle_ringBufferIndex, end_of_recycle_block); // Reverse Recycle(s)
+    EXPLORER_reverseBufferSegment(displaced_ringBufferIndex, end_of_recycle_block);                  // Reverse entire window
+
+    // The 'recycles' will be drawn with their text, depth, and translateY immediately after this function so you can skip them.
+    // Since everything was reversed in earlier steps this is the way to do exactly that.
+    for (let i = 0; i < recycleCount; i++) {
+        displaced_ringBufferIndex++;
+        if (displaced_ringBufferIndex >= INTS[fEXPLORER_virtualCount]) {
+            displaced_ringBufferIndex -= INTS[fEXPLORER_virtualCount]
+        }
+        displaced_itemIndex++;
+    }
+
+    for (;;) {
+        let depth = 0;
+        if (displaced_itemIndex < EXPLORER_treeViewNodes.count_abstract) {
+            depth = EXPLORER_treeViewNodes.getDepth(displaced_itemIndex);
+        }
+
+        EXPLORER_ringBuffer[displaced_ringBufferIndex].style.transform = `translate(${CONST_EXPLORER_offsetPerDepth * depth}px, ${INTS[fEXPLORER_itemHeightNumber] * displaced_itemIndex}px)`;
+
+        if (displaced_ringBufferIndex === final_ringBufferIndex) {
+            break;
+        }
+
+        displaced_itemIndex++;
+
+        displaced_ringBufferIndex++;
+        if (displaced_ringBufferIndex >= INTS[fEXPLORER_virtualCount]) {
+            displaced_ringBufferIndex -= INTS[fEXPLORER_virtualCount]
+        }
+    }
+}
+
+// Helper to reverse a segment inside the ring buffer in-place
+// This allows us to perform block rotations without element-by-element shifting loops
+function EXPLORER_reverseBufferSegment(start, end) {
+    let left = start;
+    let right = end;
+    while (left !== right) {
+        const temp = EXPLORER_ringBuffer[left];
+        EXPLORER_ringBuffer[left] = EXPLORER_ringBuffer[right];
+        EXPLORER_ringBuffer[right] = temp;
+
+        if (left === right) break;
+        left++;
+        if (left >= INTS[fEXPLORER_virtualCount]) {
+            left -= INTS[fEXPLORER_virtualCount]
+        }
+
+        if (left === right) break;
+        right--;
+        if (right < 0) {
+            right = INTS[fEXPLORER_virtualCount] - 1;
+        }
+    }
+}
+
+function get_final_ringBufferIndexItem() {
+    // See comment "Awkward explicit inlining of 'EXPLORER_indexItemTo_ringBufferIndexItem'" for more information.
+    let final_ringBufferIndexItem = INTS[fEXPLORER_virtualCount] - 1;
+    if (final_ringBufferIndexItem >= INTS[fEXPLORER_ringBuffer_length] || final_ringBufferIndexItem < 0) final_ringBufferIndexItem = -1;
+    else final_ringBufferIndexItem = (final_ringBufferIndexItem + INTS[fEXPLORER_ringBufferIndexZero]) % INTS[fEXPLORER_virtualCount];
+    if (final_ringBufferIndexItem < 0) { return -1; }
+
+    return final_ringBufferIndexItem;
+}
+
+function EXPLORER_arrowRight(divItem, indexItem, ringBufferIndexItem) {
+    // TODO: !!!! You might need to be careful with async and the TreeView_pooledNode; I'm not certain whether you do or don't have to be careful, and I don't feel like looking into it at the moment.
+    EXPLORER_treeViewNodes.getElementAt(indexItem);
+    let depth = INTS[fTreeView_poolret_pooledNode_depth];
+    let nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+    
+    if (nodeKind === TreeViewNodeKind_isExpandable_isExpanded) {
+        if (indexItem + 1 < EXPLORER_treeViewNodes.count_abstract) {
+            if (EXPLORER_treeViewNodes.getDepth(indexItem + 1) > depth) {
+                EXPLORER_state_cursor_setIndex(EXPLORER_state_cursor_validateIndex(
+                    INTS[fEXPLORER_cursorIndex] + 1));
+            }
+        }
+    }
+    else if (nodeKind === TreeViewNodeKind_isExpandable_NOTisExpanded) {
+        return EXPLORER_expandCollapseIconWasClicked(divItem, indexItem, ringBufferIndexItem);
+    }
+
+    return Promise.resolve();
+}
+
+function EXPLORER_arrowLeft(divItem, indexItem, ringBufferIndexItem) {
+    // TODO: !!!! You might need to be careful with async and the TreeView_pooledNode; I'm not certain whether you do or don't have to be careful, and I don't feel like looking into it at the moment.
+    EXPLORER_treeViewNodes.getElementAt(indexItem);
+    let depth = INTS[fTreeView_poolret_pooledNode_depth];
+    let nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+    
+    if (nodeKind === TreeViewNodeKind_isExpandable_isExpanded) {
+        return EXPLORER_expandCollapseIconWasClicked(divItem, indexItem, ringBufferIndexItem);
+    }
+    else {
+        let distanceToParent = 0;
+        for (let i = indexItem - 1; i >= 0; i--) {
+            // If ithElementDepth < currentDepth; // then ithElement is the parent of current.
+            if (EXPLORER_treeViewNodes.getDepth(i) < depth) {
+                distanceToParent++;
+                break;
+            }
+            else {
+                distanceToParent++;
+            }
+        }
+        if (distanceToParent > 0) {
+            EXPLORER_state_cursor_setIndex(EXPLORER_state_cursor_validateIndex(
+                indexItem - distanceToParent));
+        }
+    }
+
+    return Promise.resolve();
+}
+
+/**
+ * This method should only pertain itself with the contents of the flat list, any UI changes will be made based on the returned 'changeCount'
+ * which is interpreted as one for the item itself, plus the count of any children that were recursively removed.
+ * 
+ * TODO: Include the word "directory"?
+ * 
+ * @param {*} indexItem 
+ * @returns 
+ */
+function EXPLORER_removeFromNodeList(indexItem) {
+    EXPLORER_treeViewNodes.getElementAt(indexItem);
+    let depth = INTS[fTreeView_poolret_pooledNode_depth];
+    let nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+
+    if (nodeKind === TreeViewNodeKind_NOTisExpandable_isExpanded) {
+        alert("TODO: if (nodeKind === ...TreeViewNodeKind_NOTisExpandable_isExpanded())");
+        return;
+    }
+
+    let countChildren = 0;
+
+    if (nodeKind === TreeViewNodeKind_isExpandable_isExpanded) {
+        for (let i = indexItem + 1; i < EXPLORER_treeViewNodes.count_abstract; i++) {
+            // If currentDepth < ithElementDepth; then current is a parent of ithElement.
+            if (depth < EXPLORER_treeViewNodes.getDepth(i)) {
+                countChildren++;
+            }
+            else {
+                break;
+            }
+        }
+    }
+
+    EXPLORER_treeViewNodes.removeAt(indexItem, 1 + countChildren);
+    INTS[fEXPLORER_itemHeightTotal] = EXPLORER_treeViewNodes.count_abstract * INTS[fEXPLORER_itemHeightNumber];
+    EXPLORER_scrollbar_space_generator.style.height = INTS[fEXPLORER_itemHeightTotal] + 'px';
+    return 1 + countChildren;
+}
+
+/** TODO: any usage of this needs to respect the actual zeroth UI div not the literal. */
+function EXPLORER_setNodeListEntryId(indexItem, pathId) {
+    EXPLORER_treeViewNodes.setKey(indexItem, pathId);
+}
+
+function EXPLORER_addSpecificMenuOptionsForTarget(optionList, divItem, target) {
+    if (!divItem) return;
+
+    // check the "text icon": { '-', '+', '' }
+    if (target.nodeKind === TreeViewNodeKind_isExpandable_isExpanded ||
+        target.nodeKind === TreeViewNodeKind_isExpandable_NOTisExpanded) {
+        
+        // Directory
+        optionList.push(MENU_MenuOption_factory(CommandKind_NewFile_File, 'NewFile'));
+        optionList.push(MENU_MenuOption_factory(CommandKind_NewFile_Directory, 'NewDirectory'));
+        optionList.push(MENU_MenuOption_factory(CommandKind_DeleteFile_Directory, 'Delete'));
+        optionList.push(MENU_MenuOption_factory(CommandKind_RenameFile_Directory, 'Rename'));
+        optionList.push(MENU_MenuOption_factory(CommandKind_Paste, 'Paste'));
+        optionList.push(MENU_MenuOption_factory(CommandKind_Cut, 'Cut'));
+    }
+    else {
+        // File
+        optionList.push(MENU_MenuOption_factory(CommandKind_DeleteFile_File, 'Delete'));
+        optionList.push(MENU_MenuOption_factory(CommandKind_RenameFile_File, 'Rename'));
+        optionList.push(MENU_MenuOption_factory(CommandKind_Cut, 'Cut'));
+    }
+}
+
+function EXPLORER_render_request(renderKind) {
+    if (BYTES[byteEXPLORER_queueHead] !== BYTES[byteEXPLORER_queueTail]) {
+        const lastAbsoluteIndex = OFFSET_EXPLORER + ((BYTES[byteEXPLORER_queueTail] - 1) & UI_SLOT_MASK);
+        if (MASTER_RENDER_BUFFER[lastAbsoluteIndex] === renderKind) {
+            return;
+        }
+    }
+
+    const absoluteIndex = OFFSET_EXPLORER + (BYTES[byteEXPLORER_queueTail] & UI_SLOT_MASK);
+    MASTER_RENDER_BUFFER[absoluteIndex] = renderKind;
+    BYTES[byteEXPLORER_queueTail]++;
+    
+    if (BYTES[byteEXPLORER_isRenderPending] === 0) {
+        BYTES[byteEXPLORER_isRenderPending] = 1;
+        requestAnimationFrame(EXPLORER_render_do);
+    }
+}
+
+function EXPLORER_render_do() {
+    while (BYTES[byteEXPLORER_queueHead] !== BYTES[byteEXPLORER_queueTail]) {
+        // Uses the exact same masking logic, but reads from the higher memory region
+        const absoluteIndex = OFFSET_EXPLORER + (BYTES[byteEXPLORER_queueHead] & UI_SLOT_MASK);
+        const renderKind = MASTER_RENDER_BUFFER[absoluteIndex];
+        BYTES[byteEXPLORER_queueHead]++; 
+
+        switch (renderKind) {
+            case TREEVIEWrenderKind_Cursor:
+                EXPLORER_render_do_Cursor();
+                break;
+            case TREEVIEWrenderKind_Create:
+                EXPLORER_render_do_Create();
+                break;
+            case TREEVIEWrenderKind_Batch:
+                EXPLORER_render_do_Batch();
+                break;
+            case TREEVIEWrenderKind_Scroll:
+                EXPLORER_render_do_Scroll();
+                break;
+            case TREEVIEWrenderKind_Scroll_PullDataDrawResult:
+                EXPLORER_render_do_Scroll_PullDataDrawResult();
+                break;
+            case TREEVIEWrenderKind_SetItems:
+                EXPLORER_render_do_SetItems();
+                break;
+            case TREEVIEWrenderKind_FullReset:
+                EXPLORER_render_do_FullReset();
+                break;
+            case TREEVIEWrenderKind_Resize:
+                EXPLORER_render_do_Resize();
+                break;
+        }
+    }
+    BYTES[byteEXPLORER_isRenderPending] = 0;
+}
+
+/**
+ * TODO: Many of these suffer from two invocations sitting in the render queue with something between them so they didn't coallesce then the parameters
+ * of the second are used for the first.
+ */
+function EXPLORER_render_do_SetItems() {
+    EXPLORER_itemListElement.innerHTML = '';
+    EXPLORER_scrollbar_space_generator.style.height = 1 + 'px';
+    EXPLORER_state_cursor_setIndex(0);
+    
+    INTS[fEXPLORER_itemHeightNumber] = INTS[fEXPLORER_SET_ITEMS_itemHeightNumber];
+    EXPLORER_itemHeightStyleAttributeValueString = EXPLORER_SET_ITEMS_itemHeightStyleAttributeValueString;
+
+    EXPLORER_cursorElement.style.height = EXPLORER_itemHeightStyleAttributeValueString;
+    INTS[fEXPLORER_itemHeightTotal] = EXPLORER_treeViewNodes.count_abstract * INTS[fEXPLORER_itemHeightNumber];
+    EXPLORER_scrollbar_space_generator.style.height = INTS[fEXPLORER_itemHeightTotal] + 'px';
+    BYTES[byteEXPLORER_boundingClientRect_isValid] = 0;
+}
+
+/**
+ * @param {*} itemHeightNumber '50'; cursorTop = currentIndex * itemHeightNumber;
+ * @param {*} itemHeightStyleAttributeValueString '50px'; div.style.height = itemHeightStyleAttributeValueString;
+ */
+function EXPLORER_setItems(itemHeightNumber, itemHeightStyleAttributeValueString) {
+    INTS[fEXPLORER_SET_ITEMS_itemHeightNumber] = itemHeightNumber;
+    EXPLORER_SET_ITEMS_itemHeightStyleAttributeValueString = itemHeightStyleAttributeValueString;
+    EXPLORER_render_request(TREEVIEWrenderKind_SetItems);
+}
+
+function EXPLORER_render_do_Create() {
+    if (EXPLORER_rootElement.parentElement) {
+        // It is the case that I invoke 'draw_create_request' when creating the tree view for the first time.
+        // But I also do this when I re-open the os input file dialog and pick either a separate or the same folder.
+        // In this scenario having this invoke a "fullReset" is necessary otherwise nothing appears in the treeview.
+        //
+        // TODO: but, perhaps this is best left to the consumer of the TreeViewComponent to invoke themselves...
+        // ...in such a scenario. Until further decision is made I'll have the invocation here.
+        EXPLORER_render_do_FullReset();
+        // TODO: Should there be a return here?...
+        // ...more accurately the concern is 'TREEVIEW_draw_create_request_parentElement.insertBefore'
+        // and 'EXPLORER_draw_addEvents()'
+        // |
+        // Should those be in an else?
+        // It reads as though you'd be inserting the element twice, which internally you cannot
+        // have an HTML node with two parents so this probably doesn't duplicate the UI, but instead just wastes CPU.
+        // |
+        // The 'EXPLORER_draw_addEvents();'... can you subscribe twice?
+    }
+    EXPLORER_draw_create_request_parentElement.insertBefore(EXPLORER_rootElement, EXPLORER_draw_create_request_insertBeforeThisChild);
+    EXPLORER_draw_addEvents();
+
+    EXPLORER_measureBaseElement();
+
+    EXPLORER_render_do_Scroll();
+}
+
+/**
+ * if (this.rootElement.parentElement) { this.draw_render_fullReset_request(); return; }
+ * Because the "list" is already drawn somewhere and 'draw_delete()' needs to be invoked prior to drawing at a different location.
+ * 
+ * @param {HTMLElement} parentElement 
+ * @param {*} insertBeforeThisChild (if falsey, the list UI is appended to the parent element)
+ */
+function EXPLORER_draw_create_request(parentElement, insertBeforeThisChild) {
+    EXPLORER_draw_create_request_parentElement = parentElement;
+    EXPLORER_draw_create_request_insertBeforeThisChild = insertBeforeThisChild;
+    EXPLORER_render_request(TREEVIEWrenderKind_Create);
+}
+
+function EXPLORER_render_do_Batch() {
+    EXPLORER_drawItem_BATCH(INTS[fEXPLORER_start], INTS[fEXPLORER_length], INTS[fEXPLORER_onePositiveDiff_twoNegativeDiff_orThreeFullScreen], INTS[fEXPLORER_caseThreeOrigin]);
+}
+
+/**
+ * if (!this.rootElement.parentElement) return;
+ * Because the "list" is not drawn, no UI needs to be removed.
+ * (the purpose of this method is more-so related to unsubscribing of events and other such non-automatic actions that need to be performed)
+ * 
+ * @returns 
+ */
+function EXPLORER_draw_delete() {
+    if (!EXPLORER_rootElement.parentElement) return;
+    EXPLORER_draw_removeEvents();
+    BYTES[byteEXPLORER_boundingClientRect_isValid] = 0;
+    EXPLORER_rootElement.parentElement.removeChild(EXPLORER_rootElement);
+}
+
+function EXPLORER_draw_addEvents() {
+    EXPLORER_rootElement.addEventListener('click', EXPLORER_event_click);
+    EXPLORER_rootElement.addEventListener('keydown', EXPLORER_event_keydown);
+    EXPLORER_scroll_viewport.addEventListener('scroll', EXPLORER_event_scroll, { passive: true });
+    EXPLORER_rootElement.addEventListener('dblclick', EXPLORER_event_dblclick);
+    EXPLORER_rootElement.addEventListener('contextmenu', EXPLORER_event_contextmenu);
+    window.addEventListener('resize', EXPLORER_event_windowResize);
+}
+
+function EXPLORER_draw_removeEvents() {
+    EXPLORER_rootElement.removeEventListener('click', EXPLORER_event_click);
+    EXPLORER_rootElement.removeEventListener('keydown', EXPLORER_event_keydown);
+    EXPLORER_scroll_viewport.removeEventListener('scroll', EXPLORER_event_scroll, { passive: true });
+    EXPLORER_rootElement.addEventListener('dblclick', EXPLORER_event_dblclick);
+    EXPLORER_rootElement.addEventListener('contextmenu', EXPLORER_event_contextmenu);
+    window.removeEventListener('resize', EXPLORER_event_windowResize);
+}
+
+function EXPLORER_render_do_Scroll() {
+    if (INTS[fEXPLORER_ringBuffer_length] !== INTS[fEXPLORER_virtualCount]) {
+        EXPLORER_render_do_FullReset();
+    }
+    else {
+
+        // --- 2. THE FINE-GRAINED MOVE (The GPU trick) ---
+        // Since your lines are virtualized, you only want to shift the text container 
+        // by the tiny "sub-pixel remainder" of the scroll so it feels perfectly smooth.
+        // Assuming a line height of 15px:
+        //const lineRemainderY = scrollTop % 15;
+        const lineRemainderY = INTS[fEXPLORER_lastReadNumber_scrollTop];
+
+        // Push the text canvas lightly to match the scrollbar position smoothly
+        EXPLORER_text.style.transform = `translate3d(-${INTS[fEXPLORER_lastReadNumber_scrollLeft]}px, -${lineRemainderY}px, 0)`;
+
+        INTS[fEXPLORER_virtualIndex_ofScrollTop] = Math.floor(INTS[fEXPLORER_lastReadNumber_scrollTop] / INTS[fEXPLORER_itemHeightNumber]);
+
+        if (INTS[fEXPLORER_ONSCROLLvirtualIndex] === INTS[fEXPLORER_virtualIndex_ofScrollTop] &&
+            INTS[fEXPLORER_ONSCROLLvirtualCount] === INTS[fEXPLORER_virtualCount]) {
+                return;
+        }
+
+        let prevVli = INTS[fEXPLORER_ONSCROLLvirtualIndex];
+        let currVli = INTS[fEXPLORER_virtualIndex_ofScrollTop];
+
+        INTS[fEXPLORER_ONSCROLLvirtualIndex] = INTS[fEXPLORER_virtualIndex_ofScrollTop];
+
+        if (INTS[fEXPLORER_ONSCROLLvirtualCount] === INTS[fEXPLORER_virtualCount] &&
+            INTS[fEXPLORER_ringBuffer_length] === INTS[fEXPLORER_virtualCount]) {
+
+            let diff = currVli - prevVli;
+
+            if (diff > 0 && diff < INTS[fEXPLORER_virtualCount]) {
+                EXPLORER_drawItem_BATCH(prevVli + INTS[fEXPLORER_ONSCROLLvirtualCount], diff, 1, undefined);
+            }
+            else if (diff < 0 && (diff *= -1) < INTS[fEXPLORER_virtualCount]) {
+                EXPLORER_drawItem_BATCH(currVli, diff, 2, undefined);
+            }
+            else {
+                if (diff === 0) {
+                    clearTimeout(INTS[fEXPLORER_render_do_ScrollTrailingEdgeCheckTimeoutId]);
+                    INTS[fEXPLORER_render_do_ScrollTrailingEdgeCheckTimeoutId] = setTimeout(EXPLORER_drawItem_BATCH_trailingEdge, 200);
+                }
+                else {
+                    EXPLORER_drawItem_BATCH(INTS[fEXPLORER_virtualIndex_ofScrollTop], INTS[fEXPLORER_virtualCount], 3, undefined);
+                }
+            }
+        }
+    }
+}
+
+function EXPLORER_render_do_Scroll_PullDataDrawResult() {
+    if (EXPLORER_drawItem_BATCH_PullDataDrawResult) {
+        EXPLORER_drawItem_BATCH_PullDataDrawResult();
+    }
+}
+
+function EXPLORER_draw_BATCH_request(start, length, onePositiveDiff_twoNegativeDiff_orThreeFullScreen, caseThreeOrigin) {
+    INTS[fEXPLORER_start] = start;
+    INTS[fEXPLORER_length] = length;
+    INTS[fEXPLORER_onePositiveDiff_twoNegativeDiff_orThreeFullScreen] = onePositiveDiff_twoNegativeDiff_orThreeFullScreen;
+    INTS[fEXPLORER_caseThreeOrigin] = caseThreeOrigin;
+    EXPLORER_render_request(TREEVIEWrenderKind_Batch);
+}
+
+function EXPLORER_render_do_FullReset() {
+    EXPLORER_ensure_boundingClientRect();
+
+    INTS[fEXPLORER_ONSCROLLvirtualCount] = INTS[fEXPLORER_virtualCount];
+
+    // High-performance CPU truncation (Bypasses Math.floor)... take care if your numbers might be negative, I read that the behavior is different in that case.
+    INTS[fEXPLORER_virtualIndex_ofScrollTop] = (INTS[fEXPLORER_lastReadNumber_scrollTop] / INTS[fEXPLORER_itemHeightNumber]) | 0;
+
+    INTS[fEXPLORER_ringBufferIndexZero] = 0;
+
+    if (EXPLORER_itemListElement.children.length !== INTS[fEXPLORER_virtualCount]) {
+        // padding of 2ch (the style attribute receives the width as a pixel by using 'INTS[fEXPLORER_firstSpanWidthValue]' as a baseline (not quite ch))
+        // TODO: this is all very inaccurate and prone to eventual rounding issues due to not monospace font.
+        //
+        INTS[fEXPLORER_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING] = 2;
+        let widthAttributeValueNumber = Math.ceil((INTS[fEXPLORER_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING] + 2/*padding*/) * INTS[fEXPLORER_firstSpanWidthValue]);
+        // This is actually more complicated you have to track whether you go above the minimum requirement lest you add 1 character over and over in width just to keep redrawing widths.
+        //if (widthAttributeValueNumber < INTS[fEXPLORER_lastReadNumber_offsetWidth]) {
+        //    widthAttributeValueNumber = INTS[fEXPLORER_lastReadNumber_offsetWidth];
+        //}
+        //INTS[fEXPLORER_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING]
+        let widthAttributeValueString = widthAttributeValueNumber + 'px';
+        EXPLORER_cursorElement.style.width = widthAttributeValueString;
+
+        const fragment = document.createDocumentFragment();
+
+        // this is zero'd, could use change for clarity of algorithm and match patterns but focus elsewhere first
+        for (let i = 0; i < INTS[fEXPLORER_virtualCount]; i++) {
+            let divItem = document.createElement('div');
+            divItem.className = 'tvn';
+            divItem.style.width = widthAttributeValueString;
+            divItem.style.height = EXPLORER_itemHeightStyleAttributeValueString;
+            divItem.appendChild(document.createTextNode(' '));
+            fragment.appendChild(divItem);
+        }
+
+        EXPLORER_itemListElement.replaceChildren(fragment);
+        
+        // TODO: check the resize logic, that it works
+        if (EXPLORER_pullData_array) {
+            EXPLORER_pullData_array = new Uint32Array(INTS[fEXPLORER_virtualCount]);
+            INTS[fEXPLORER_pullData_array_count] = 0;
+        }
+
+        EXPLORER_ringBuffer = Array.from(EXPLORER_itemListElement.children);
+        INTS[fEXPLORER_ringBuffer_length] = EXPLORER_ringBuffer.length;
+    }
+
+    EXPLORER_drawItem_BATCH(INTS[fEXPLORER_virtualIndex_ofScrollTop], INTS[fEXPLORER_virtualCount], 3, undefined);
+}
+
+/**
+ * This actually only gets invoked if 'this.itemListElement.children.length !== this.virtualCount'...
+ * ...But it is a bit more complicated if you want to involve a change to totalCount, you'd need to force the final 'else' case
+ * so it is easier to just invoke this directly when you change totalCount?
+ */
+function EXPLORER_draw_render_fullReset_request() {
+    EXPLORER_render_request(TREEVIEWrenderKind_FullReset);
+}
+
+/**
+ * TODO: To detect whether the "expand/collapse icon" was clicked, the logic 'if(event.target === nodeElement.children[0])' is used...
+ * ...this logic is flawed if one ever were to put an element within the span that became the target...
+ * ...thus, you should consider checking the x position of the event against the x position of the nodeElement.children[0].
+ * @param {*} event 
+ */
+function EXPLORER_event_click(event) {
+     const event_clientX = event.clientX;
+     const event_clientY = event.clientY;
+
+    EXPLORER_ensure_boundingClientRect();
+
+    const rY = event_clientY - INTS[fEXPLORER_boundingClientRect_top] + INTS[fEXPLORER_lastReadNumber_scrollTop];
+    const indexItem = EXPLORER_state_cursor_validateIndex(Math.floor(rY / INTS[fEXPLORER_itemHeightNumber]));
+
+    // See comment "Awkward explicit inlining of 'EXPLORER_indexItemTo_ringBufferIndexItem'" for more information.
+    let ringBufferIndexItem = ((indexItem)) - INTS[fEXPLORER_virtualIndex_ofScrollTop];
+    if (ringBufferIndexItem >= INTS[fEXPLORER_ringBuffer_length] || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
+    else ringBufferIndexItem = (ringBufferIndexItem + INTS[fEXPLORER_ringBufferIndexZero]) % INTS[fEXPLORER_virtualCount];
+    if (ringBufferIndexItem < 0) return;
+
+    let divItem = EXPLORER_ringBuffer[ringBufferIndexItem];
+
+    const depth = EXPLORER_treeViewNodes.getDepth(indexItem);
+    const rX = (event_clientX - INTS[fEXPLORER_boundingClientRect_left] + INTS[fEXPLORER_lastReadNumber_scrollLeft]) - (depth * CONST_EXPLORER_offsetPerDepth);
+    if (rX >= 0 && rX <= EDI_characterWidth) {
+        EXPLORER_expandCollapseIconWasClicked(divItem, indexItem, ringBufferIndexItem);
+    }
+    else {
+        EXPLORER_state_cursor_setIndex(indexItem);
+    }
+}
+
+function EXPLORER_event_dblclick(event) {
+    const event_clientX = event.clientX;
+    const event_clientY = event.clientY;
+
+    EXPLORER_ensure_boundingClientRect();
+
+    const rY = event_clientY - INTS[fEXPLORER_boundingClientRect_top] + INTS[fEXPLORER_lastReadNumber_scrollTop];
+    let indexItem = Math.floor(rY / INTS[fEXPLORER_itemHeightNumber]);
+    indexItem = EXPLORER_state_cursor_validateIndex(indexItem);
+
+    // See comment "Awkward explicit inlining of 'EXPLORER_indexItemTo_ringBufferIndexItem'" for more information.
+    let ringBufferIndexItem = ((indexItem)) - INTS[fEXPLORER_virtualIndex_ofScrollTop];
+    if (ringBufferIndexItem >= INTS[fEXPLORER_ringBuffer_length] || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
+    else ringBufferIndexItem = (ringBufferIndexItem + INTS[fEXPLORER_ringBufferIndexZero]) % INTS[fEXPLORER_virtualCount];
+    if (ringBufferIndexItem < 0) return;
+
+    const depth = EXPLORER_treeViewNodes.getDepth(indexItem);
+    const rX = (event_clientX - INTS[fEXPLORER_boundingClientRect_left] + INTS[fEXPLORER_lastReadNumber_scrollLeft]) - (depth * CONST_EXPLORER_offsetPerDepth);
+    // if not clicked "chevron"
+    if (rX < 0 || rX > EDI_characterWidth) {
+        // See comment "Awkward explicit inlining of 'EXPLORER_indexItemTo_ringBufferIndexItem'" for more information.
+        let ringBufferIndexItem = ((INTS[fEXPLORER_cursorIndex])) - INTS[fEXPLORER_virtualIndex_ofScrollTop];
+        if (ringBufferIndexItem >= INTS[fEXPLORER_ringBuffer_length] || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
+        else ringBufferIndexItem = (ringBufferIndexItem + INTS[fEXPLORER_ringBufferIndexZero]) % INTS[fEXPLORER_virtualCount];
+        if (ringBufferIndexItem < 0) return;
+
+        EXPLORER_ondblclick(EXPLORER_ringBuffer[ringBufferIndexItem], INTS[fEXPLORER_cursorIndex]);
+    }
+}
+
+function EXPLORER_event_contextmenu(event) {
+    const event_button = event.button;
+    const event_clientX = event.clientX;
+    const event_clientY = event.clientY;
+
+    EXPLORER_ensure_boundingClientRect();
+
+    if (event_button === 2) {
+        const rY = event_clientY - INTS[fEXPLORER_boundingClientRect_top] + INTS[fEXPLORER_lastReadNumber_scrollTop];
+
+        EXPLORER_state_cursor_setIndex(EXPLORER_state_cursor_validateIndex(
+            Math.floor(rY / INTS[fEXPLORER_itemHeightNumber])));
+
+        // TODO: you need to move this above the divItem assignment and do checks earlier... double check all other uses
+
+        // See comment "Awkward explicit inlining of 'EXPLORER_indexItemTo_ringBufferIndexItem'" for more information.
+        let ringBufferIndexItem = ((INTS[fEXPLORER_cursorIndex])) - INTS[fEXPLORER_virtualIndex_ofScrollTop];
+        if (ringBufferIndexItem >= INTS[fEXPLORER_ringBuffer_length] || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
+        else ringBufferIndexItem = (ringBufferIndexItem + INTS[fEXPLORER_ringBufferIndexZero]) % INTS[fEXPLORER_virtualCount];
+        if (ringBufferIndexItem < 0) return;
+
+        EXPLORER_oncontextmenu(EXPLORER_ringBuffer[ringBufferIndexItem], INTS[fEXPLORER_cursorIndex], event_button, event_clientX, event_clientY, ringBufferIndexItem);
+    }
+    else {
+        if (INTS[fEXPLORER_cursorIndex] >= EXPLORER_treeViewNodes.count_abstract) {
+            return;
+        }
+
+        EXPLORER_state_cursor_setIndex(EXPLORER_state_cursor_validateIndex(
+            INTS[fEXPLORER_cursorIndex]));
+
+        // See comment "Awkward explicit inlining of 'EXPLORER_indexItemTo_ringBufferIndexItem'" for more information.
+        let ringBufferIndexItem = ((INTS[fEXPLORER_cursorIndex])) - INTS[fEXPLORER_virtualIndex_ofScrollTop];
+        if (ringBufferIndexItem >= INTS[fEXPLORER_ringBuffer_length] || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
+        else ringBufferIndexItem = (ringBufferIndexItem + INTS[fEXPLORER_ringBufferIndexZero]) % INTS[fEXPLORER_virtualCount];
+        if (ringBufferIndexItem < 0) return;
+
+        // TODO: Handle context menu with keyboard when active node is out of view
+        EXPLORER_oncontextmenu(EXPLORER_ringBuffer[ringBufferIndexItem], INTS[fEXPLORER_cursorIndex], event_button, event_clientX, event_clientY, ringBufferIndexItem);
+    }
+}
+
+function EXPLORER_event_keydown(event) {
+    switch (event.key) {
+        case 'ArrowDown':
+            event.preventDefault();
+            if (event.ctrlKey) {
+                EXPLORER_scroll_viewport.scrollBy(0, INTS[fEXPLORER_itemHeightNumber]);
+            }
+            else {
+                EXPLORER_state_cursor_setIndex(EXPLORER_state_cursor_validateIndex(
+                    INTS[fEXPLORER_cursorIndex] + 1));
+            }
+            return;
+        case 'ArrowUp':
+            event.preventDefault();
+            if (event.ctrlKey) {
+                EXPLORER_scroll_viewport.scrollBy(0, -1 * INTS[fEXPLORER_itemHeightNumber]);
+            }
+            else {
+                EXPLORER_state_cursor_setIndex(EXPLORER_state_cursor_validateIndex(
+                    INTS[fEXPLORER_cursorIndex] - 1));
+            }
+            return;
+        case 'ArrowRight':
+            if (!event.ctrlKey) { // If holding ctrl, don't preventDefault so the user can scroll horizontally?
+                event.preventDefault();
+                EXPLORER_state_cursor_setIndex(EXPLORER_state_cursor_validateIndex(
+                    INTS[fEXPLORER_cursorIndex]));
+
+                // TODO: 'ArrowRight' when the cursor is on a valid item but isn't part of the virtualization result.
+
+                // See comment "Awkward explicit inlining of 'EXPLORER_indexItemTo_ringBufferIndexItem'" for more information.
+                let ringBufferIndexItem = ((INTS[fEXPLORER_cursorIndex])) - INTS[fEXPLORER_virtualIndex_ofScrollTop];
+                if (ringBufferIndexItem >= INTS[fEXPLORER_ringBuffer_length] || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
+                else ringBufferIndexItem = (ringBufferIndexItem + INTS[fEXPLORER_ringBufferIndexZero]) % INTS[fEXPLORER_virtualCount];
+                if (ringBufferIndexItem < 0) return;
+
+                EXPLORER_arrowRight(EXPLORER_ringBuffer[ringBufferIndexItem], INTS[fEXPLORER_cursorIndex], ringBufferIndexItem);
+            }
+            return;
+        case 'ArrowLeft':
+            if (!event.ctrlKey) { // If holding ctrl, don't preventDefault so the user can scroll horizontally?
+                event.preventDefault();
+                EXPLORER_state_cursor_setIndex(EXPLORER_state_cursor_validateIndex(
+                    INTS[fEXPLORER_cursorIndex]));
+                
+                // See comment "Awkward explicit inlining of 'EXPLORER_indexItemTo_ringBufferIndexItem'" for more information.
+                let ringBufferIndexItem = ((INTS[fEXPLORER_cursorIndex])) - INTS[fEXPLORER_virtualIndex_ofScrollTop];
+                if (ringBufferIndexItem >= INTS[fEXPLORER_ringBuffer_length] || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
+                else ringBufferIndexItem = (ringBufferIndexItem + INTS[fEXPLORER_ringBufferIndexZero]) % INTS[fEXPLORER_virtualCount];
+                if (ringBufferIndexItem < 0) return;
+
+                EXPLORER_arrowLeft(EXPLORER_ringBuffer[ringBufferIndexItem], INTS[fEXPLORER_cursorIndex], ringBufferIndexItem);
+            }
+            return;
+        case ' ':
+        case 'Enter':
+            event.preventDefault();
+            EXPLORER_state_cursor_setIndex(EXPLORER_state_cursor_validateIndex(
+                INTS[fEXPLORER_cursorIndex]));
+            
+            // See comment "Awkward explicit inlining of 'EXPLORER_indexItemTo_ringBufferIndexItem'" for more information.
+            let ringBufferIndexItem = ((INTS[fEXPLORER_cursorIndex])) - INTS[fEXPLORER_virtualIndex_ofScrollTop];
+            if (ringBufferIndexItem >= INTS[fEXPLORER_ringBuffer_length] || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
+            else ringBufferIndexItem = (ringBufferIndexItem + INTS[fEXPLORER_ringBufferIndexZero]) % INTS[fEXPLORER_virtualCount];
+            if (ringBufferIndexItem < 0) return;
+
+            EXPLORER_onkeydown(EXPLORER_ringBuffer[ringBufferIndexItem], INTS[fEXPLORER_cursorIndex], event.key);
+    }
+}
+
+function EXPLORER_render_do_Resize() {
+    EXPLORER_measureBaseElement();
+
+    BYTES[byteEXPLORER_boundingClientRect_isValid] = 0;
+    EXPLORER_ensure_boundingClientRect();
+    EXPLORER_render_do_FullReset();
+}
+
+/**
+ * TODO: intra-app resizes or movements will also invoke this; i.e.: if a list is shown in a dialog and the dialog is resized or moved.
+ */
+function EXPLORER_event_windowResize() {
+    EXPLORER_render_request(TREEVIEWrenderKind_Resize);
+}
+
+function EXPLORER_event_scroll() {
+    INTS[fEXPLORER_lastReadNumber_scrollLeft] = EXPLORER_scroll_viewport.scrollLeft;
+    INTS[fEXPLORER_lastReadNumber_scrollTop] = EXPLORER_scroll_viewport.scrollTop;
+    EXPLORER_render_request(TREEVIEWrenderKind_Scroll);
+}
+
+function EXPLORER_ensure_boundingClientRect() {
+    if (BYTES[byteEXPLORER_boundingClientRect_isValid] === 0) {
+        let rect = EXPLORER_rootElement.getBoundingClientRect();
+        INTS[fEXPLORER_boundingClientRect_height] = rect.height;
+        INTS[fEXPLORER_boundingClientRect_left] = rect.left;
+        INTS[fEXPLORER_boundingClientRect_top] = rect.top;
+        BYTES[byteEXPLORER_boundingClientRect_isValid] = 1;
+        INTS[fEXPLORER_virtualCount] = Math.ceil(EXPLORER_rootElement.offsetHeight / INTS[fEXPLORER_itemHeightNumber]);
+    }
+}
+
+function EXPLORER_render_do_Cursor() {
+    // Determine the number without modifying styles so you can use this variable to determine the need to scroll into view without synchronous layout.
+    INTS[fEXPLORER_cursorTranslateYNumber] = INTS[fEXPLORER_cursorIndex] * INTS[fEXPLORER_itemHeightNumber];
+
+    // Preferably this hasn't changed thus the function immediately just returns.
+    EXPLORER_ensure_boundingClientRect();
+    
+    // If no UI modifications were made prior that are still pending this might avoid a synchronous layout.
+    // TODO: If you touch the transform style first... I don't know what would happen it is a GPU related style... so I'm unsure.
+    //
+    if (INTS[fEXPLORER_cursorTranslateYNumber] + (2 * INTS[fEXPLORER_itemHeightNumber]) > INTS[fEXPLORER_lastReadNumber_scrollTop] + INTS[fEXPLORER_boundingClientRect_height]) {
+        let currentBottom = INTS[fEXPLORER_lastReadNumber_scrollTop] + INTS[fEXPLORER_boundingClientRect_height];
+        let changeToMakeBottomTouch = INTS[fEXPLORER_cursorTranslateYNumber] - currentBottom;
+        let entireValueToScrollBy = changeToMakeBottomTouch + (2 * INTS[fEXPLORER_itemHeightNumber]);
+        EXPLORER_scroll_viewport.scrollBy(0, entireValueToScrollBy);
+    }
+    else if (INTS[fEXPLORER_cursorTranslateYNumber] < INTS[fEXPLORER_lastReadNumber_scrollTop]) {
+        EXPLORER_scroll_viewport.scrollBy(0, INTS[fEXPLORER_cursorTranslateYNumber] - INTS[fEXPLORER_lastReadNumber_scrollTop]);
+    }
+
+    // transform last for optimal state flagging of the modified DOM element
+    EXPLORER_cursorElement.style.transform = `translateY(${INTS[fEXPLORER_cursorTranslateYNumber]}px)`;
+}
+
+/**
+ * if (this.cursorIndex === index) return;
+ * 
+ * @param {*} index 
+ */
+function EXPLORER_state_cursor_setIndex(index) {
+    if (INTS[fEXPLORER_cursorIndex] === index) return;
+    INTS[fEXPLORER_cursorIndex] = index;
+    EXPLORER_render_request(TREEVIEWrenderKind_Cursor);
+}
+
+/**
+ * if (this.cursorIndex === index) return;
+ * 
+ * @param {*} indexItem 
+ */
+function EXPLORER_state_cursor_validateIndex(indexItem) {
+    if (indexItem >= EXPLORER_treeViewNodes.count_abstract) {
+        indexItem = EXPLORER_treeViewNodes.count_abstract - 1;
+    }
+    if (indexItem < 0) {
+        indexItem = 0;
+    }
+    return indexItem;
+}
+
+function EXPLORER_measureBaseElement() {
+    INTS[fEXPLORER_lastReadNumber_offsetWidth] = Math.floor(EXPLORER_rootElement.offsetWidth);
+    INTS[fEXPLORER_lastReadNumber_offsetHeight] = Math.floor(EXPLORER_rootElement.offsetHeight);
+}
+
+/*
+TODO: The TreeView after you resize it, you can continually scroll down and it keeps replacing more and more '~' lines
+        even if you've scrolled through everything already.
+        This is probably some kind of rounding error?
+        It porbably happens regardless of whether you resized
+        and more-so that you just happen to have hit the perfect height for it to happen?
+*/
+
+/** 8px by default or the measured value with px */
+let EXPLORER_firstSpanWidth = '8px';
+
+/**
+ * TODO: Only use a single menuOptionCut_object that is located in "MENU_" to reduce the chance of memory leaks due to a 'cut' that never gets
+ * followed up with a paste or etc... then you have like 3 active menu cut objects sitting around eventually, you probably want them to overwrite eachother.
+ * You'd need to track the source of the cut menu object though if you were to do this.
+ */
+let EXPLORER_menuOptionCut_object = null;
+
+// function EXPLORER_init
+// V8 can optimize away these initialization statements that exist at the module scope but not an "initialization function"
+const EXPLORER_pickFolderOrWorkspaceButton = document.getElementById('EXPLORER_folderOrWorkspaceButtons');
+if (EXPLORER_pickFolderOrWorkspaceButton) { EXPLORER_pickFolderOrWorkspaceButton.addEventListener('click', EXPLORER_pickFolderOrWorkspaceButton_onClick); }
+//
+let toggleShowExplorerButton = document.getElementById('HEADER_toggleShowExplorer');
+toggleShowExplorerButton.checked = BYTES[byteEXPLORER_show];
+toggleShowExplorerButton.addEventListener('click', toggleShowExplorerButton_onClick);
+
+function toggleShowExplorerButton_onClick() {
+    // TODO: Will shadowing 'toggleShowExplorerButton' with a declaration of the same name in here cause any oddities in relation to app long garbage collection overhead....
+    // ...presumably the answer is 99.999% no but I can't bear to deal with this right now, thus the variable name 'avoidClosureCausingAppLongLivingVariable_toggleShowExplorerButton'.
+    let avoidClosureCausingAppLongLivingVariable_toggleShowExplorerButton = document.getElementById('HEADER_toggleShowExplorer');
+    if (avoidClosureCausingAppLongLivingVariable_toggleShowExplorerButton) {
+        EXPLORER_setShow(avoidClosureCausingAppLongLivingVariable_toggleShowExplorerButton.checked);
+    }
+}
+
+async function EXPLORER_pickFolderOrWorkspaceButton_onClick() {
+    const EXPLORER_pickFolderOrWorkspaceButton = document.getElementById('EXPLORER_folderOrWorkspaceButtons');
+    let optionList = [
+        MENU_MenuOption_factory(CommandKind_SelectFolder, 'Folder'),
+        MENU_MenuOption_factory(CommandKind_SelectWorkspace, 'Workspace'),
+    ];
+    let boundingClientRect = EXPLORER_pickFolderOrWorkspaceButton.getBoundingClientRect();
+    menuSet(optionList, boundingClientRect.left, boundingClientRect.top + boundingClientRect.height, EXPLORER_pickFolderOrWorkspaceButton_MenuOnClick, /*target*/ null, /*elementToFocusOnCompleted*/ null, /*disableFocusOnCompleted*/ false, /*index*/ 0);
+}
+
+/**
+Hiding an element's visibility rather than removing the HTML has a cost associated with it.
+If a UI piece isn't integral to the app, I wouldn't even transitionally use this as a solution
+because it could "slip through the cracks" and never get optimized.
+
+That being said, the explorer in this app IS integral, so I'll go down this route to start off.
+
+...more details involved but I'm thinking and deciding.
+*/
+function EXPLORER_setShow(shouldShow) {
+    const EXPLORER_Element = document.getElementById('EXPLORER');
+    if (!EXPLORER_Element) return;
+
+	if (shouldShow && !BYTES[byteEXPLORER_show]) {
+		let editorHackElement = document.getElementById('EDI_hack');
+		EXPLORER_Element.style.width = '200px';
+		EXPLORER_Element.style.visibility = '';
+		editorHackElement.style.width = 'calc(100% - 200px)';
+		BYTES[byteEXPLORER_show] = shouldShow;
+		let toggleShowExplorerButton = document.getElementById('HEADER_toggleShowExplorer');
+		toggleShowExplorerButton.checked = BYTES[byteEXPLORER_show];
+		EDI_onResize();
+	}
+	else if (!shouldShow && BYTES[byteEXPLORER_show]) {
+		// !show is redundant, but exists for readability.
+		let editorHackElement = document.getElementById('EDI_hack');
+		EXPLORER_Element.style.width = '0px';
+		EXPLORER_Element.style.visibility = 'hidden';
+		editorHackElement.style.width = '100%';
+		BYTES[byteEXPLORER_show] = shouldShow;
+		let toggleShowExplorerButton = document.getElementById('HEADER_toggleShowExplorer');
+		toggleShowExplorerButton.checked = BYTES[byteEXPLORER_show];
+		EDI_onResize();
+	}
+}
+
+async function EXPLORER_openInEditor(absolutePath, shouldFocus) {
+    const itHasBom = await window.myAPI.editorReadAllText_byteArray(absolutePath);
+
+    if (!itHasBom.paddedUint8Array) {
+        return;
+    }
+
+    EDI_state_setText_byteArray(
+        itHasBom.paddedUint8Array,
+        itHasBom.textByteLength,
+        itHasBom.fileStartsWithBom,
+        /*textSourceIdentifier*/ absolutePath,
+        /*FORMATTED_textSourceIdentifier*/ itHasBom.formattedAbsolutePath,
+        /*extensionKind*/ EDI_toExtensionKind(itHasBom.extension),
+        itHasBom.lineEndString,
+        itHasBom.lineEndCount);
+
+    if (shouldFocus) {
+        let editor = document.getElementById('EDITOR_inner_container');
+        if (editor) {
+            editor.focus();
+        }
+    }
+
+    sendTransaction_MessageKind_textDocument_didOpen(itHasBom.formattedAbsolutePath);
+}
+
+/**
+ * 
+ * @param {*} isCancelled 
+ * @param {MenuOption} menuOption 
+ * @param {*} request 
+ * @returns 
+ */
+async function EXPLORER_pickFolderOrWorkspaceButton_MenuOnClick(isCancelled, menuOption, request) {
+    if (isCancelled || !menuOption) { return; }
+    
+    const commandKind = menuOption.commandKind;
+    if (!commandKind) { return; }
+
+    switch (commandKind) {
+        case CommandKind_SelectFolder:
+            {
+                const EXPLORER_Element = document.getElementById('EXPLORER');
+                if (!EXPLORER_Element) return;
+                const EXPLORER_PickFolder = document.getElementById('EXPLORER_folderOrWorkspaceButtons');
+                if (!EXPLORER_PickFolder) return;
+    
+                // { basename: basename, openedDirectory: openedDirectory }
+                let chooseDirectoryResult = await window.myAPI.chooseDirectory();
+                if (chooseDirectoryResult.canceled) return;
+    
+                EXPLORER_setShow(true);
+                let chosenDirectory = chooseDirectoryResult.openedDirectory;
+                EXPLORER_PickFolder.textContent = chooseDirectoryResult.basename;
+                EXPLORER_PickFolder.title = chosenDirectory;
+    
+                EXPLORER_setChosenDirectory(chosenDirectory, chooseDirectoryResult.id);
+                EXPLORER_setItems(INTS[fEDI_lineHeight], INTS[fEDI_lineHeight] + 'px');
+                EXPLORER_draw_create_request(EXPLORER_Element, null);
+            }
+            break;
+        case CommandKind_SelectWorkspace:
+            {
+                const EXPLORER_Element = document.getElementById('EXPLORER');
+                if (!EXPLORER_Element) return;
+                
+                let chooseWorkspaceResult = await window.myAPI.chooseWorkspace();
+                if (chooseWorkspaceResult.canceled) return;
+    
+                EXPLORER_setShow(true);
+    
+                let pickWorkspaceButton = document.getElementById('EXPLORER_folderOrWorkspaceButtons');
+                pickWorkspaceButton.textContent = chooseWorkspaceResult.workspaceFileNameWithoutExtension;
+                pickWorkspaceButton.title = chooseWorkspaceResult.workspaceFileAbsolutePath;
+    
+                EXPLORER_setChosenWorkspace(chooseWorkspaceResult);
+                EXPLORER_setItems(INTS[fEDI_lineHeight], INTS[fEDI_lineHeight] + 'px');
+                EXPLORER_draw_create_request(EXPLORER_Element, null);
+            }
+            break;
+    }
+}
+
+async function EXPLORER_MenuOnClick(isCancelled, menuOption, menuRequest) {
+    if (isCancelled || !menuOption) { return; }
+    
+    const commandKind = menuOption.commandKind;
+    if (!commandKind) { return; }
+
+    if (commandKind !== CommandKind_Cut && commandKind !== CommandKind_Paste) {
+        EXPLORER_menuOptionCut_object = null;
+    }
+
+    if (!menuRequest.target.id) return;
+
+    const entry = await window.myAPI.getFilesystemEntryById(menuRequest.target.id);
+    if (!entry) return;
+
+    switch (commandKind) {
+        case CommandKind_Copy:
+            await window.myAPI.setClipboard('file:///' + entry.absolutePath);
+            break;
+        case CommandKind_Cut:
+            const text = 'file:///' + entry.absolutePath;
+            EXPLORER_menuOptionCut_object = {
+                id: text,
+                indexItem: menuRequest.target.indexItem,
+                divRelativeIndex: menuRequest.target.divRelativeIndex
+            };
+            await window.myAPI.setClipboard(text);
+            break;
+        case CommandKind_CopyAbsolutePath:
+            await window.myAPI.setClipboard(entry.absolutePath);
+            break;
+        case CommandKind_Paste:
+            await CommandKind_Paste_MenuOnClick_Paste(entry, menuRequest);
+            break;
+        case CommandKind_NewFile_Directory:
+            await WIDGET_show(WidgetKind_InputText, INTS[fEXPLORER_menuOptionX], INTS[fEXPLORER_menuOptionY], 'filename', entry, menuRequest.target, menuRequest.elementToFocusOnCompleted, false, NewFile_Directory_WIDGET_InputText_callback);
+            break;
+        case CommandKind_NewFile_File:
+            await WIDGET_show(WidgetKind_InputText, INTS[fEXPLORER_menuOptionX], INTS[fEXPLORER_menuOptionY], 'filename', entry, menuRequest.target, menuRequest.elementToFocusOnCompleted, false, NewFile_File_WIDGET_InputText_callback);
+            break;
+        case CommandKind_DeleteFile_Directory:
+            await WIDGET_show(WidgetKind_YesCancel, INTS[fEXPLORER_menuOptionX], INTS[fEXPLORER_menuOptionY], 'delete ' + entry.basename, entry, menuRequest.target, menuRequest.elementToFocusOnCompleted, false, DeleteFile_Directory_YesCancel_callback);
+            break;
+        case CommandKind_DeleteFile_File:
+            await WIDGET_show(WidgetKind_YesCancel, INTS[fEXPLORER_menuOptionX], INTS[fEXPLORER_menuOptionY], 'delete ' + entry.basename, entry, menuRequest.target, menuRequest.elementToFocusOnCompleted, false, DeleteFile_File_YesCancel_callback);
+            break;
+        case CommandKind_RenameFile_Directory:
+            await WIDGET_show(WidgetKind_InputText, INTS[fEXPLORER_menuOptionX], INTS[fEXPLORER_menuOptionY], 'rename', entry.basename, {MENU_target:menuRequest.target, entry:entry}, menuRequest.elementToFocusOnCompleted, false, RenameFile_Directory_InputText_callback);
+            break;
+        case CommandKind_RenameFile_File:
+            // TODO: Maybe the only difference between the _Directory and _File cases for each ..._... is the bool for isDirectory but I'm exhausted and I cannot reduce the code duplication here because my head doesn't function.
+            await WIDGET_show(WidgetKind_InputText, INTS[fEXPLORER_menuOptionX], INTS[fEXPLORER_menuOptionY], 'rename', entry.basename, {MENU_target: menuRequest.target, entry: entry}, menuRequest.elementToFocusOnCompleted, false, RenameFile_File_InputText_callback);
+            break;
+    }
+}
+
+async function CommandKind_Paste_MenuOnClick_Paste(entry, menuRequest) {
+    EXPLORER_treeViewNodes.getElementAt(menuRequest.target.indexItem);
+    let nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+    let depthOfTheParent = INTS[fTreeView_poolret_pooledNode_depth];
+    let isCollapsed = nodeKind === TreeViewNodeKind_isExpandable_NOTisExpanded || nodeKind === TreeViewNodeKind_NOTisExpandable_NOTisExpanded;
+
+    let local_EXPLORER_menuOptionCut_object = EXPLORER_menuOptionCut_object;
+    EXPLORER_menuOptionCut_object = null;
+    const pasteResult = await window.myAPI.pasteClipboardAbsolutePathToDirectory(entry.absolutePath, local_EXPLORER_menuOptionCut_object?.id);
+    if (!pasteResult.success) { return; }
+
+    // TODO: I belive this final paste logic that comes after this comment and within this scope is extremely similar to the new file logic...
+
+    if (pasteResult.isDirectory) {
+        nodeKind = TreeViewNodeKind_isExpandable_NOTisExpanded;
+    }
+    else {
+        nodeKind = TreeViewNodeKind_NOTisExpandable_NOTisExpanded;
+    }
+
+    if (isCollapsed) { return; }
+    
+    let targetDepth = depthOfTheParent + 1;
+    let someIndex = menuRequest.target.indexItem + 1;
+
+    // TODO: 'i_targetDepth' is a bad variable name, you're looping a minimum of until 'pasteResult.indexOf' and each loop you check
+    // whether that sibling is expanded, if so you skip all the children of the sibling.
+    //
+    for (let i_targetDepth = 0; i_targetDepth < pasteResult.indexOf; i_targetDepth++) {
+        EXPLORER_treeViewNodes.getElementAt(someIndex);
+        let nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+        let isCollapsed = nodeKind === TreeViewNodeKind_isExpandable_NOTisExpanded || nodeKind === TreeViewNodeKind_NOTisExpandable_NOTisExpanded;
+
+        let d_of_presumed_correct_depth = INTS[fTreeView_poolret_pooledNode_depth];
+        if (d_of_presumed_correct_depth !== targetDepth) {
+            // Validate the target you paste into's child count
+            break;
+        }
+
+        someIndex++;
+
+        if (!isCollapsed) {
+            while (someIndex < EXPLORER_treeViewNodes.count_abstract) {
+                let d_of_perhaps_too_large_depth = EXPLORER_treeViewNodes.getDepth(someIndex);
+                if (d_of_perhaps_too_large_depth > targetDepth) {
+                    someIndex++;
+                }
+                else {
+                    break;
+                }
+                // TODO: Check if depth is less than targetDepth? This would only happen if the tree view were somehow in an incorrect state.
+            }
+        }
+
+        // TODO: You're missing a 'someIndex < EXPLORER_treeViewNodes.count_abstract' check for after the while loop.
+    }
+
+    EXPLORER_treeViewNodes.insert(someIndex, nodeKind, pasteResult.pathId, menuRequest.target.depth + 1);
+
+    if (pasteResult.sourceFileWasDeleted) {
+        let indexItem = local_EXPLORER_menuOptionCut_object.indexItem;
+
+        // TODO: clear 'EXPLORER_menuOptionCut_object' if paste clear flag cut if not same id
+
+        if (someIndex <= indexItem) {
+            indexItem += 1;
+        }
+
+        if (pasteResult.isDirectory) {
+            let countChanges = EXPLORER_removeFromNodeList(indexItem);
+        }
+        else {
+            EXPLORER_treeViewNodes.removeAt(indexItem, 1);
+        }
+    }
+
+    INTS[fEXPLORER_itemHeightTotal] = EXPLORER_treeViewNodes.count_abstract * INTS[fEXPLORER_itemHeightNumber];
+    EXPLORER_scrollbar_space_generator.style.height = INTS[fEXPLORER_itemHeightTotal] + 'px';
+    EXPLORER_draw_BATCH_request(INTS[fEXPLORER_virtualIndex_ofScrollTop], INTS[fEXPLORER_virtualCount], 3);
+}
+
+async function NewFile_Directory_WIDGET_InputText_callback(widgetResult) {
+    if (widgetResult.isCancelled) return;
+
+    const entry = widgetResult.request.value;
+    const target = widgetResult.request.target;
+
+    EXPLORER_treeViewNodes.getElementAt(target.indexItem);
+    let nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+    let depthOfTheParent = INTS[fTreeView_poolret_pooledNode_depth];
+    let isCollapsed = nodeKind === TreeViewNodeKind_isExpandable_NOTisExpanded || nodeKind === TreeViewNodeKind_NOTisExpandable_NOTisExpanded;
+
+    const newFileResult = await window.myAPI.newFile(entry.absolutePath, widgetResult.resultData, /*isDirectory*/ true);
+    if (!newFileResult.success) { return; }
+
+    // TODO: I belive this final new directory logic that comes after this comment and within this scope is 1 to 1 an exact duplication of the new file logic...
+    
+    nodeKind = TreeViewNodeKind_isExpandable_NOTisExpanded;
+
+    if (!isCollapsed) {
+
+        let targetDepth = depthOfTheParent + 1;
+        let someIndex = target.indexItem + 1;
+
+        // TODO: 'i_targetDepth' is a bad variable name, you're looping a minimum of until 'newFileResult.indexOf' and each loop you check
+        // whether that sibling is expanded, if so you skip all the children of the sibling.
+        //
+        for (let i_targetDepth = 0; i_targetDepth < newFileResult.indexOf; i_targetDepth++) {
+            EXPLORER_treeViewNodes.getElementAt(someIndex);
+            let nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+            let isCollapsed = nodeKind === TreeViewNodeKind_isExpandable_NOTisExpanded || nodeKind === TreeViewNodeKind_NOTisExpandable_NOTisExpanded;
+
+            let d_of_presumed_correct_depth = INTS[fTreeView_poolret_pooledNode_depth];
+            if (d_of_presumed_correct_depth !== targetDepth) {
+                // Validate the target you paste into's child count
+                break;
+            }
+
+            someIndex++;
+
+            if (!isCollapsed) {
+                while (someIndex < EXPLORER_treeViewNodes.count_abstract) {
+                    let d_of_perhaps_too_large_depth = EXPLORER_treeViewNodes.getDepth(someIndex);
+                    if (d_of_perhaps_too_large_depth > targetDepth) {
+                        someIndex++;
+                    }
+                    else {
+                        break;
+                    }
+                    // TODO: Check if depth is less than targetDepth? This would only happen if the tree view were somehow in an incorrect state.
+                }
+            }
+
+            // TODO: You're missing a 'someIndex < EXPLORER_treeViewNodes.count_abstract' check for after the while loop.
+        }
+
+        EXPLORER_treeViewNodes.insert(someIndex, nodeKind, newFileResult.pathId, target.depth + 1);
+
+        INTS[fEXPLORER_itemHeightTotal] = EXPLORER_treeViewNodes.count_abstract * INTS[fEXPLORER_itemHeightNumber];
+        EXPLORER_scrollbar_space_generator.style.height = INTS[fEXPLORER_itemHeightTotal] + 'px';
+        EXPLORER_draw_BATCH_request(INTS[fEXPLORER_virtualIndex_ofScrollTop], INTS[fEXPLORER_virtualCount], 3);
+    }
+}
+
+async function NewFile_File_WIDGET_InputText_callback(widgetResult) {
+    if (widgetResult.isCancelled) return;
+
+    const entry = widgetResult.request.value;
+    const target = widgetResult.request.target;
+    
+    EXPLORER_treeViewNodes.getElementAt(target.indexItem);
+    let nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+    let depthOfTheParent = INTS[fTreeView_poolret_pooledNode_depth];
+    let isCollapsed = nodeKind === TreeViewNodeKind_isExpandable_NOTisExpanded || nodeKind === TreeViewNodeKind_NOTisExpandable_NOTisExpanded;
+
+    const newFileResult = await window.myAPI.newFile(entry.absolutePath, widgetResult.resultData, /*isDirectory*/ false);
+    if (!newFileResult.success) { return; }
+
+    nodeKind = TreeViewNodeKind_NOTisExpandable_NOTisExpanded;
+
+    if (isCollapsed) { return; }
+
+    let targetDepth = depthOfTheParent + 1;
+    let someIndex = target.indexItem + 1;
+
+    // TODO: 'i_targetDepth' is a bad variable name, you're looping a minimum of until 'newFileResult.indexOf' and each loop you check
+    // whether that sibling is expanded, if so you skip all the children of the sibling.
+    //
+    for (let i_targetDepth = 0; i_targetDepth < newFileResult.indexOf; i_targetDepth++) {
+        EXPLORER_treeViewNodes.getElementAt(someIndex);
+        let nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+        let isCollapsed = nodeKind === TreeViewNodeKind_isExpandable_NOTisExpanded || nodeKind === TreeViewNodeKind_NOTisExpandable_NOTisExpanded;
+
+        let d_of_presumed_correct_depth = INTS[fTreeView_poolret_pooledNode_depth];
+        if (d_of_presumed_correct_depth !== targetDepth) {
+            // Validate the target you paste into's child count
+            break;
+        }
+
+        someIndex++;
+
+        if (!isCollapsed) {
+            while (someIndex < EXPLORER_treeViewNodes.count_abstract) {
+                let d_of_perhaps_too_large_depth = EXPLORER_treeViewNodes.getDepth(someIndex);
+                if (d_of_perhaps_too_large_depth > targetDepth) {
+                    someIndex++;
+                }
+                else {
+                    break;
+                }
+                // TODO: Check if depth is less than targetDepth? This would only happen if the tree view were somehow in an incorrect state.
+            }
+        }
+
+        // TODO: You're missing a 'someIndex < EXPLORER_treeViewNodes.count_abstract' check for after the while loop.
+    }
+
+    EXPLORER_treeViewNodes.insert(someIndex, nodeKind, newFileResult.pathId, target.depth + 1);
+
+    INTS[fEXPLORER_itemHeightTotal] = EXPLORER_treeViewNodes.count_abstract * INTS[fEXPLORER_itemHeightNumber];
+    EXPLORER_scrollbar_space_generator.style.height = INTS[fEXPLORER_itemHeightTotal] + 'px';
+    EXPLORER_draw_BATCH_request(INTS[fEXPLORER_virtualIndex_ofScrollTop], INTS[fEXPLORER_virtualCount], 3);
+}
+
+async function DeleteFile_Directory_YesCancel_callback(widgetResult) {
+    if (widgetResult.isCancelled) return;
+    const entry = widgetResult.request.value;
+    const target = widgetResult.request.target;
+    const deleteFileResult = await window.myAPI.deleteFile(entry.absolutePath, /*isDirectory*/ true);
+    if (!deleteFileResult) { return; }
+
+    let countChanges = EXPLORER_removeFromNodeList(target.indexItem);
+
+    INTS[fEXPLORER_itemHeightTotal] = EXPLORER_treeViewNodes.count_abstract * INTS[fEXPLORER_itemHeightNumber];
+    EXPLORER_scrollbar_space_generator.style.height = INTS[fEXPLORER_itemHeightTotal] + 'px';
+    EXPLORER_draw_BATCH_request(INTS[fEXPLORER_virtualIndex_ofScrollTop], INTS[fEXPLORER_virtualCount], 3);
+}
+
+async function DeleteFile_File_YesCancel_callback(widgetResult) {
+    if (widgetResult.isCancelled) return;
+    const entry = widgetResult.request.value;
+    const target = widgetResult.request.target;
+    const deleteFileResult = await window.myAPI.deleteFile(entry.absolutePath, /*isDirectory*/ false);
+    if (!deleteFileResult) { return; }
+
+    EXPLORER_treeViewNodes.removeAt(target.indexItem, 1);
+
+    INTS[fEXPLORER_itemHeightTotal] = EXPLORER_treeViewNodes.count_abstract * INTS[fEXPLORER_itemHeightNumber];
+    EXPLORER_scrollbar_space_generator.style.height = INTS[fEXPLORER_itemHeightTotal] + 'px';
+    EXPLORER_draw_BATCH_request(INTS[fEXPLORER_virtualIndex_ofScrollTop], INTS[fEXPLORER_virtualCount], 3);
+}
+
+async function RenameFile_Directory_InputText_callback(widgetResult) {
+    if (widgetResult.isCancelled) return;
+    // TODO: Confusing, hacky, upsetting: 'WIDGET_target.entry / WIDGET_target.MENU_target'
+    const entry = widgetResult.request.target.entry;
+    const target = widgetResult.request.target.MENU_target;
+    const renameFileResult = await window.myAPI.renameFile(entry.absolutePath, widgetResult.resultData, /*isDirectory*/ true);
+    if (!renameFileResult.success) { return; }
+
+    EXPLORER_setNodeListEntryId(target.indexItem, renameFileResult.pathId);
+    const textNode = EXPLORER_itemListElement.children[target.divRelativeIndex].firstChild;
+    textNode.replaceData(1, textNode.length - 1, widgetResult.resultData);
+}
+
+async function RenameFile_File_InputText_callback(widgetResult) {
+    if (widgetResult.isCancelled) return;
+    // TODO: Confusing, hacky, upsetting: 'WIDGET_target.entry / WIDGET_target.MENU_target'
+    const entry = widgetResult.request.target.entry;
+    const target = widgetResult.request.target.MENU_target;
+    const renameFileResult = await window.myAPI.renameFile(entry.absolutePath, widgetResult.resultData, /*isDirectory*/ false);
+    if (!renameFileResult.success) { return; }
+
+    EXPLORER_setNodeListEntryId(target.indexItem, renameFileResult.pathId);
+    const textNode = EXPLORER_itemListElement.children[target.divRelativeIndex].firstChild;
+    textNode.replaceData(1, textNode.length - 1, widgetResult.resultData);
+}
+
+// TODO: look at the "async" events because its nonsensical
+
+// TODO: fine grained redrawing of only the nodes that are:
+// - part of the virtualization result
+// - and have changed in some way that necessitates their UI be redrawn
+
+/*
+// TODO: I saw the result was success but the indexOf was -1 when adding a file with the same name twice that seems erroneous...
+// ...one such case of getting the -1 was due to not-awaited async file creation followed by reading the directory as a "sorting algorithm"-ish...
+// ...cause you wanted to know where the OS put the new file among the existing children...
+// ...I'm not sure whether the case I'm describing is what the original todo was describing and thus I'm not gonna get rid of the original todo...
+// ...TODO: was the original todo referencing the case I described?
+
+// TODO: I added 3 files total while testing various words that would alphabetically be placed at the start, end, or somewhere in the middle...
+// ...I think the middle case for some reason ended up in the parent? I'm not quite sure what happened.
+*/
+
+// TODO: If menu is showing either:
+// - don't let user scroll
+// - when they do scroll close the menu
