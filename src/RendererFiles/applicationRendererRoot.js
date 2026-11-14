@@ -58,6 +58,10 @@ function sendTransaction_MessageKind_string(messageString) {
     socket.send(viewToSend); // Sends raw binary data
 }
 
+// Clarification for the previous git commit message
+// This isn't zero allocation but that was like the goal. I don't know I skimmed the generated code.
+// I'm gonna read it one day I have it all planned out I'm serious I just am inching there day by day it is what it is (energy and etc...)
+
 /** TODO: This is likely to have a race condition issue because Anything other than sending the exact same bytes that the editor read from the OS is likely to have a race condition issue */
 function sendTransaction_MessageKind_textDocument_didOpen(filePath) {
   if (!socket || socket.readyState !== WebSocket.OPEN) { return; }
