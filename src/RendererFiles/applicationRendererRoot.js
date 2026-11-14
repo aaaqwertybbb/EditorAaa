@@ -31,7 +31,7 @@ function sendTransaction_MessageKind_string(messageString) {
 
     let index = 0;
 
-    send_buffer[0] = '1'.charCodeAt(0);
+    send_buffer[0] = 49; // '1'
     send_buffer[1] = 95; // '_'
 
     index += 2;
