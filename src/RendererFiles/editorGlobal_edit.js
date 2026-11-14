@@ -172,133 +172,138 @@ let EDI_cursor_EDI_duplicationORpaste_cacheEachLineSubstringDecodedArray = null;
  * Google AI: "I want to make a Custom TextDecoder"
  */
 class EDI_CustomDecoder {
-  constructor() {
+    constructor() {
+        /**
+         * TODO: Make chunkSize the amount of characters that can fit from viewport_0_pixel to viewport_whateverTheTotalPixelWidthOrWhatever_pixel but in character units of the monospace form...
+         * ...just make sure you add a minimum so a small width screen doesn't thrash tokens...
+         * ...actually... can you put a minimum cause then single character identifiers are gonna break...
+         * ...but you probably have a minimumDueToScreenWidth and that has a minimum of its own and you can still separately have 1 character identifiers.
+         */
+        this.chunkSize = 2048;
+        this.charBuffer = new Uint16Array(this.chunkSize);
+    }
+
+    // High-performance V8 string builder helper
     /**
-     * TODO: Make chunkSize the amount of characters that can fit from viewport_0_pixel to viewport_whateverTheTotalPixelWidthOrWhatever_pixel but in character units of the monospace form...
-     * ...just make sure you add a minimum so a small width screen doesn't thrash tokens...
-     * ...actually... can you put a minimum cause then single character identifiers are gonna break...
-     * ...but you probably have a minimumDueToScreenWidth and that has a minimum of its own and you can still separately have 1 character identifiers.
+     * TODO: Validate this statement that Google AI made:
+     * Bonus _flushBuffer tip: In EDI_CustomDecoder._flushBuffer, calling String.fromCharCode.apply(null, this.charBuffer.subarray(0, bufIdx))
+     * (since chunkSize is 2048, well below V8's argument stack limit of ~65,536) avoids building chunkStr via += in a loop.
      */
-    this.chunkSize = 2048;
-    this.charBuffer = new Uint16Array(this.chunkSize);
-  }
-
-  // High-performance V8 string builder helper
-  _flushBuffer(bufIdx) {
-    let chunkStr = '';
-    for (let j = 0; j < bufIdx; j++) {
-      chunkStr += String.fromCharCode(this.charBuffer[j]);
-    }
-    return chunkStr;
-  }
-
-  /**
-   * Decodes an entire line's tokens, processes tabs, and populates lineSpans in a single method invocation.
-   * 
-   * @param {number} start - new_lineStart
-   * @param {number} lineEnd - new_lineEnd
-   * @param {Array} lineSpans - Cache array for this line's spans
-   * @param {number} spanIndex - The starting span index to write to
-   * @param {Array} tokenColors - EDI_tokenColors array/map
-   * @param {object} tokenResult - Persistent state holder (for .bytes and .styles references)
-   * @returns {number} The updated spanIndex count for the line
-   */
-  decodeLineTokens(start, lineEnd, lineSpans, spanIndex, tokenColors, bytesParam, stylesParam) {
-    const sharedBytes = bytesParam;
-    const styles = stylesParam;
-    const limit = this.chunkSize;
-
-    let i = start;
-    let col = 0; // Completely local counter now, no object tracking property needed!
-
-    while (i < lineEnd) {
-      let outStr = '';
-      let bufIdx = 0;
-
-      const initialStyleId = styles[i];
-
-      // Inner token consumption loop: runs entirely inside local registers
-      while (i < lineEnd) {
-        if (styles[i] !== initialStyleId) {
-          break; // Hit a token boundary, drop out to push this span
+    _flushBuffer(bufIdx) {
+        let chunkStr = '';
+        for (let j = 0; j < bufIdx; j++) {
+            chunkStr += String.fromCharCode(this.charBuffer[j]);
         }
-
-        let codePoint = sharedBytes[i++];
-
-        // FAST PATH: Horizontal tab (ASCII 9)
-        if (codePoint === 0x09) {
-          const spacesNeeded = 4 - (col & 3);
-          col += spacesNeeded;
-          
-          for (let s = 0; s < spacesNeeded; s++) {
-            this.charBuffer[bufIdx++] = 32; 
-            if (bufIdx >= limit - 1) {
-              outStr += this._flushBuffer(bufIdx);
-              bufIdx = 0;
-            }
-          }
-          continue;
-        }
-
-        // Multi-byte UTF-8 parsing
-        if ((codePoint & 0x80) !== 0) {
-          if ((codePoint & 0xE0) === 0xC0) {
-            if (i < lineEnd) codePoint = ((codePoint & 0x1F) << 6) | (sharedBytes[i++] & 0x3F);
-          }
-          else if ((codePoint & 0xF0) === 0xE0) {
-            if (i + 1 < lineEnd) {
-              codePoint = ((codePoint & 0x0F) << 12) | 
-                          ((sharedBytes[i++] & 0x3F) << 6) | 
-                          (sharedBytes[i++] & 0x3F);
-            }
-          }
-          else if ((codePoint & 0xF8) === 0xF0) {
-            if (i + 2 < lineEnd) {
-              codePoint = ((codePoint & 0x07) << 18) | 
-                          ((sharedBytes[i++] & 0x3F) << 12) | 
-                          ((sharedBytes[i++] & 0x3F) << 6) | 
-                          (sharedBytes[i++] & 0x3F);
-            }
-          }
-        }
-
-        col++;
-
-        if (codePoint <= 0xFFFF) {
-          this.charBuffer[bufIdx++] = codePoint;
-        } else {
-          codePoint -= 0x10000;
-          this.charBuffer[bufIdx++] = (codePoint >> 10) + 0xD800;
-          this.charBuffer[bufIdx++] = (codePoint & 0x3FF) + 0xDC00;
-        }
-
-        if (bufIdx >= limit - 1) {
-          outStr += this._flushBuffer(bufIdx);
-          bufIdx = 0;
-        }
-      }
-
-      // Flush remaining data for this token
-      if (bufIdx > 0) {
-        outStr += this._flushBuffer(bufIdx);
-      }
-
-      // Write token output directly into your line spans array record
-      if (spanIndex < lineSpans.length) {
-        const existingSpan = lineSpans[spanIndex++];
-        existingSpan.text = outStr;
-        existingSpan.color = tokenColors[initialStyleId];
-      } else {
-        lineSpans.push({
-          text: outStr,
-          color: tokenColors[initialStyleId]
-        });
-        spanIndex++;
-      }
+        return chunkStr;
     }
 
-    return spanIndex; // Return total parsed spans count for line cleanup
-  }
+    /**
+     * Decodes an entire line's tokens, processes tabs, and populates lineSpans in a single method invocation.
+     * 
+     * @param {number} start - new_lineStart
+     * @param {number} lineEnd - new_lineEnd
+     * @param {Array} lineSpans - Cache array for this line's spans
+     * @param {number} spanIndex - The starting span index to write to
+     * @param {Array} tokenColors - EDI_tokenColors array/map
+     * @param {object} tokenResult - Persistent state holder (for .bytes and .styles references)
+     * @returns {number} The updated spanIndex count for the line
+     */
+    decodeLineTokens(start, lineEnd, lineSpans, spanIndex, tokenColors, bytesParam, stylesParam) {
+        const sharedBytes = bytesParam;
+        const styles = stylesParam;
+        const limit = this.chunkSize;
+
+        let i = start;
+        let col = 0; // Completely local counter now, no object tracking property needed!
+
+        while (i < lineEnd) {
+            let outStr = '';
+            let bufIdx = 0;
+
+            const initialStyleId = styles[i];
+
+            // Inner token consumption loop: runs entirely inside local registers
+            while (i < lineEnd) {
+                if (styles[i] !== initialStyleId) {
+                    break; // Hit a token boundary, drop out to push this span
+                }
+
+                let codePoint = sharedBytes[i++];
+
+                // FAST PATH: Horizontal tab (ASCII 9)
+                if (codePoint === 0x09) {
+                    const spacesNeeded = 4 - (col & 3);
+                    col += spacesNeeded;
+
+                    for (let s = 0; s < spacesNeeded; s++) {
+                        this.charBuffer[bufIdx++] = 32;
+                        if (bufIdx >= limit - 1) {
+                            outStr += this._flushBuffer(bufIdx);
+                            bufIdx = 0;
+                        }
+                    }
+                    continue;
+                }
+
+                // Multi-byte UTF-8 parsing
+                if ((codePoint & 0x80) !== 0) {
+                    if ((codePoint & 0xE0) === 0xC0) {
+                        if (i < lineEnd) codePoint = ((codePoint & 0x1F) << 6) | (sharedBytes[i++] & 0x3F);
+                    }
+                    else if ((codePoint & 0xF0) === 0xE0) {
+                        if (i + 1 < lineEnd) {
+                            codePoint = ((codePoint & 0x0F) << 12) |
+                                ((sharedBytes[i++] & 0x3F) << 6) |
+                                (sharedBytes[i++] & 0x3F);
+                        }
+                    }
+                    else if ((codePoint & 0xF8) === 0xF0) {
+                        if (i + 2 < lineEnd) {
+                            codePoint = ((codePoint & 0x07) << 18) |
+                                ((sharedBytes[i++] & 0x3F) << 12) |
+                                ((sharedBytes[i++] & 0x3F) << 6) |
+                                (sharedBytes[i++] & 0x3F);
+                        }
+                    }
+                }
+
+                col++;
+
+                if (codePoint <= 0xFFFF) {
+                    this.charBuffer[bufIdx++] = codePoint;
+                } else {
+                    codePoint -= 0x10000;
+                    this.charBuffer[bufIdx++] = (codePoint >> 10) + 0xD800;
+                    this.charBuffer[bufIdx++] = (codePoint & 0x3FF) + 0xDC00;
+                }
+
+                if (bufIdx >= limit - 1) {
+                    outStr += this._flushBuffer(bufIdx);
+                    bufIdx = 0;
+                }
+            }
+
+            // Flush remaining data for this token
+            if (bufIdx > 0) {
+                outStr += this._flushBuffer(bufIdx);
+            }
+
+            // Write token output directly into your line spans array record
+            if (spanIndex < lineSpans.length) {
+                const existingSpan = lineSpans[spanIndex++];
+                existingSpan.text = outStr;
+                existingSpan.color = tokenColors[initialStyleId];
+            } else {
+                lineSpans.push({
+                    text: outStr,
+                    color: tokenColors[initialStyleId]
+                });
+                spanIndex++;
+            }
+        }
+
+        return spanIndex; // Return total parsed spans count for line cleanup
+    }
 
     /**
      * Google AI: 'I need this custom decoding logic in another place within my app. But this is specifically just so I can when handling paste events cache each line of text...'
@@ -385,6 +390,86 @@ class EDI_CustomDecoder {
 
         return outStr;
     }
+
+    /**
+     * Computes exact UTF-8 byte length of a JS string with zero heap allocations.
+     */
+    getUtf8ByteLength(str) {
+        let bytes = 0;
+        for (let i = 0; i < str.length; i++) {
+            const code = str.charCodeAt(i);
+            if (code <= 0x7F) {
+                bytes += 1;
+            } else if (code <= 0x7FF) {
+                bytes += 2;
+            } else if (code >= 0xD800 && code <= 0xDBFF) {
+                // Surrogate pair (4 UTF-8 bytes across 2 UTF-16 code units)
+                bytes += 4;
+                i++;
+            } else {
+                bytes += 3;
+            }
+        }
+        return bytes;
+    }
+
+    /**
+     * Writes a non-negative integer as ASCII digits directly into `buf` at `offset`.
+     * Returns the new offset after writing.
+     */
+    writeAsciiUint(buf, offset, value) {
+        if (value === 0) {
+            buf[offset] = 48; // '0'
+            return offset + 1;
+        }
+
+        // Find digit count without allocating a string
+        let temp = value;
+        let digits = 0;
+        while (temp > 0) {
+            digits++;
+            temp = (temp / 10) | 0;
+        }
+
+        let writePos = offset + digits - 1;
+        temp = value;
+        while (temp > 0) {
+            buf[writePos--] = 48 + (temp % 10); // '0' + digit
+            temp = (temp / 10) | 0;
+        }
+
+        return offset + digits;
+    }
+
+    /**
+     * Encodes a JS string as UTF-8 directly into `buf` at `offset`.
+     * Returns the new offset after writing.
+     */
+    writeUtf8String(buf, offset, str) {
+        for (let i = 0; i < str.length; i++) {
+            let code = str.charCodeAt(i);
+
+            if (code <= 0x7F) {
+                buf[offset++] = code;
+            } else if (code <= 0x7FF) {
+                buf[offset++] = 0xC0 | (code >> 6);
+                buf[offset++] = 0x80 | (code & 0x3F);
+            } else if (code >= 0xD800 && code <= 0xDBFF) {
+                // Combine surrogate pair into full Unicode code point
+                const low = str.charCodeAt(++i);
+                code = 0x10000 + (((code & 0x3FF) << 10) | (low & 0x3FF));
+                buf[offset++] = 0xF0 | (code >> 18);
+                buf[offset++] = 0x80 | ((code >> 12) & 0x3F);
+                buf[offset++] = 0x80 | ((code >> 6) & 0x3F);
+                buf[offset++] = 0x80 | (code & 0x3F);
+            } else {
+                buf[offset++] = 0xE0 | (code >> 12);
+                buf[offset++] = 0x80 | ((code >> 6) & 0x3F);
+                buf[offset++] = 0x80 | (code & 0x3F);
+            }
+        }
+        return offset;
+    }
 }
 
 const EDI_encoder = new TextEncoder();
@@ -431,7 +516,7 @@ function EDI_state_clear(trackingUint32MaxHeap_initialCapacity) {
     INTS[fEDI_textByteList_count] = 0;
     INTS[fEDI_longestLine_indexLine] = 0;
     INTS[fEDI_longestLine_length] = 0;
-    
+
     // TODO: This placement is slightly odd because the styleBuffer is made asynchronously and whether there could be a race condition that clears the styleBuffer you just received is uncertain (I just have not checked recently maybe I did when I first wrote it, it just looks odd though, need to check this).
     INTS[fEDI_styleBuffer_count] = 0;
 
@@ -476,7 +561,7 @@ function EDI_state_setText_byteArray(paddedUint8Array, textByteLength, fileStart
     INTS[fEDI_textByteList_count] = textByteLength;
     const local_EDI_textByteList_count = INTS[fEDI_textByteList_count];
 
-    
+
     EDI_lineEndPositionList_ensureCapacityForInsertion(0, necessaryCapacity);
     const local_EDI_lineEndPositionList_data = EDI_lineEndPositionList_data;
 
@@ -506,7 +591,7 @@ function EDI_state_setText_byteArray(paddedUint8Array, textByteLength, fileStart
     }
 
     local_EDI_lineEndPositionList_data[local_EDI_lineEndPositionList_count] = local_EDI_textByteList_count;
-  
+
     // Directly stream data sequentially into the heap buffer without sorting yet
     const bufferIndex = local_EDI_lineEndPositionList_count * 2;
     local_EDI_trackingUint32MaxHeap_heap[bufferIndex] = lineLengthVisual;     // length
@@ -587,7 +672,7 @@ function EDI_indentMore() {
             EDI_ret_getLineBoundaryPositions_raw(startingIndex);
             startingLinePos_start = INTS[fEDI_ret_getLineBoundaryPositions_start]; // TODO: This updated start value isn't actually used. Keep it for symmetry with 'startingLinePos_end'?
             startingLinePos_end = INTS[fEDI_ret_getLineBoundaryPositions_end]; // TODO: Well actually this end value is used but you could move the if statement for 'INTS[fEDI_cursor_editLength_characters] === 0' and just immediately set 'INTS[fEDI_editret_indentLess_startingLinePos_end]' here...
-                                                                           // ...This would avoid the symmetry issue because you updated a different value than the "end" so both values are still outdated rather than just 1.
+            // ...This would avoid the symmetry issue because you updated a different value than the "end" so both values are still outdated rather than just 1.
         }
     }
     if (startingIndex < SMALL_lineAndColumnIndices_indexLine) {
@@ -599,7 +684,7 @@ function EDI_indentMore() {
 
     if (INTS[fEDI_cursor_edit_eventCount_occurred] === 0) {
         INTS[fEDI_editret_indentLess_startingLinePos_end] = startingLinePos_end;
-    } 
+    }
 
     // # Update the cursor's indexColumn to reflect the inserted text
     INTS[fEDI_cursor_indexColumn] += EDI_on_tab_bytes.length;
@@ -624,7 +709,7 @@ function EDI_indentLess() {
 
     EDI_ret_getLineAndColumnIndices_raw(SMALL_pos);
     let SMALL_lineAndColumnIndices_indexLine = INTS[fEDI_ret_getLineAndColumnIndices_indexLine];
-    
+
     EDI_ret_getLineAndColumnIndices_raw(LARGE_pos);
     let LARGE_lineAndColumnIndices_indexLine = INTS[fEDI_ret_getLineAndColumnIndices_indexLine];
 
@@ -639,7 +724,7 @@ function EDI_indentLess() {
             EDI_ret_getLineBoundaryPositions_raw(startingIndex);
             startingLinePos_start = INTS[fEDI_ret_getLineBoundaryPositions_start]; // TODO: This updated start value isn't actually used. Keep it for symmetry with 'startingLinePos_end'?
             startingLinePos_end = INTS[fEDI_ret_getLineBoundaryPositions_end]; // TODO: Well actually this end value is used but you could move the if statement for 'INTS[fEDI_cursor_editLength_characters] === 0' and just immediately set 'INTS[fEDI_editret_indentLess_startingLinePos_end]' here...
-                                                                           // ...This would avoid the symmetry issue because you updated a different value than the "end" so both values are still outdated rather than just 1.
+            // ...This would avoid the symmetry issue because you updated a different value than the "end" so both values are still outdated rather than just 1.
         }
     }
     if (startingIndex < SMALL_lineAndColumnIndices_indexLine) {
@@ -671,10 +756,10 @@ function EDI_indentLess() {
  * Invoking 'EDI_finalizeEdit()' is a good idea prior to invoking this. Long term perhaps this won't be so important.
  */
 async function EDI_copySelection() {
-	if (!EDI_cursor_hasSelection()) {
-    	EDI_onMouseDownDetailRankThree(0, false, INTS[fEDI_cursor_indexLine], INTS[fEDI_cursor_indexColumn]);
-	}
-	let selectionAnchor = INTS[fEDI_cursor_selectionAnchor];
+    if (!EDI_cursor_hasSelection()) {
+        EDI_onMouseDownDetailRankThree(0, false, INTS[fEDI_cursor_indexLine], INTS[fEDI_cursor_indexColumn]);
+    }
+    let selectionAnchor = INTS[fEDI_cursor_selectionAnchor];
     let selectionEnd = INTS[fEDI_cursor_selectionEnd];
     let small;
     let large;
@@ -694,11 +779,11 @@ async function EDI_copySelection() {
  * Invoking 'EDI_finalizeEdit()' is a good idea prior to invoking this. Long term perhaps this won't be so important.
  */
 async function EDI_duplicateSelection() {
-	if (!EDI_cursor_hasSelection()) {
-    	EDI_onMouseDownDetailRankThree(0, false, INTS[fEDI_cursor_indexLine], INTS[fEDI_cursor_indexColumn]);
-	}
+    if (!EDI_cursor_hasSelection()) {
+        EDI_onMouseDownDetailRankThree(0, false, INTS[fEDI_cursor_indexLine], INTS[fEDI_cursor_indexColumn]);
+    }
 
-	let selectionAnchor = INTS[fEDI_cursor_selectionAnchor];
+    let selectionAnchor = INTS[fEDI_cursor_selectionAnchor];
     let selectionEnd = INTS[fEDI_cursor_selectionEnd];
     let small;
     let large;
@@ -913,7 +998,7 @@ function EDI_removeSelection() {
 
     INTS[fEDI_cursor_editLength_characters] = editLength;
     INTS[fEDI_cursor_edit_eventCount_occurred]++;
-    
+
     INTS[fEDI_cursor_STORED_visualWidth] = INTS[fEDI_cursorVisualColumnIndex];
 
     EDI_render_request(RenderKind_RemoveSelection);
@@ -978,11 +1063,11 @@ function EDI_state_do_Delete(event) {
             }
 
             let thisCharacterKind = CharacterKind_None;
-            
+
             tempIndexColumn++;
             tempPosition++;
             INTS[fEDI_cursor_editLength_characters]++;
-            
+
             while (INTS[fEDI_cursor_indexColumn] < lastValidIndexColumn) {
                 if (tempIndexColumn < lineEnd) {
                     thisCharacterKind = EDI_getCharacterKind(String.fromCharCode(EDI_textByteList_bytes[tempPosition]));
@@ -1049,7 +1134,7 @@ function EDI_state_do_Backspace(event) {
         EDI_removeSelection();
         return;
     }
-    
+
     if (INTS[fEDI_cursor_indexColumn] === 0) {
         if (INTS[fEDI_cursor_indexLine] > 0) {
 
@@ -1181,14 +1266,14 @@ function EDI_editEvent(editKind, event) {
     if (shouldFinalizeAllCursors) {
 
         shouldFinalizeAllCursors = false;
-        
+
         if ((editKind === EditKind_Tab && INTS[fEDI_cursor_editKind] === EditKind_IndentMore) ||
             (editKind === EditKind_Tab && INTS[fEDI_cursor_editKind] === EditKind_IndentLess && event.shiftKey)) {
 
-                // TODO: IndentLess when no selection however shiftTab then it does indentLess even still but I haven't gone out of the way to handle that hack...
-                // ...maybe it'll be covered maybe it won't.
+            // TODO: IndentLess when no selection however shiftTab then it does indentLess even still but I haven't gone out of the way to handle that hack...
+            // ...maybe it'll be covered maybe it won't.
 
-                // TODO: Rewrite this if statement (it is a hack for the moment while I get indent more of a single cursor to batch)
+            // TODO: Rewrite this if statement (it is a hack for the moment while I get indent more of a single cursor to batch)
         }
         else {
             EDI_finalizeEdit();
@@ -1381,7 +1466,7 @@ function EDI_editEvent_theEditIself_Enter(event) {
         }
         EDI_startEdit(EditKind_Enter, EDI_getPositionIndex_cursor_raw(), /*editLength*/ 0);
     }
-    
+
     EDI_EnterKey(event.ctrlKey, originalIndexLine, originalIndexColumn);
     INTS[fEDI_cursor_STORED_visualWidth] = INTS[fEDI_cursorVisualColumnIndex];
     EDI_render_request(RenderKind_Cursor_n);
@@ -1410,10 +1495,10 @@ function EDI_editEvent_theEditIself_Duplicate() {
  */
 function EDI_NOTcanBatch_insert() {
     return INTS[fEDI_cursor_editKind] != EditKind_InsertLtr ||
-           INTS[fEDI_cursor_indexLine] !== INTS[fEDI_cursor_editIndexLine] ||
-           INTS[fEDI_cursor_indexColumn] !== INTS[fEDI_cursor_editIndexColumn] + INTS[fEDI_cursor_editLength_characters] ||
-           INTS[fEDI_cursor_editLength_characters] >= CONST_EDI_cursor_GAP_BUFFER_CAPACITY ||
-           EDI_cursor_hasSelection();
+        INTS[fEDI_cursor_indexLine] !== INTS[fEDI_cursor_editIndexLine] ||
+        INTS[fEDI_cursor_indexColumn] !== INTS[fEDI_cursor_editIndexColumn] + INTS[fEDI_cursor_editLength_characters] ||
+        INTS[fEDI_cursor_editLength_characters] >= CONST_EDI_cursor_GAP_BUFFER_CAPACITY ||
+        EDI_cursor_hasSelection();
 }
 
 /**
@@ -1421,12 +1506,12 @@ function EDI_NOTcanBatch_insert() {
  */
 function EDI_NOTcanBatch_enter() {
     return BYTES[byteEDI_cursor_enterKeyEventKind] === EnterKeyEventKind_None ||
-           INTS[fEDI_cursor_editKind] !== EditKind_Enter ||
-           INTS[fEDI_cursor_indexLine] !== INTS[fEDI_cursor_END_editIndexLine] ||
-           INTS[fEDI_cursor_indexColumn] !== INTS[fEDI_cursor_END_editIndexColumn] ||
-           INTS[fEDI_cursor_editLength_characters] >= CONST_EDI_cursor_GAP_BUFFER_CAPACITY ||
-           !EDI_cursor_enterKey_newLinePlusIndentation_byteList ||
-           EDI_cursor_hasSelection();
+        INTS[fEDI_cursor_editKind] !== EditKind_Enter ||
+        INTS[fEDI_cursor_indexLine] !== INTS[fEDI_cursor_END_editIndexLine] ||
+        INTS[fEDI_cursor_indexColumn] !== INTS[fEDI_cursor_END_editIndexColumn] ||
+        INTS[fEDI_cursor_editLength_characters] >= CONST_EDI_cursor_GAP_BUFFER_CAPACITY ||
+        !EDI_cursor_enterKey_newLinePlusIndentation_byteList ||
+        EDI_cursor_hasSelection();
 }
 
 /**
@@ -1434,9 +1519,9 @@ function EDI_NOTcanBatch_enter() {
  */
 function EDI_NOTcanBatch_backspace() {
     return INTS[fEDI_cursor_editKind] != EditKind_BackspaceRtl ||
-           INTS[fEDI_cursor_indexLine] !== INTS[fEDI_cursor_editIndexLine] ||
-           INTS[fEDI_cursor_indexColumn] !== INTS[fEDI_cursor_editIndexColumn] ||
-           EDI_cursor_hasSelection();
+        INTS[fEDI_cursor_indexLine] !== INTS[fEDI_cursor_editIndexLine] ||
+        INTS[fEDI_cursor_indexColumn] !== INTS[fEDI_cursor_editIndexColumn] ||
+        EDI_cursor_hasSelection();
 }
 
 /**
@@ -1444,9 +1529,9 @@ function EDI_NOTcanBatch_backspace() {
  */
 function EDI_NOTcanBatch_delete() {
     return INTS[fEDI_cursor_editKind] != EditKind_DeleteLtr ||
-           INTS[fEDI_cursor_indexLine] !== INTS[fEDI_cursor_editIndexLine] ||
-           INTS[fEDI_cursor_indexColumn] !== INTS[fEDI_cursor_editIndexColumn] ||
-           EDI_cursor_hasSelection();
+        INTS[fEDI_cursor_indexLine] !== INTS[fEDI_cursor_editIndexLine] ||
+        INTS[fEDI_cursor_indexColumn] !== INTS[fEDI_cursor_editIndexColumn] ||
+        EDI_cursor_hasSelection();
 }
 
 /** @returns {boolean} 'shouldFinalizeAllCursors' */
@@ -1467,7 +1552,7 @@ function EDI_editEvent_checkFor_NOTcanBatch_Tab(event) {
                 INTS[fEDI_cursor_editIndexLine] === INTS[fEDI_cursor_indexLine] &&
                 INTS[fEDI_cursor_editIndexColumn] + INTS[fEDI_cursor_editLength_characters] === INTS[fEDI_cursor_indexColumn] &&
                 INTS[fEDI_cursor_editLength_characters] < CONST_EDI_cursor_GAP_BUFFER_CAPACITY) {
-                    return false;
+                return false;
             }
         }
     }
@@ -1485,7 +1570,7 @@ function EDI_editEvent_checkFor_NOTcanBatch_IndentMore() {
     if (INTS[fEDI_cursor_editKind] !== EditKind_IndentMore) {
         return true;
     }
-    
+
     let SMALL_pos;
     let LARGE_pos;
     if (INTS[fEDI_cursor_selectionAnchor] < INTS[fEDI_cursor_selectionEnd]) {
@@ -1520,7 +1605,7 @@ function EDI_editEvent_checkFor_NOTcanBatch_IndentMore() {
 
     if (INTS[fEDI_indent_SMALL_lineAndColumnIndices_indexLine] === SMALL_lineAndColumnIndices_indexLine &&
         INTS[fEDI_indent_startingIndex] === startingIndex) {
-            return false;
+        return false;
     }
 
     // TODO: if "fEDI_cursor_editLength_characters" > "..." then finalize the edit? or no limit on edit length per batch for indent more?...
@@ -1539,7 +1624,7 @@ function EDI_editEvent_checkFor_NOTcanBatch_IndentLess() {
     if (INTS[fEDI_cursor_editKind] !== EditKind_IndentLess) {
         return true;
     }
-    
+
     let SMALL_pos;
     let LARGE_pos;
     if (INTS[fEDI_cursor_selectionAnchor] < INTS[fEDI_cursor_selectionEnd]) {
@@ -1575,7 +1660,7 @@ function EDI_editEvent_checkFor_NOTcanBatch_IndentLess() {
 
     if (INTS[fEDI_indent_SMALL_lineAndColumnIndices_indexLine] === SMALL_lineAndColumnIndices_indexLine &&
         INTS[fEDI_indent_startingIndex] === startingIndex) {
-            return false;
+        return false;
     }
 
     // TODO: if "fEDI_cursor_editLength_characters" > "..." then finalize the edit? or no limit on edit length per batch for indent less?...
@@ -1666,11 +1751,11 @@ function EDI_finalizeEdit_InsertLtr(indexLine_editOccurredOn) {
     EDI_trackingUint32MaxHeap.updateLength_diff(indexLine_editOccurredOn, INTS[fEDI_cursor_editLength_characters]);
     if (EDI_trackingUint32MaxHeap.tryPooledPeek() &&
         (INTS[fEDI_longestLine_length] !== EDI_trackingUint32MaxHeap.unpack_pool_length || INTS[fEDI_longestLine_indexLine] !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
-            INTS[fEDI_longestLine_indexLine] = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
-            INTS[fEDI_longestLine_length] = EDI_trackingUint32MaxHeap.unpack_pool_length;
-            requestAnimationFrame(EDI_drawHorizontalScrollbar);
+        INTS[fEDI_longestLine_indexLine] = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
+        INTS[fEDI_longestLine_length] = EDI_trackingUint32MaxHeap.unpack_pool_length;
+        requestAnimationFrame(EDI_drawHorizontalScrollbar);
     }
-    
+
     EDI_finalizeEdit_ClearEditState();
 
     return indexLine_editOccurredOn;
@@ -1685,12 +1770,12 @@ function EDI_finalizeEdit_Enter(indexLine_editOccurredOn) {
     if (!BYTES[byteEDI_cursor_enterKeyEventKind] || BYTES[byteEDI_cursor_enterKeyEventKind] === EnterKeyEventKind_None) { EDI_finalizeEdit_ClearEditState(); throw new Error('if (!enterKeyEventKind...)'); }
 
     const per_edit_insertionCount = EDI_cursor_enterKey_newLinePlusIndentation_byteList.length;
-    
+
     let actualEditPosition = INTS[fEDI_cursor_editPosition];
     let actualLineFeedPosition = actualEditPosition;
     let actualIndexLine = INTS[fEDI_cursor_editIndexLine];
     let actualNewLineVisualWidth = INTS[fEDI_cursor_cached_indentation_string_visualWidth];
-    
+
     let specialCase_number = 0;
     let specialCase_firstLineIndexInserted = 0; // TODO: This is probably the lineIndex you end up on after the loop minus some number, maybe 'INTS[fEDI_cursor_editLineFeedCount]'.
 
@@ -1770,43 +1855,43 @@ function EDI_finalizeEdit_Enter(indexLine_editOccurredOn) {
         EDI_trackingUint32MaxHeap.updateLength(specialCase_firstLineIndexInserted, specialCase_number);
         if (EDI_trackingUint32MaxHeap.tryPooledPeek() &&
             (INTS[fEDI_longestLine_length] !== EDI_trackingUint32MaxHeap.unpack_pool_length || INTS[fEDI_longestLine_indexLine] !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
-                // "aaa\n" => 'EDI_lineEndPositionList_insert' causes a temporary longest line index is 1 and the longest line length is 0
-                // that needs to be overwritten.
-                // The example is "as you type it" so the '\n' gets finalized and that's when you see the wrong answer it is only temporary due to 'EDI_lineEndPositionList_insert'.
-                //
-                // TODO: This should be looked into a bit more?
-                //
-                // Of course this is happening updateLength doesn't draw the UI?
-                // 
-                // yeah cause you lost the longest line temporarily you moved it into the specialCase variables.
-                // Then updated the EOF to have the length of the indentation.
-                // So then EDI_lineEndPositionList_insert(...) internally updates the UI and it doesn't see the "specialCase variable's visual length existing in the heap" anymore
-                // and it took the line you just added like if both end up 0 it's just w/e the algorithm picked one or the other due to some tiebreaker cause you only had the 2 lines
-                //
-                INTS[fEDI_longestLine_indexLine] = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
-                INTS[fEDI_longestLine_length] = EDI_trackingUint32MaxHeap.unpack_pool_length;
-                requestAnimationFrame(EDI_drawHorizontalScrollbar);
+            // "aaa\n" => 'EDI_lineEndPositionList_insert' causes a temporary longest line index is 1 and the longest line length is 0
+            // that needs to be overwritten.
+            // The example is "as you type it" so the '\n' gets finalized and that's when you see the wrong answer it is only temporary due to 'EDI_lineEndPositionList_insert'.
+            //
+            // TODO: This should be looked into a bit more?
+            //
+            // Of course this is happening updateLength doesn't draw the UI?
+            // 
+            // yeah cause you lost the longest line temporarily you moved it into the specialCase variables.
+            // Then updated the EOF to have the length of the indentation.
+            // So then EDI_lineEndPositionList_insert(...) internally updates the UI and it doesn't see the "specialCase variable's visual length existing in the heap" anymore
+            // and it took the line you just added like if both end up 0 it's just w/e the algorithm picked one or the other due to some tiebreaker cause you only had the 2 lines
+            //
+            INTS[fEDI_longestLine_indexLine] = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
+            INTS[fEDI_longestLine_length] = EDI_trackingUint32MaxHeap.unpack_pool_length;
+            requestAnimationFrame(EDI_drawHorizontalScrollbar);
         }
     }
     else if (BYTES[byteEDI_cursor_enterKeyEventKind] === EnterKeyEventKind_AmongALine) {
         EDI_trackingUint32MaxHeap.updateLength(specialCase_firstLineIndexInserted, specialCase_number);
         if (EDI_trackingUint32MaxHeap.tryPooledPeek() &&
             (INTS[fEDI_longestLine_length] !== EDI_trackingUint32MaxHeap.unpack_pool_length || INTS[fEDI_longestLine_indexLine] !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
-                // "gets finalized and that's when you see the wrong answer it is only temporary due to 'EDI_lineEndPositionList_insert'."
-                // is happening again for this case too...
-                //
-                // TODO: This should be looked into a bit more?
-                //
-                // The "debug" UI that showed the line index with longest visual length and its value was correct.
-                // But for some reason the horizontal scrollbar was slightly longer than it should've been and then I inserted 1 character and finalized to cause it to redraw
-                // and then it drew properly then ?
-                // 
-                INTS[fEDI_longestLine_indexLine] = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
-                INTS[fEDI_longestLine_length] = EDI_trackingUint32MaxHeap.unpack_pool_length;
-                requestAnimationFrame(EDI_drawHorizontalScrollbar);
+            // "gets finalized and that's when you see the wrong answer it is only temporary due to 'EDI_lineEndPositionList_insert'."
+            // is happening again for this case too...
+            //
+            // TODO: This should be looked into a bit more?
+            //
+            // The "debug" UI that showed the line index with longest visual length and its value was correct.
+            // But for some reason the horizontal scrollbar was slightly longer than it should've been and then I inserted 1 character and finalized to cause it to redraw
+            // and then it drew properly then ?
+            // 
+            INTS[fEDI_longestLine_indexLine] = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
+            INTS[fEDI_longestLine_length] = EDI_trackingUint32MaxHeap.unpack_pool_length;
+            requestAnimationFrame(EDI_drawHorizontalScrollbar);
         }
     }
-    
+
     EDI_finalizeEdit_ClearEditState();
 
     return indexLine_editOccurredOn;
@@ -1855,9 +1940,9 @@ function EDI_finalizeEdit_Tab(indexLine_editOccurredOn) {
     EDI_trackingUint32MaxHeap.updateLength_diff(INTS[fEDI_cursor_editIndexLine], editLengthVisual);
     if (EDI_trackingUint32MaxHeap.tryPooledPeek() &&
         (INTS[fEDI_longestLine_length] !== EDI_trackingUint32MaxHeap.unpack_pool_length || INTS[fEDI_longestLine_indexLine] !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
-            INTS[fEDI_longestLine_indexLine] = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
-            INTS[fEDI_longestLine_length] = EDI_trackingUint32MaxHeap.unpack_pool_length;
-            requestAnimationFrame(EDI_drawHorizontalScrollbar);
+        INTS[fEDI_longestLine_indexLine] = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
+        INTS[fEDI_longestLine_length] = EDI_trackingUint32MaxHeap.unpack_pool_length;
+        requestAnimationFrame(EDI_drawHorizontalScrollbar);
     }
 
     indexLine_editOccurredOn = INTS[fEDI_cursor_editIndexLine];
@@ -1882,7 +1967,7 @@ function EDI_finalizeEdit_IndentMore(indexLine_editOccurredOn) {
 
     let ORIGINAL_incrementBy = (startingIndex + 1 - SMALL_lineAndColumnIndices_indexLine) * per_edit_length;
     let incrementBy = ORIGINAL_incrementBy;
-    
+
     let bytesLength = per_edit_length;
 
     if (INTS[fEDI_cursor_edit_eventCount_occurred] > 1) {
@@ -1927,7 +2012,7 @@ function EDI_finalizeEdit_IndentMore(indexLine_editOccurredOn) {
         }
 
         sendTransaction_MessageKind_custom_edit_InsertLtr(line_start, bytes);
-        
+
         // # Increment the entry in 'EDI_lineEndPositionList' for the respective line
         EDI_lineEndPositionList_data[lineI] += incrementBy;
 
@@ -1949,12 +2034,12 @@ function EDI_finalizeEdit_IndentMore(indexLine_editOccurredOn) {
         EDI_trackingUint32MaxHeap.updateLength_diff(INTS[fEDI_cursor_editIndexLine], bytesLength * INTS[fEDI_ontab_visualWidth_perCharacter]);
         if (EDI_trackingUint32MaxHeap.tryPooledPeek() &&
             (INTS[fEDI_longestLine_length] !== EDI_trackingUint32MaxHeap.unpack_pool_length || INTS[fEDI_longestLine_indexLine] !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
-                INTS[fEDI_longestLine_indexLine] = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
-                INTS[fEDI_longestLine_length] = EDI_trackingUint32MaxHeap.unpack_pool_length;
-                requestAnimationFrame(EDI_drawHorizontalScrollbar);
+            INTS[fEDI_longestLine_indexLine] = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
+            INTS[fEDI_longestLine_length] = EDI_trackingUint32MaxHeap.unpack_pool_length;
+            requestAnimationFrame(EDI_drawHorizontalScrollbar);
         }
     }
-    
+
     EDI_finalizeEdit_ClearEditState();
 
     return indexLine_editOccurredOn;
@@ -2092,7 +2177,7 @@ function EDI_finalizeEdit_IndentLess(indexLine_editOccurredOn) {
 
         sendTransaction_MessageKind_custom_edit_Remove(line_start, innerRemoveCount);
 
-	    EDI_lineEndPositionList_data[lineI] -= decrementBy;
+        EDI_lineEndPositionList_data[lineI] -= decrementBy;
 
         decrementBy -= innerRemoveCount;
     }
@@ -2108,9 +2193,9 @@ function EDI_finalizeEdit_IndentLess(indexLine_editOccurredOn) {
         EDI_trackingUint32MaxHeap.updateLength_diff(INTS[fEDI_cursor_editIndexLine], -1 * mostRecent_decrementedVisualWidthAbsolute);
         if (EDI_trackingUint32MaxHeap.tryPooledPeek() &&
             (INTS[fEDI_longestLine_length] !== EDI_trackingUint32MaxHeap.unpack_pool_length || INTS[fEDI_longestLine_indexLine] !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
-                INTS[fEDI_longestLine_indexLine] = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
-                INTS[fEDI_longestLine_length] = EDI_trackingUint32MaxHeap.unpack_pool_length;
-                requestAnimationFrame(EDI_drawHorizontalScrollbar);
+            INTS[fEDI_longestLine_indexLine] = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
+            INTS[fEDI_longestLine_length] = EDI_trackingUint32MaxHeap.unpack_pool_length;
+            requestAnimationFrame(EDI_drawHorizontalScrollbar);
         }
     }
 
@@ -2154,9 +2239,9 @@ function EDI_finalizeEdit_Paste(indexLine_editOccurredOn) {
     EDI_trackingUint32MaxHeap.updateLength_diff(indexLine_editOccurredOn, EDI_cursor_EDI_paste_clipboardContent_arrayLineVisualLengths[0]);
     if (EDI_trackingUint32MaxHeap.tryPooledPeek() &&
         (INTS[fEDI_longestLine_length] !== EDI_trackingUint32MaxHeap.unpack_pool_length || INTS[fEDI_longestLine_indexLine] !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
-            INTS[fEDI_longestLine_indexLine] = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
-            INTS[fEDI_longestLine_length] = EDI_trackingUint32MaxHeap.unpack_pool_length;
-            requestAnimationFrame(EDI_drawHorizontalScrollbar);
+        INTS[fEDI_longestLine_indexLine] = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
+        INTS[fEDI_longestLine_length] = EDI_trackingUint32MaxHeap.unpack_pool_length;
+        requestAnimationFrame(EDI_drawHorizontalScrollbar);
     }
 
     // it's the same logic as the enter key
@@ -2214,9 +2299,9 @@ function EDI_finalizeEdit_Duplicate(indexLine_editOccurredOn) {
     EDI_trackingUint32MaxHeap.updateLength_diff(indexLine_editOccurredOn, EDI_cursor_EDI_duplication_arrayLineVisualLengths[0]);
     if (EDI_trackingUint32MaxHeap.tryPooledPeek() &&
         (INTS[fEDI_longestLine_length] !== EDI_trackingUint32MaxHeap.unpack_pool_length || INTS[fEDI_longestLine_indexLine] !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
-            INTS[fEDI_longestLine_indexLine] = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
-            INTS[fEDI_longestLine_length] = EDI_trackingUint32MaxHeap.unpack_pool_length;
-            requestAnimationFrame(EDI_drawHorizontalScrollbar);
+        INTS[fEDI_longestLine_indexLine] = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
+        INTS[fEDI_longestLine_length] = EDI_trackingUint32MaxHeap.unpack_pool_length;
+        requestAnimationFrame(EDI_drawHorizontalScrollbar);
     }
 
     // it's the same logic as the enter key
@@ -2316,9 +2401,9 @@ function EDI_finalizeEdit_DeleteLtr_BackspaceRtl_RemoveTextNoBatching(indexLine_
         EDI_trackingUint32MaxHeap.updateLength_diff(INTS[fEDI_cursor_editIndexLine], -1 * INTS[fEDI_cursor_editLengthVisual]);
         if (EDI_trackingUint32MaxHeap.tryPooledPeek() &&
             (INTS[fEDI_longestLine_length] !== EDI_trackingUint32MaxHeap.unpack_pool_length || INTS[fEDI_longestLine_indexLine] !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
-                INTS[fEDI_longestLine_indexLine] = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
-                INTS[fEDI_longestLine_length] = EDI_trackingUint32MaxHeap.unpack_pool_length;
-                requestAnimationFrame(EDI_drawHorizontalScrollbar);
+            INTS[fEDI_longestLine_indexLine] = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
+            INTS[fEDI_longestLine_length] = EDI_trackingUint32MaxHeap.unpack_pool_length;
+            requestAnimationFrame(EDI_drawHorizontalScrollbar);
         }
     }
 
@@ -2385,15 +2470,15 @@ function EDI_finalizeEdit_ClearEditState() {
 //#region ancillary
 /** modification of Google AI Overview "javascript count of digits" */
 function positiveNumbersOnly_countDigitsLoop(number) {
-  if (number <= 0) return 1;
-  let count = 0;
+    if (number <= 0) return 1;
+    let count = 0;
 
-  while (number > 0) {
-    number = Math.floor(number / 10); // Remove the last digit
-    count++;
-  }
+    while (number > 0) {
+        number = Math.floor(number / 10); // Remove the last digit
+        count++;
+    }
 
-  return count;
+    return count;
 }
 
 function EDI_getCharacterPrevious_KIND(indexColumn, positionIndex) {
@@ -2433,14 +2518,14 @@ function EDI_ret_getLineAndColumnIndices_raw(positionIndex) {
 
     while (left <= right) {
         const mid = Math.floor((left + right) / 2);
-        
+
         if (local_EDI_lineEndPositionList_data[mid] >= positionIndex) {
             indexLine = mid;
 
             if (local_EDI_lineEndPositionList_data[mid] === positionIndex) {
                 break;
             }
-            
+
             right = mid - 1;
         }
         else if (local_EDI_lineEndPositionList_data[mid] < positionIndex) {
@@ -2559,7 +2644,7 @@ function EDI_getEntireLineVisualWidth(lineStart, lineEnd) {
 
     while (positionIndex < lineEnd) {
         let charLength = 1;
-        
+
         if (String.fromCharCode(EDI_textByteList_bytes[positionIndex]) === '\t') {
             charLength = 4 - (visualColumns % 4);
         }
@@ -2581,7 +2666,7 @@ function EDI_set_indexColumn_and_visualColumn_relativeTo_storedVisualWidth(lineS
 
     while (positionIndex < lineEnd) {
         let charLength = 1;
-        
+
         if (String.fromCharCode(EDI_textByteList_bytes[positionIndex]) === '\t') {
             charLength = 4 - (visualColumns % 4);
         }
@@ -2625,7 +2710,7 @@ function EDI_ret_getIndexFromColumn_sameLine_newRxIsLarger(targetColumn, lineSta
 
     while (positionIndex < lineEnd) {
         let charLength = 1;
-        
+
         if (String.fromCharCode(EDI_textByteList_bytes[positionIndex]) === '\t') {
             charLength = 4 - (visualColumns % 4);
         }
@@ -2669,7 +2754,7 @@ function EDI_ret_getIndexFromColumn_RESET(targetColumn, lineStart, lineEnd) {
 
     while (positionIndex < lineEnd) {
         let charLength = 1;
-        
+
         if (String.fromCharCode(EDI_textByteList_bytes[positionIndex]) === '\t') {
             charLength = 4 - (visualColumns % 4);
         }
@@ -2713,7 +2798,7 @@ function EDI_ret_getIndexFromX_RESET(rx, lineStart, lineEnd) {
 
     while (positionIndex < lineEnd) {
         let charLength = 1;
-        
+
         if (String.fromCharCode(EDI_textByteList_bytes[positionIndex]) === '\t') {
             charLength = 4 - (visualColumns % 4);
         }
@@ -2749,7 +2834,7 @@ function EDI_ret_getIndexFromX_sameLine_newRxIsLarger(goalRx, lineStart, lineEnd
 
     while (positionIndex < lineEnd) {
         let charLength = 1;
-        
+
         if (String.fromCharCode(EDI_textByteList_bytes[positionIndex]) === '\t') {
             charLength = 4 - (visualColumns % 4);
         }
@@ -2793,7 +2878,7 @@ function EDI_ret_getIndexFromX_sameLine_newRxIsSmaller(goalRx, lineStart, startC
 
     while (positionIndex >= lineStart && positionIndex > 0) {
         let charLength = 1;
-        
+
         if (String.fromCharCode(EDI_textByteList_bytes[positionIndex - 1]) === '\t') {
             charLength = 4 - (visualColumns % 4);
         }
@@ -2858,7 +2943,7 @@ function EDI_moveCursor_indexLine_indexColumn(indexLine, indexColumn) {
     const lineEnd = INTS[fEDI_ret_getLineBoundaryPositions_end];
     EDI_ret_getIndexFromColumn_RESET(INTS[fEDI_cursor_indexColumn], lineStart, lineEnd);
     INTS[fEDI_cursorVisualColumnIndex] = INTS[fEDI_ret_getIndexFromX_visualColumns];
-    
+
     // TODO: selectionAnchor = selectionEnd; EDI_drawCursor(/*NOTscrollCursorIntoView*/ false); # being the way to clear a selection should be documented / wrapped by a method for ease of use / readability?
     INTS[fEDI_cursor_selectionAnchor] = INTS[fEDI_cursor_selectionEnd];
     EDI_render_request(RenderKind_Cursor_n);
@@ -2999,20 +3084,20 @@ function EDI_measureBaseElement() {
  */
 function EDI_decode_textonly(start, length) {
     if (length <= 0) {
-		return '';
-	}
+        return '';
+    }
 
-	let end = start + length;
+    let end = start + length;
 
-	let decodedText = EDI_decoder.decode(EDI_textByteList_bytes.subarray(start, end));
-	if (!EDI_lineEndString) {
-		EDI_lineEndString = '\n';
-	}
-	if (EDI_lineEndString !== '\n') {
-		decodedText = decodedText.replaceAll('\n', EDI_lineEndString);
-	}
-	
-	return decodedText;
+    let decodedText = EDI_decoder.decode(EDI_textByteList_bytes.subarray(start, end));
+    if (!EDI_lineEndString) {
+        EDI_lineEndString = '\n';
+    }
+    if (EDI_lineEndString !== '\n') {
+        decodedText = decodedText.replaceAll('\n', EDI_lineEndString);
+    }
+
+    return decodedText;
 }
 
 /**
@@ -3082,8 +3167,8 @@ function EDI_render_do_cursor_flag_scrollIntoViewExplicit() {
 
 function EDI_cursor_hasSelection() {
     return INTS[fEDI_cursor_selectionAnchor] >= 0 &&
-            INTS[fEDI_cursor_selectionEnd] >= 0 &&
-            INTS[fEDI_cursor_selectionAnchor] != INTS[fEDI_cursor_selectionEnd];
+        INTS[fEDI_cursor_selectionEnd] >= 0 &&
+        INTS[fEDI_cursor_selectionAnchor] != INTS[fEDI_cursor_selectionEnd];
 }
 
 /**
@@ -3174,7 +3259,7 @@ function EDI_cursorBlinkingTrailingEdge() {
 
 async function EDI_MenuOnClick(isCancelled, menuOption, request) {
     if (isCancelled || !menuOption) { return; }
-    
+
     const commandKind = menuOption.commandKind;
     if (!commandKind) { return; }
 
@@ -3244,7 +3329,7 @@ async function EDI_read_clipboard() {
 function EDI_read_duplication() {
     if (BYTES[byteEDI_duplication_may_have_changed] === 1) {
         BYTES[byteEDI_duplication_may_have_changed] = 0;
-        
+
         // Timing don't do this like u did in the other
         //EDI_finalizeEdit();
 
@@ -3331,7 +3416,7 @@ function EDI_requestLspHover() {
 
     let rY = event_clientY - INTS[fEDI_recentBoundingClientRect_top] + EDI_lastReadNumber_scrollTop;
     let rX = event_clientX - INTS[fEDI_recentBoundingClientRect_left] - INTS[fEDI_gutterWidthTotal] + EDI_lastReadNumber_scrollLeft;
-    
+
     let indexLine = Math.floor(rY / INTS[fEDI_lineHeight]);
     let indexColumn = Math.round(rX / EDI_characterWidth);
 
@@ -3341,7 +3426,7 @@ function EDI_requestLspHover() {
     // ----
     let lastValidIndexColumn = EDI_getLastValidIndexColumn_raw(indexLine);
     if (indexColumn > lastValidIndexColumn) return;
-    
+
     ///////////
     ///////////
     // # GET INDICES
@@ -3425,7 +3510,7 @@ function EDI_registerHandlers() {
     // Attach a single listener to your text container (Event Delegation)
     //EDI_baseElement.addEventListener('mouseover', EDI_mouseOver);
     //EDI_baseElement.addEventListener('mouseleave', EDI_mouseLeave);
-    
+
     EDI_baseElement.addEventListener('focus', EDI_onfocus);
     EDI_baseElement.addEventListener('blur', EDI_onblur);
 
@@ -3541,7 +3626,7 @@ function EDI_textByteList_duplicateWithin(sourceStart, destinationStart, length)
 function EDI_textByteList_ensureCapacityForInsertion(index, count) {
     // TODO: sparse insertions?
     const requiredCapacity = Math.max(INTS[fEDI_textByteList_count] + count, index);
-    
+
     // If we already have enough capacity, do absolutely nothing
     if (requiredCapacity <= INTS[fEDI_textByteList_capacity]) {
         return;
@@ -3574,7 +3659,7 @@ function EDI_textByteList_ensureCapacityForInsertion(index, count) {
     // Allocate and copy EXACTLY ONCE
     let bytesNew = new Uint8Array(capacityNew);
     EDI_textByteList_copyTo(EDI_textByteList_bytes, 0, bytesNew, 0, INTS[fEDI_textByteList_count]);
-    
+
     // Commit the changes to your global/module state
     EDI_textByteList_bytes = bytesNew;
     INTS[fEDI_textByteList_capacity] = capacityNew;
@@ -3675,7 +3760,7 @@ function EDI_styleBuffer_removeAt(index, count) {
 function EDI_styleBuffer_ensureCapacityForInsertion(index, count) {
     // TODO: sparse insertions?
     const requiredCapacity = Math.max(INTS[fEDI_styleBuffer_count] + count, index);
-    
+
     // If we already have enough capacity, do absolutely nothing
     if (requiredCapacity <= INTS[fEDI_styleBuffer_capacity]) {
         return;
@@ -3708,7 +3793,7 @@ function EDI_styleBuffer_ensureCapacityForInsertion(index, count) {
     // Allocate and copy EXACTLY ONCE
     let bytesNew = new Uint8Array(capacityNew);
     EDI_styleBuffer_copyTo(EDI_styleBuffer, 0, bytesNew, 0, INTS[fEDI_styleBuffer_count]);
-    
+
     // Commit the changes to your global/module state
     EDI_styleBuffer = bytesNew;
     INTS[fEDI_styleBuffer_capacity] = capacityNew;
@@ -3751,7 +3836,7 @@ function EDI_lineEndPositionList_insert(lineIndex, position, lineLengthVisual) {
     // 3. Now it is safe to insert the new line into the heap.
     // It will take the newly vacated lineIndex.
     EDI_trackingUint32MaxHeap.insert(lineIndex, lineLengthVisual);
-    
+
     // 4. Update the linear data metrics
     EDI_lineEndPositionList_data[lineIndex] = position;
     INTS[fEDI_lineEndPositionList_count]++;
@@ -3759,8 +3844,8 @@ function EDI_lineEndPositionList_insert(lineIndex, position, lineLengthVisual) {
     // TODO: probably remove this and let the invoker do it themselves if warranted.
     if (EDI_trackingUint32MaxHeap.tryPooledPeek() &&
         (INTS[fEDI_longestLine_length] !== EDI_trackingUint32MaxHeap.unpack_pool_length || INTS[fEDI_longestLine_indexLine] !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
-            INTS[fEDI_longestLine_indexLine] = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
-            INTS[fEDI_longestLine_length] = EDI_trackingUint32MaxHeap.unpack_pool_length;
+        INTS[fEDI_longestLine_indexLine] = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
+        INTS[fEDI_longestLine_length] = EDI_trackingUint32MaxHeap.unpack_pool_length;
     }
 }
 
@@ -3794,14 +3879,14 @@ function EDI_lineEndPositionList_removeAt(index, count) {
 
     if (EDI_trackingUint32MaxHeap.tryPooledPeek() &&
         (INTS[fEDI_longestLine_length] !== EDI_trackingUint32MaxHeap.unpack_pool_length || INTS[fEDI_longestLine_indexLine] !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
-            INTS[fEDI_longestLine_indexLine] = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
-            INTS[fEDI_longestLine_length] = EDI_trackingUint32MaxHeap.unpack_pool_length;
+        INTS[fEDI_longestLine_indexLine] = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
+        INTS[fEDI_longestLine_length] = EDI_trackingUint32MaxHeap.unpack_pool_length;
     }
 }
 function EDI_lineEndPositionList_ensureCapacityForInsertion(index, count) {
     // TODO: sparse insertions?
     const requiredCapacity = Math.max(INTS[fEDI_lineEndPositionList_count] + count, index);
-    
+
     // If we already have enough capacity, do absolutely nothing
     if (requiredCapacity <= INTS[fEDI_lineEndPositionList_capacity]) {
         return;
@@ -3868,7 +3953,7 @@ function EDI_lineEndPositionList_copyTo(bytesSource, sourceStart, bytesDestinati
 //    // 3. Now it is safe to insert the new line into the heap.
 //    // It will take the newly vacated lineIndex.
 //    EDI_trackingUint32MaxHeap.insert(lineIndex, lineLengthVisual);
-//    
+//
 //    // 4. Update the linear data metrics
 //    EDI_lineStringCache[lineIndex] = position;
 //    EDI_lineStringCache_count++;
@@ -3876,7 +3961,7 @@ function EDI_lineEndPositionList_copyTo(bytesSource, sourceStart, bytesDestinati
 //
 ///**
 // * Does not clear trailing information.
-// * 
+// *
 // * count === 0 immediately returns
 // */
 //function EDI_lineStringCache_removeAt(index, count) {
@@ -3905,7 +3990,7 @@ function EDI_lineEndPositionList_copyTo(bytesSource, sourceStart, bytesDestinati
 //function EDI_lineStringCache_ensureCapacityForInsertion(index, count) {
 //    // TODO: sparse insertions?
 //    const requiredCapacity = Math.max(EDI_lineStringCache_count + count, index);
-//    
+//
 //    // If we already have enough capacity, do absolutely nothing
 //    if (requiredCapacity <= EDI_lineStringCache_capacity) {
 //        return;

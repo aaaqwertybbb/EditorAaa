@@ -60,39 +60,27 @@ function sendTransaction_MessageKind_string(messageString) {
 
 /** TODO: This is likely to have a race condition issue because Anything other than sending the exact same bytes that the editor read from the OS is likely to have a race condition issue */
 function sendTransaction_MessageKind_textDocument_didOpen(filePath) {
-    if (!socket || socket.readyState !== WebSocket.OPEN) { return; }
+  if (!socket || socket.readyState !== WebSocket.OPEN) { return; }
 
-    if (filePath.length > send_buffer.length) { throw new Exception('filePath.length > send_buffer.length'); }
+  const pathByteLength = EDI_decoder_CUSTOM.getUtf8ByteLength(filePath);
 
-    mostRecent_kind = 2;
+  if (pathByteLength + 13 > send_buffer.length) {
+    throw new Error('Serialized message exceeds send_buffer.length');
+  }
 
-    let index = 0;
+  mostRecent_kind = 2;
 
-    send_buffer[0] = 50; // '2'
-    send_buffer[1] = 95; // '_'
+  let index = 0;
+  send_buffer[index++] = 50; // '2' (message kind)
+  send_buffer[index++] = 95; // '_' (delimiter)
 
-    index += 2;
+  index = EDI_decoder_CUSTOM.writeAsciiUint(send_buffer, index, pathByteLength);
 
-    // TODO: measure byte length of a string without encode
-    const aaa = EDI_encoder.encode(filePath);
-    const byteLengthString = aaa.length + '';
+  send_buffer[index++] = 95; // '_' (delimiter)
 
-    const writtenAaa = EDI_encoder.encodeInto(byteLengthString, send_buffer.subarray(index, send_buffer.length));
+  index = EDI_decoder_CUSTOM.writeUtf8String(send_buffer, index, filePath);
 
-    index += writtenAaa.written;
-
-    send_buffer[index] = 95; // '_'
-    index += 1;
-
-    const writtenBbb = EDI_encoder.encodeInto(filePath, send_buffer.subarray(index, send_buffer.length));
-
-    index += writtenBbb.written;
-
-    // High Performance Slice: Create a zero-allocation window/view over just the written bytes
-    // .subarray() does NOT copy memory; it just shifts the byte pointer window
-    const viewToSend = send_buffer.subarray(0, index);
-
-    socket.send(viewToSend); // Sends raw binary data
+  socket.send(send_buffer.subarray(0, index));
 }
 
 function sendTransaction_MessageKind_textDocument_definition(positionIndex) {
