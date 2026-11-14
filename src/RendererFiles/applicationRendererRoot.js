@@ -68,7 +68,7 @@ function sendTransaction_MessageKind_textDocument_didOpen(filePath) {
 
     let index = 0;
 
-    send_buffer[0] = '2'.charCodeAt(0);
+    send_buffer[0] = 50; // '2'
     send_buffer[1] = 95; // '_'
 
     index += 2;
@@ -104,7 +104,7 @@ function sendTransaction_MessageKind_textDocument_definition(positionIndex) {
 
     let index = 0;
 
-    send_buffer[0] = '3'.charCodeAt(0);
+    send_buffer[0] = 51; // '3'
     send_buffer[1] = 95; // '_'
 
     index += 2;
@@ -142,7 +142,7 @@ function sendTransaction_MessageKind_custom_editorGetNodesAdjacentToCursor(posit
 
     let index = 0;
 
-    send_buffer[0] = '4'.charCodeAt(0);
+    send_buffer[0] = 52; // '4'
     send_buffer[1] = 95; // '_'
 
     index += 2;
@@ -180,7 +180,7 @@ function sendTransaction_MessageKind_custom_saveFile() {
 
     let index = 0;
 
-    send_buffer[0] = '5'.charCodeAt(0);
+    send_buffer[0] = 53; // '5'
     send_buffer[1] = 95; // '_'
 
     index += 2;
@@ -218,7 +218,7 @@ function sendTransaction_MessageKind_custom_edit_InsertLtr(positionIndex, bytes)
 
     let index = 0;
 
-    send_buffer[0] = '6'.charCodeAt(0);
+    send_buffer[0] = 54; // '6'
     send_buffer[1] = 95; // '_'
 
     index += 2;
@@ -263,7 +263,7 @@ function sendTransaction_MessageKind_custom_edit_Remove(positionIndex, length) {
 
     let index = 0;
 
-    send_buffer[0] = '7'.charCodeAt(0);
+    send_buffer[0] = 55; // '7'
     send_buffer[1] = 95; // '_'
 
     index += 2;
