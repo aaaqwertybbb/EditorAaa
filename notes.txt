@@ -871,6 +871,50 @@ Whether you use function foo() {} or const foo = () => {}, V8 decides to inline 
 
 
 
+>
+You said "Even though function render() {} creates a mutable binding in JavaScript, V8 tracks Cell constness on module-scope and script-scope bindings.".
+Does this include a function defined within a class?
+
+
+
+
+<
+Yes — V8 tracks constness on class prototype methods too, using a slightly different mechanism (Map / DescriptorArray constness) that gives you the exact same zero-overhead inlining.
+
+How V8 Optimizes Class Methods (class Foo { render() {} })
+
+When you define a method inside a class:
+```js
+class FileExplorer {
+  render() { ... }
+  drawRow(i) { ... }
+}
+```
+
+1. Prototype Property Descriptor (kConst Field Constness):
+	• render and drawRow are stored on FileExplorer.prototype.
+	• V8's hidden class (Map) for FileExplorer.prototype marks those method properties as kConst in its DescriptorArray as long as you never monkey-patch FileExplorer.prototype.drawRow = ....
+2. Prototype Chain Validity Cell (Zero-Cost Lookup):
+	• When this.drawRow(i) runs inside render(), V8 doesn't walk the prototype chain on every call.
+	• Instead, V8 attaches a PrototypeChainValidityCell dependency to FileExplorer's Map.
+	• TurboFan checks once at the top of render() that this has the expected FileExplorer Map (cmp [rdi], expected_map), and then inlines drawRow(i) directly into the machine code with zero runtime check on the method itself. If anyone ever mutates FileExplorer.prototype, V8 invalidates that cell and deoptimizes render().
+3. Why Class Methods Are Better Than Arrow Methods on this (drawRow = () => {}):
+	• Prototype method (drawRow() {}): Exists once in memory on FileExplorer.prototype (0 bytes per instance, kConst on the prototype Map, maximally inlined).
+	• Class field arrow function (drawRow = () => {}): Allocates a brand-new closure object on every new FileExplorer() and stores it as an own property on each instance—more memory, extra GC pointer, and no performance gain over prototype methods.
+
+Summary Comparison
+
+
+Syntax                                  | Where It Lives                     | How V8 Tracks Constness         | Inlined by TurboFan?
+================================================================================================================================================
+function drawRow() {} (module scope)    | Module Context slot (PropertyCell) | PropertyCell constness (kConst) | Yes (0-overhead guard)
+const drawRow = () => {} (module scope) | Module Context slot (immutable)    | Immutable Context slot          | Yes (0-overhead guard)
+drawRow() {} (class method)             | Class.prototype (DescriptorArray)  | Prototype Map + ValidityCell    | Yes (single receiver Map check)
+
+(Note: Private class methods like #drawRow() {} are even stricter—they cannot be monkey-patched at all in JS, so V8 resolves and inlines them statically without
+ even needing a prototype validity check.)
+
+Would you like to check any other V8 optimization patterns (such as hidden classes/Map stability, SMI vs. HeapNumber representation, or canvas state batching) for your editor?
 
 
 
@@ -895,8 +939,16 @@ Whether you use function foo() {} or const foo = () => {}, V8 decides to inline 
 
 
 
-"TODO: Even though function render() {} creates a mutable binding in JavaScript, V8 tracks Cell constness on module-scope and script-scope bindings. (class functions?)"
 
+
+
+
+
+
+
+"Prototype method (drawRow() {}): Exists once in memory on FileExplorer.prototype (0 bytes per instance, kConst on the prototype Map, maximally inlined)."
+And previously you said something like many of the properties on the JavaScript DOM element objects are just getters that have 0 bytes per instance.
+How do you declare a getter in such a fashion from the perspective of JavaScript.
 
 
 
