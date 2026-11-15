@@ -131,6 +131,7 @@ function EXPLORER_setChosenWorkspace(chooseWorkspaceResult) {
     EXPLORER_treeViewNodes.clear();
 
     treeViewComponent_v2_debug_stringsMapByPathId.clear();
+    treeViewComponent_v2_debug = new TreeViewComponent_v2(16, treeViewComponent_v2_staticRunner);
 
     if (!EXPLORER_chosenWorkspace) return;
 
@@ -138,6 +139,10 @@ function EXPLORER_setChosenWorkspace(chooseWorkspaceResult) {
         let directory = chooseWorkspaceResult.directories[i];
         let nodeKind = TreeViewNodeKind_isExpandable_NOTisExpanded;
         EXPLORER_treeViewNodes.insert(EXPLORER_treeViewNodes.count_abstract, nodeKind, directory.id, 0);
+
+        treeViewComponent_v2_debug.insert(treeViewComponent_v2_debug.countAbstract, nodeKind, directory.id, 0);
+
+
 
         treeViewComponent_v2_debug_stringsMapByPathId.set(directory.id, directory.basename);
     }

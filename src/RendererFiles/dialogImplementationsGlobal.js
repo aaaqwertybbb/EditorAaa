@@ -590,17 +590,17 @@ function DIALOG_Debug_treeViewComponent_v2_Create() {
     }
 
 
-    treeViewComponent_v2_debug = new TreeViewComponent_v2(16, treeViewComponent_v2_staticRunner);
+    //treeViewComponent_v2_debug = new TreeViewComponent_v2(16, treeViewComponent_v2_staticRunner);
     dialogBody.appendChild(treeViewComponent_v2_debug.rootElement);
 
     Debug_treeViewComponent_v2_resizeCanvases();
 
     
     
-    const count_literal = EXPLORER_treeViewNodes.count_abstract * 4;
-    for (let i = 0; i < count_literal; i += 4) {
-        treeViewComponent_v2_debug.insert(EXPLORER_treeViewNodes.data_literal[i + 0], EXPLORER_treeViewNodes.data_literal[i + 1], EXPLORER_treeViewNodes.data_literal[i + 2], EXPLORER_treeViewNodes.data_literal[i + 3]);
-    }
+    //const count_literal = EXPLORER_treeViewNodes.count_abstract * 4;
+    //for (let i = 0; i < count_literal; i += 4) {
+    //    treeViewComponent_v2_debug.insert(EXPLORER_treeViewNodes.data_literal[i + 0], EXPLORER_treeViewNodes.data_literal[i + 1], EXPLORER_treeViewNodes.data_literal[i + 2], EXPLORER_treeViewNodes.data_literal[i + 3]);
+    //}
 
     
 
