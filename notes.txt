@@ -223,3 +223,5 @@ Undo and redo will be highly tied to git itself.
 If I make a change in vscode I open github desktop, github desktop handles the text on its own.
 I'm gonna share it all and handle each part myself to reduce the total overhead on my machine.
 
+The app will approach 0 object allocations
+
