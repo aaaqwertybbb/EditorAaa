@@ -561,3 +561,53 @@ Would you like a compact vanilla JS implementation of either the fixed <div> poo
 
 
 
+
+>
+What about the old generation overhead incurred by the existence of those DOM elements?
+
+
+
+
+<
+A fixed pool of ~50 DOM elements adds virtually zero Old Generation (Old Space) GC overhead—roughly 2 KB of V8 Old Space memory and microseconds per major GC cycle.
+
+Here is why persistent pooled DOM nodes are nearly free in V8 and Blink's garbage collectors, compared to short-lived or large dynamic trees:
+
+1. How V8 & Oilpan Handle Old Generation Objects
+V8 uses a generational collector (Scavenger for New Space / Young Generation, and Mark-Sweep-Compact for Old Space / Old Generation), tightly coupled with Blink's Oilpan C++ heap:
+• Young Generation (Scavenge): Runs very frequently (every few megabytes of allocation) and only copies surviving objects.
+  Because a fixed pool of <div> elements is allocated once at startup, those wrappers survive two scavenges and immediately promote to Old Space.
+  After startup, 0 bytes of DOM wrappers ever enter New Space during scrolling or folder toggling.
+• Old Generation (Major GC / Incremental Marking): Runs infrequently and walks live object pointers from roots.
+  However, V8 only traces the JS wrapper (HTMLDivElement), not the C++ internals, unless a cross-heap reference exists:
+	• No custom JS expandos or closures = minimal tracing: A plain HTMLDivElement wrapper in V8 Old Space is ~32 bytes with zero outgoing JS heap pointers
+    (its Map is shared, and its properties/elements pointers point to a singleton empty array).
+	• Oilpan's C++ pointers are invisible to V8: Blink's parent_, next_, LayoutObject, and ComputedStyle pointers live on the C++ heap, not V8's Old Space.
+    When Oilpan runs incremental marking, walking 50 HTMLDivElement C++ objects takes under 5 microseconds.
+	• Write barriers only fire on pointer mutation: Updating div.textContent = "index.js" or div.style.transform = ... mutates C++ fields inside Blink, not V8 heap pointers.
+    It does not dirty V8's remembered sets or trigger write barriers.
+
+2. Where Old Generation Overhead Actually Comes From
+
+The real Old Generation GC pauses in a monolithic JS text editor do not come from 50 pooled <div> elements; they come from JS-side allocations:
+
+Source                                                | Old Generation Impact              | Why
+=======================================================================================================================================================================================================
+50 Pooled <div> Elements                              | Negligible (~2 KB V8 + ~20 KB C++) | Static graph, zero outgoing JS references, never reallocated.
+10,000+ Unpooled <div> Elements                       | Noticeable (2–10 ms per Major GC)  | Oilpan must trace 20,000+ C++ nodes (div + Text), layout objects, and wrapper references on every full GC.
+File Tree Metadata Objects ({ name, path, children }) | Moderate to High (if large)        | Every JS object/string in a 50,000-file workspace sits in V8 Old Space and must be traced by V8's marker.
+Editor Text Buffer / Line Arrays / Undo Stack         | Highest                            | Millions of string slices or line objects in V8 Old Space are the primary driver of Major GC pause times.
+
+3. The 3-Canvas Advantage: Unified Rendering Pipeline
+
+Even though 50 pooled <div>s have essentially zero Old Generation cost, a 3-canvas explorer still offers one clean architectural win for your specific app:
+• Zero Layout/Style Recalculation in Blink: Even with pooled <div>s, mutating textContent and transform marks those 50 nodes dirty for Blink's style/layout/paint pipeline before the next frame.
+  With 3 canvases, your entire window becomes a pure pixel-blitting surface driven by a single requestAnimationFrame loop with zero Blink style or layout work at all.
+
+If you keep the DOM pool to ~50 rows and avoid attaching per-row closures or custom properties to the <div> wrappers, Old Generation GC overhead is completely non-existent.
+
+Would you like to look at how to structure the file tree data model (e.g., flat parallel arrays vs. node objects) to minimize V8 Old Space tracing across large workspaces?
+
+
+
+
