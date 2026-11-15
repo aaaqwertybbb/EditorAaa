@@ -106,10 +106,10 @@ const treeViewComponent_v2_staticRunner = new TreeViewComponent_v2_staticRunner(
  */
 class TreeViewComponent_v2 {
     /**
-     * @param {number} initialCapacity_abstract 
+     * @param {number} initialCapacityAbstract 
      * @param {TreeViewComponent_v2_staticRunner} treeViewComponent_v2_staticRunner 
      */
-    constructor(initialCapacity_abstract, treeViewComponent_v2_staticRunner) {
+    constructor(initialCapacityAbstract, treeViewComponent_v2_staticRunner) {
 
         this.runnerId = treeViewComponent_v2_staticRunner.add(this);
 
@@ -118,18 +118,18 @@ class TreeViewComponent_v2 {
         this.rootElement.tabIndex = 0;
         this.rootElement.style.height = '100%';
 
-        this.scroll_viewport = document.createElement('div');
-        this.scroll_viewport.className = 'TREEVIEW_scroll_viewport';
-        this.scrollbar_space_generator = document.createElement('div');
-        this.scrollbar_space_generator.className = 'TREEVIEW_scrollbar_space_generator';
-        this.scroll_viewport.appendChild(this.scrollbar_space_generator);
-        this.rootElement.appendChild(this.scroll_viewport);
+        this.scrollViewport = document.createElement('div');
+        this.scrollViewport.className = 'TREEVIEW_scroll_viewport';
+        this.scrollbarSpaceGenerator = document.createElement('div');
+        this.scrollbarSpaceGenerator.className = 'TREEVIEW_scrollbar_space_generator';
+        this.scrollViewport.appendChild(this.scrollbarSpaceGenerator);
+        this.rootElement.appendChild(this.scrollViewport);
 
-        this.visual_canvas = document.createElement('div');
-        this.visual_canvas.className = 'TREEVIEW_visual_canvas';
+        this.visualCanvas = document.createElement('div');
+        this.visualCanvas.className = 'TREEVIEW_visual_canvas';
         this.canvas = document.createElement('canvas');
-        this.visual_canvas.appendChild(this.canvas);
-        this.rootElement.appendChild(this.visual_canvas);
+        this.visualCanvas.appendChild(this.canvas);
+        this.rootElement.appendChild(this.visualCanvas);
 
         this.itemHeightTotal = 0;
 
@@ -171,82 +171,32 @@ class TreeViewComponent_v2 {
 
         // tvnl_
 
-        this.data_literal = undefined;
-        this.capacity_literal = undefined;
+        this.dataLiteral = undefined;
+        this.capacityLiteral = undefined;
 
-        this.capacity_abstract = undefined;
-        this.count_abstract = 0;
+        this.capacityAbstract = undefined;
+        this.countAbstract = 0;
 
         // Storing the nodeKind as an int32 isn't the most ideal thing in the world.
         // Previously the ints were being grouped via a class instance.
         // So this still ought to be better than what was done previously.
-        this.field_count = 3;
+        this.fieldCount = 3;
         // this.nodeKind = nodeKind;
         // this.key = key;
         // this.depth = depth;
 
-        this.nodeKind_offset = 0;
-        this.key_offset = 1;
-        this.depth_offset = 2;
+        this.nodeKindOffset = 0;
+        this.keyOffset = 1;
+        this.depthOffset = 2;
 
-        let temp_capacity_literal = initialCapacity_abstract * this.field_count;
+        let tempCapacityLiteral = initialCapacityAbstract * this.fieldCount;
 
-        this.data_literal = new Uint32Array(temp_capacity_literal);
-        this.capacity_abstract = initialCapacity_abstract;
-        this.capacity_literal = temp_capacity_literal;
+        this.dataLiteral = new Uint32Array(tempCapacityLiteral);
+        this.capacityAbstract = initialCapacityAbstract;
+        this.capacityLiteral = tempCapacityLiteral;
 
-        this.count_abstract = 0;
+        this.countAbstract = 0;
     }
-
-    TREEVIEW_render_request(renderKind) {
-
-        // track the last pushed src
-
-        if (this.TREEVIEW_renderKindArray[this.TREEVIEW_renderKindArray.length - 1] !== renderKind) {
-            this.TREEVIEW_renderKindArray.push(renderKind);
-        }
-        
-        if (!this.TREEVIEW_isRenderPending) {
-            this.TREEVIEW_isRenderPending = true;
-            requestAnimationFrame(this.renderDo);
-        }
-    }
-
-    renderDo = () => {
-        let renderKind = 0;
-        
-        // Synchronously exhaust the item queue for this animation frame
-        while (renderKind = this.TREEVIEW_renderKindArray.shift()) {
-            switch (renderKind) {
-                case TREEVIEWrenderKind_Cursor:
-                    this.TREEVIEW_render_do_Cursor();
-                    break;
-                case TREEVIEWrenderKind_Create:
-                    this.TREEVIEW_render_do_Create();
-                    break;
-                case TREEVIEWrenderKind_Batch:
-                    this.TREEVIEW_render_do_Batch();
-                    break;
-                case TREEVIEWrenderKind_Scroll:
-                    this.TREEVIEW_render_do_Scroll();
-                    break;
-                case TREEVIEWrenderKind_Scroll_PullDataDrawResult:
-                    this.TREEVIEW_render_do_Scroll_PullDataDrawResult();
-                    break;
-                case TREEVIEWrenderKind_SetItems:
-                    this.TREEVIEW_render_do_SetItems();
-                    break;
-                case TREEVIEWrenderKind_FullReset:
-                    this.TREEVIEW_render_do_FullReset();
-                    break;
-                case TREEVIEWrenderKind_Resize:
-                    this.TREEVIEW_render_do_Resize();
-                    break;
-            }
-        }
-        
-        this.TREEVIEW_isRenderPending = false; // Reset the paint lock
-    };
 
     /**
      * TODO: Many of these suffer from two invocations sitting in the render queue with something between them so they didn't coallesce then the parameters
@@ -254,7 +204,7 @@ class TreeViewComponent_v2 {
      */
     TREEVIEW_render_do_SetItems() {
         this.itemListElement.innerHTML = '';
-        this.scrollbar_space_generator.style.height = 1 + 'px';
+        this.scrollbarSpaceGenerator.style.height = 1 + 'px';
         this.state_cursor_setIndex(0);
         
         this.director = this.SET_ITEMS_director;
@@ -263,7 +213,7 @@ class TreeViewComponent_v2 {
 
         this.cursorElement.style.height = this.itemHeightStyleAttributeValueString;
         this.itemHeightTotal = this.director.tvd_getTotalCount() * this.itemHeightNumber;
-        this.scrollbar_space_generator.style.height = this.itemHeightTotal + 'px';
+        this.scrollbarSpaceGenerator.style.height = this.itemHeightTotal + 'px';
         this.boundingClientRect = null;
     }
 
@@ -340,7 +290,7 @@ class TreeViewComponent_v2 {
     draw_addEvents() {
         this.rootElement.addEventListener('click', this);
         this.rootElement.addEventListener('keydown', this);
-        this.scroll_viewport.addEventListener('scroll', this, { passive: true });
+        this.scrollViewport.addEventListener('scroll', this, { passive: true });
         this.rootElement.addEventListener('dblclick', this);
         this.rootElement.addEventListener('contextmenu', this);
         window.addEventListener('resize', this);
@@ -349,7 +299,7 @@ class TreeViewComponent_v2 {
     draw_removeEvents() {
         this.rootElement.removeEventListener('click', this);
         this.rootElement.removeEventListener('keydown', this);
-        this.scroll_viewport.removeEventListener('scroll', this, { passive: true });
+        this.scrollViewport.removeEventListener('scroll', this, { passive: true });
         this.rootElement.addEventListener('dblclick', this);
         this.rootElement.addEventListener('contextmenu', this);
         window.removeEventListener('resize', this);
@@ -609,7 +559,7 @@ class TreeViewComponent_v2 {
             case 'ArrowDown':
                 event.preventDefault();
                 if (event.ctrlKey) {
-                    this.scroll_viewport.scrollBy(0, this.itemHeightNumber);
+                    this.scrollViewport.scrollBy(0, this.itemHeightNumber);
                 }
                 else {
                     this.state_cursor_setIndex(this.state_cursor_validateIndex(
@@ -619,7 +569,7 @@ class TreeViewComponent_v2 {
             case 'ArrowUp':
                 event.preventDefault();
                 if (event.ctrlKey) {
-                    this.scroll_viewport.scrollBy(0, -1 * this.itemHeightNumber);
+                    this.scrollViewport.scrollBy(0, -1 * this.itemHeightNumber);
                 }
                 else {
                     this.state_cursor_setIndex(this.state_cursor_validateIndex(
@@ -690,8 +640,8 @@ class TreeViewComponent_v2 {
     }
 
     event_scroll() {
-        this.scrollLeft = this.scroll_viewport.scrollLeft;
-        this.scrollTop = this.scroll_viewport.scrollTop;
+        this.scrollLeft = this.scrollViewport.scrollLeft;
+        this.scrollTop = this.scrollViewport.scrollTop;
         this.TREEVIEW_render_request(TREEVIEWrenderKind_Scroll);
     }
 
@@ -716,10 +666,10 @@ class TreeViewComponent_v2 {
             let currentBottom = this.scrollTop + this.boundingClientRect.height;
             let changeToMakeBottomTouch = this.cursorTranslateYNumber - currentBottom;
             let entireValueToScrollBy = changeToMakeBottomTouch + (2 * this.itemHeightNumber);
-            this.scroll_viewport.scrollBy(0, entireValueToScrollBy);
+            this.scrollViewport.scrollBy(0, entireValueToScrollBy);
         }
         else if (this.cursorTranslateYNumber < this.scrollTop) {
-            this.scroll_viewport.scrollBy(0, this.cursorTranslateYNumber - this.scrollTop);
+            this.scrollViewport.scrollBy(0, this.cursorTranslateYNumber - this.scrollTop);
         }
 
         // transform last for optimal state flagging of the modified DOM element
@@ -771,7 +721,7 @@ class TreeViewComponent_v2 {
      * Does not clear the information, only sets 'this.count' to '0'.
      */
     clear() {
-        this.count_abstract = 0;
+        this.countAbstract = 0;
     }
 
     /**
@@ -781,14 +731,14 @@ class TreeViewComponent_v2 {
      * @returns {TrackedSyntax}
      */
     getElementAt(index_abstract) {
-        let index_literal = index_abstract * this.field_count;
-        BYTES[byteTreeView_byteret_pooledNode_nodeKind] = this.data_literal[index_literal + this.nodeKind_offset];
-        INTS[fTreeView_poolret_pooledNode_key] = this.data_literal[index_literal + this.key_offset];
-        INTS[fTreeView_poolret_pooledNode_depth] = this.data_literal[index_literal + this.depth_offset];
+        let index_literal = index_abstract * this.fieldCount;
+        BYTES[byteTreeView_byteret_pooledNode_nodeKind] = this.dataLiteral[index_literal + this.nodeKindOffset];
+        INTS[fTreeView_poolret_pooledNode_key] = this.dataLiteral[index_literal + this.keyOffset];
+        INTS[fTreeView_poolret_pooledNode_depth] = this.dataLiteral[index_literal + this.depthOffset];
     }
 
     getKey(index_abstract) {
-        return this.data_literal[(index_abstract * this.field_count) + this.key_offset];
+        return this.dataLiteral[(index_abstract * this.fieldCount) + this.keyOffset];
     }
 
     /**
@@ -799,11 +749,11 @@ class TreeViewComponent_v2 {
      * @param {number} key 
      */
     setKey(index_abstract, key) {
-        this.data_literal[(index_abstract * this.field_count) + this.key_offset] = key;
+        this.dataLiteral[(index_abstract * this.fieldCount) + this.keyOffset] = key;
     }
     
     getDepth(index_abstract) {
-        return this.data_literal[(index_abstract * this.field_count) + this.depth_offset];
+        return this.dataLiteral[(index_abstract * this.fieldCount) + this.depthOffset];
     }
     
     /**
@@ -814,7 +764,7 @@ class TreeViewComponent_v2 {
      * @param {number} depth 
      */
     setDepth(index_abstract, depth) {
-        this.data_literal[(index_abstract * this.field_count) + this.depth_offset] = depth;
+        this.dataLiteral[(index_abstract * this.fieldCount) + this.depthOffset] = depth;
     }
     
     /**
@@ -825,23 +775,23 @@ class TreeViewComponent_v2 {
      * @param {number} nodeKind 
      */
     setNodeKind(index_abstract, nodeKind) {
-        this.data_literal[(index_abstract * this.field_count) + this.nodeKind_offset] = nodeKind;
+        this.dataLiteral[(index_abstract * this.fieldCount) + this.nodeKindOffset] = nodeKind;
     }
 
     insert(index_abstract, nodeKind, key, depth) {
         this.ensureCapacityForInsertion(index_abstract, 1);
 
-        let index_literal = index_abstract * this.field_count;
+        let index_literal = index_abstract * this.fieldCount;
 
-        if (index_abstract !== this.count_abstract) {
-            this.copyTo(this.data_literal, index_abstract, this.data_literal, index_abstract + 1, this.count_abstract - index_abstract);
+        if (index_abstract !== this.countAbstract) {
+            this.copyTo(this.dataLiteral, index_abstract, this.dataLiteral, index_abstract + 1, this.countAbstract - index_abstract);
         }
 
-        this.data_literal[index_literal + this.nodeKind_offset] = nodeKind;
-        this.data_literal[index_literal + this.key_offset] = key;
-        this.data_literal[index_literal + this.depth_offset] = depth;
+        this.dataLiteral[index_literal + this.nodeKindOffset] = nodeKind;
+        this.dataLiteral[index_literal + this.keyOffset] = key;
+        this.dataLiteral[index_literal + this.depthOffset] = depth;
 
-        this.count_abstract++;
+        this.countAbstract++;
     }
 
     /**
@@ -851,63 +801,63 @@ class TreeViewComponent_v2 {
      */
     removeAt(index_abstract, count_abstract) {
 
-        if (index_abstract > this.count_abstract) { throw new Error('removeAt(...): index_abstract > this.count_abstract'); }
-        if (index_abstract + count_abstract > this.count_abstract) { throw new Error('removeAt(...): index_abstract + count_abstract > this.count_abstract'); }
+        if (index_abstract > this.countAbstract) { throw new Error('removeAt(...): index_abstract > this.count_abstract'); }
+        if (index_abstract + count_abstract > this.countAbstract) { throw new Error('removeAt(...): index_abstract + count_abstract > this.count_abstract'); }
         if (count_abstract === 0) { return; }
 
-        if (index_abstract + count_abstract === this.count_abstract) {
-            let shiftableCount_abstract = this.count_abstract - (index_abstract + count_abstract);
+        if (index_abstract + count_abstract === this.countAbstract) {
+            let shiftableCount_abstract = this.countAbstract - (index_abstract + count_abstract);
             if (shiftableCount_abstract > 0) {
                 this.copyTo(
-                    this.data_literal,
+                    this.dataLiteral,
                     index_abstract + count_abstract,
-                    this.data_literal,
+                    this.dataLiteral,
                     index_abstract,
                     shiftableCount_abstract);
             }
         }
         else {
             this.copyTo(
-                this.data_literal,
+                this.dataLiteral,
                 index_abstract + count_abstract,
-                this.data_literal,
+                this.dataLiteral,
                 index_abstract,
-                this.count_abstract - (index_abstract + count_abstract));
+                this.countAbstract - (index_abstract + count_abstract));
         }
 
-        this.count_abstract -= count_abstract;
+        this.countAbstract -= count_abstract;
     }
 
     ensureCapacityForInsertion(index_abstract, count_abstract) {
         // TODO: sparse insertions?
-        const requiredCapacity_literal = Math.max((this.count_abstract + count_abstract) * this.field_count, index_abstract * this.field_count);
+        const requiredCapacity_literal = Math.max((this.countAbstract + count_abstract) * this.fieldCount, index_abstract * this.fieldCount);
         
         // If we already have enough capacity, do absolutely nothing
-        if (requiredCapacity_literal <= this.capacity_literal) {
+        if (requiredCapacity_literal <= this.capacityLiteral) {
             return;
         }
 
         // Calculate the new capacity by doubling until it fits
-        let capacityNew_literal = this.capacity_literal || 1; // Prevent infinite loops if capacity is 0
-        let capacityNew_abstract = this.capacity_abstract || 1; // Prevent infinite loops if capacity is 0
+        let capacityNew_literal = this.capacityLiteral || 1; // Prevent infinite loops if capacity is 0
+        let capacityNew_abstract = this.capacityAbstract || 1; // Prevent infinite loops if capacity is 0
         while (capacityNew_literal < requiredCapacity_literal) {
             capacityNew_literal *= 2;
             capacityNew_abstract *= 2;
         }
 
         // Safety check against integer overflow / negative bounds
-        if (capacityNew_literal < this.capacity_literal) {
+        if (capacityNew_literal < this.capacityLiteral) {
             throw new Error('ensureCapacityForInsertion(...): Capacity overflowed or went negative');
         }
 
         // Allocate and copy EXACTLY ONCE
         let dataNew_literal = new Uint32Array(capacityNew_literal);
-        this.copyTo(this.data_literal, 0, dataNew_literal, 0, this.count_abstract);
+        this.copyTo(this.dataLiteral, 0, dataNew_literal, 0, this.countAbstract);
         
         // Commit the changes to your global/module state
-        this.data_literal = dataNew_literal;
-        this.capacity_literal = capacityNew_literal;
-        this.capacity_abstract = capacityNew_abstract;
+        this.dataLiteral = dataNew_literal;
+        this.capacityLiteral = capacityNew_literal;
+        this.capacityAbstract = capacityNew_abstract;
     }
 
     /**
@@ -916,7 +866,7 @@ class TreeViewComponent_v2 {
     copyTo(dataSource_literal, sourceStart_abstract, dataDestination_literal, destinationStart_abstract, length_abstract) {
 
         if (dataSource_literal === dataDestination_literal) {
-            if (dataSource_literal !== this.data_literal) {
+            if (dataSource_literal !== this.dataLiteral) {
                 throw new Error('dataSource_literal === dataDestination_literal ; but dataSource_literal !== this.data_literal');
             }
 
@@ -927,21 +877,21 @@ class TreeViewComponent_v2 {
             if (distance_abstract > 0) {
                 for (var i_abstract = sourceStart_abstract + length_abstract - 1; i_abstract >= sourceStart_abstract; i_abstract--) {
                     let iplusd_abstract = i_abstract + distance_abstract;
-                    let iplusd_literal = iplusd_abstract * this.field_count;
-                    let i_literal = i_abstract * this.field_count;
-                    this.data_literal[iplusd_literal + this.nodeKind_offset] = this.data_literal[i_literal + this.nodeKind_offset];
-                    this.data_literal[iplusd_literal + this.key_offset] = this.data_literal[i_literal + this.key_offset];
-                    this.data_literal[iplusd_literal + this.depth_offset] = this.data_literal[i_literal + this.depth_offset];
+                    let iplusd_literal = iplusd_abstract * this.fieldCount;
+                    let i_literal = i_abstract * this.fieldCount;
+                    this.dataLiteral[iplusd_literal + this.nodeKindOffset] = this.dataLiteral[i_literal + this.nodeKindOffset];
+                    this.dataLiteral[iplusd_literal + this.keyOffset] = this.dataLiteral[i_literal + this.keyOffset];
+                    this.dataLiteral[iplusd_literal + this.depthOffset] = this.dataLiteral[i_literal + this.depthOffset];
                 }
             }
             else {
-                for (var i_abstract = destinationStart_abstract; i_abstract < this.count_abstract; i_abstract++) {
+                for (var i_abstract = destinationStart_abstract; i_abstract < this.countAbstract; i_abstract++) {
                     let iminusd_abstract = i_abstract - distance_abstract;
-                    let iminusd_literal = iminusd_abstract * this.field_count;
-                    let i_literal = i_abstract * this.field_count;
-                    this.data_literal[i_literal + this.nodeKind_offset] = this.data_literal[iminusd_literal + this.nodeKind_offset];
-                    this.data_literal[i_literal + this.key_offset] = this.data_literal[iminusd_literal + this.key_offset];
-                    this.data_literal[i_literal + this.depth_offset] = this.data_literal[iminusd_literal + this.depth_offset];
+                    let iminusd_literal = iminusd_abstract * this.fieldCount;
+                    let i_literal = i_abstract * this.fieldCount;
+                    this.dataLiteral[i_literal + this.nodeKindOffset] = this.dataLiteral[iminusd_literal + this.nodeKindOffset];
+                    this.dataLiteral[i_literal + this.keyOffset] = this.dataLiteral[iminusd_literal + this.keyOffset];
+                    this.dataLiteral[i_literal + this.depthOffset] = this.dataLiteral[iminusd_literal + this.depthOffset];
                 }
             }
         }
@@ -949,12 +899,12 @@ class TreeViewComponent_v2 {
             // TODO: use 'set' method here and other such locations
             for (var i_abstract = 0; i_abstract < length_abstract; i_abstract++) {
                 let dSplusi_abstract = destinationStart_abstract + i_abstract;
-                let dSplusi_literal = dSplusi_abstract * this.field_count;
+                let dSplusi_literal = dSplusi_abstract * this.fieldCount;
                 let sSplusi_abstract = sourceStart_abstract + i_abstract;
-                let sSplusi_literal = sSplusi_abstract * this.field_count;
-                dataDestination_literal[dSplusi_literal + this.nodeKind_offset] = dataSource_literal[sSplusi_literal + this.nodeKind_offset];
-                dataDestination_literal[dSplusi_literal + this.key_offset] = dataSource_literal[sSplusi_literal + this.key_offset];
-                dataDestination_literal[dSplusi_literal + this.depth_offset] = dataSource_literal[sSplusi_literal + this.depth_offset];
+                let sSplusi_literal = sSplusi_abstract * this.fieldCount;
+                dataDestination_literal[dSplusi_literal + this.nodeKindOffset] = dataSource_literal[sSplusi_literal + this.nodeKindOffset];
+                dataDestination_literal[dSplusi_literal + this.keyOffset] = dataSource_literal[sSplusi_literal + this.keyOffset];
+                dataDestination_literal[dSplusi_literal + this.depthOffset] = dataSource_literal[sSplusi_literal + this.depthOffset];
             }
         }
     }
