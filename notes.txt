@@ -251,3 +251,8 @@ and then you just use my drafts for the AI to generate the equivalent in whateve
 
 It's a lot of code I toss around some AI generated code snippets from time to time
 but long term I will have read every single line and customized all of it to my liking before the first version.
+
+JetBrains writes a lot of editors that are hyper optimized for specific languages.
+
+AI will do this in the future.
+
