@@ -201,3 +201,9 @@ Any degree of specificity, any degree of "inaccuracy".
 And complete support for seeing a window of 'possible misses' of sorts.
 Extremely fuzzy searching through the entire document
 and editing every hit at once as a means of multicursor.
+
+Every keystroke is going to be communicated to the language server
+because I'll set 0 overhead flags before starting a sequence of messages.
+Then I'll just sent a byte or two each message.
+
+When I want a different message I send the flag to switch reading context.
