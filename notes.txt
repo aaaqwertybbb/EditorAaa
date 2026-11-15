@@ -236,3 +236,7 @@ No lsp you have to write your own language server per language.
 The need for plugins and lsp will be capable of going extinct given the advent of AI code generation
 
 With AI code generation you will get maximum performance by altering the code itself and then rebuilding it
+
+"write the language server yourself"
+
+This will be simple you just ask the AI to do it and it'll be done it isn't nearly as complicated as it sounds
