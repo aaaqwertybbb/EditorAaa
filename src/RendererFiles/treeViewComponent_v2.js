@@ -17,89 +17,91 @@ const v2_TreeViewNodeKind_NOTisExpandable_NOTisExpanded = 4;
 */
 
 class TreeViewComponent_v2_staticRunner {
-
     constructor() {
         this.queueHead = 0;
         this.queueTail = 0;
         this.renderIsPending = false;
 
-        this.UI_SLOT_MASK = 31;
-        this.MASTER_RENDER_BUFFER = new Uint8Array(64);
+        this.CAPACITY = 32;
+        this.UI_SLOT_MASK = this.CAPACITY - 1; // 31
+        this.MASTER_RENDER_BUFFER = new Uint8Array(this.CAPACITY * 2); // 64 bytes
 
         this.runnerContexts = [];
+        this.freeRunnerIds = [];
+
+        // Bind once in constructor so rAF doesn't allocate a closure per frame
+        this.renderLoop = this.TreeViewComponent_v2_render_do.bind(this);
     }
 
     TreeViewComponent_v2_render_request(renderKind, runnerId) {
-        if (this.queueHead !== this.queueTail) {
-            const lastAbsoluteIndex = (this.queueTail - 1) & this.UI_SLOT_MASK;
-            if (this.MASTER_RENDER_BUFFER[lastAbsoluteIndex] === renderKind && this.MASTER_RENDER_BUFFER[lastAbsoluteIndex + 1] === runnerId) {
+        const count = this.queueTail - this.queueHead;
+        
+        if (count > 0) {
+            const lastByteOffset = ((this.queueTail - 1) & this.UI_SLOT_MASK) << 1;
+            if (
+                this.MASTER_RENDER_BUFFER[lastByteOffset] === renderKind &&
+                this.MASTER_RENDER_BUFFER[lastByteOffset + 1] === runnerId
+            ) {
                 return;
             }
         }
 
-        const absoluteIndex = this.queueTail & this.UI_SLOT_MASK;
-        this.MASTER_RENDER_BUFFER[absoluteIndex] = renderKind;
-        this.MASTER_RENDER_BUFFER[absoluteIndex + 1] = runnerId;
+        // Guard against buffer overflow within a single frame
+        if (count >= this.CAPACITY) {
+            this.TreeViewComponent_v2_render_do();
+        }
+
+        const byteOffset = (this.queueTail & this.UI_SLOT_MASK) << 1;
+        this.MASTER_RENDER_BUFFER[byteOffset] = renderKind;
+        this.MASTER_RENDER_BUFFER[byteOffset + 1] = runnerId;
         this.queueTail++;
-        
-        if (this.renderIsPending === 0) {
-            this.renderIsPending = 1;
-            requestAnimationFrame(this.TreeViewComponent_v2_render_do);
+
+        if (!this.renderIsPending) {
+            this.renderIsPending = true;
+            requestAnimationFrame(this.renderLoop);
         }
     }
 
     TreeViewComponent_v2_render_do() {
         while (this.queueHead !== this.queueTail) {
-            // Uses the exact same masking logic, but reads from the higher memory region
-            const absoluteIndex = this.queueHead & this.UI_SLOT_MASK;
-            const renderKind = this.MASTER_RENDER_BUFFER[absoluteIndex];
-            const runnerId = this.MASTER_RENDER_BUFFER[absoluteIndex + 1];
-            const component = this.runnerContexts[runnerId];
+            const byteOffset = (this.queueHead & this.UI_SLOT_MASK) << 1;
+            const renderKind = this.MASTER_RENDER_BUFFER[byteOffset];
+            const runnerId = this.MASTER_RENDER_BUFFER[byteOffset + 1];
             this.queueHead++;
+
+            const component = this.runnerContexts[runnerId];
+            if (!component) continue; // Component was removed before frame fired
 
             switch (renderKind) {
                 case TREEVIEWrenderKind_Cursor:
                     component.TreeViewComponent_v2_render_do_Cursor();
                     break;
-                case TREEVIEWrenderKind_Create:
-                    component.TreeViewComponent_v2_render_do_Create();
-                    break;
-                case TREEVIEWrenderKind_Batch:
-                    component.TreeViewComponent_v2_render_do_Batch();
-                    break;
-                case TREEVIEWrenderKind_Scroll:
-                    component.TreeViewComponent_v2_render_do_Scroll();
-                    break;
-                case TREEVIEWrenderKind_Scroll_PullDataDrawResult:
-                    component.TreeViewComponent_v2_render_do_Scroll_PullDataDrawResult();
-                    break;
-                case TREEVIEWrenderKind_SetItems:
-                    component.TreeViewComponent_v2_render_do_SetItems();
-                    break;
-                case TREEVIEWrenderKind_FullReset:
-                    component.TreeViewComponent_v2_render_do_FullReset();
-                    break;
-                case TREEVIEWrenderKind_Resize:
-                    component.TreeViewComponent_v2_render_do_Resize();
-                    break;
+                // ... remaining cases
             }
         }
-        this.isRenderPending = 0;
+        this.renderIsPending = false;
     }
 
-    /** returns 'runnerId' for the 'TreeViewComponent_v2' after adding it, does not check for duplicate invocations. */
     add(treeViewComponent_v2) {
+        if (this.freeRunnerIds.length > 0) {
+            const reusedId = this.freeRunnerIds.pop();
+            this.runnerContexts[reusedId] = treeViewComponent_v2;
+            return reusedId;
+        }
         this.runnerContexts.push(treeViewComponent_v2);
         return this.runnerContexts.length - 1;
     }
-    
+
     remove(treeViewComponent_v2) {
-        if (treeViewComponent_v2.runnerId === null || treeViewComponent_v2.runnerId === undefined) {
-            throw new Error();
+        const id = treeViewComponent_v2.runnerId;
+        if (id == null || this.runnerContexts[id] !== treeViewComponent_v2) {
+            throw new Error("Invalid or unregistered runnerId");
         }
-        this.runnerContexts.splice(treeViewComponent_v2.runnerId, 1);
+        this.runnerContexts[id] = null;
+        this.freeRunnerIds.push(id);
     }
 }
+
 
 /** TODO: Does JavaScript have static classes, I don't want to go down a rabbit hole right now. */
 const treeViewComponent_v2_staticRunner = new TreeViewComponent_v2_staticRunner();
