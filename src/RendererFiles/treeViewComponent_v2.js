@@ -72,6 +72,8 @@ class TreeViewComponent_v2_staticRunner {
             const component = this.runnerContexts[runnerId];
             if (!component) continue; // Component was removed before frame fired
 
+            console.log('TreeViewComponent_v2_render_do');
+
             switch (renderKind) {
                 case TREEVIEWrenderKind_Cursor:
                     component.TreeViewComponent_v2_render_do_Cursor();
@@ -659,8 +661,7 @@ class TreeViewComponent_v2 {
     event_scroll() {
         this.scrollLeft = this.scrollViewport.scrollLeft;
         this.scrollTop = this.scrollViewport.scrollTop;
-        console.log('event_scroll');
-        //this.TREEVIEW_render_request(TREEVIEWrenderKind_Scroll);
+        this.treeViewComponent_v2_staticRunner.TreeViewComponent_v2_render_request(TREEVIEWrenderKind_Scroll, this.runnerId);
     }
 
     ensure_boundingClientRect() {
