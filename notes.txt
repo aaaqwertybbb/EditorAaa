@@ -369,3 +369,54 @@ self advocation and purposeful manipulation because they were wrong I had to rem
 It was "white lie" manipulation because I was right. and they were destroying me.
 
 aladdin 1992 a whole new world
+
+====
+
+<
+The file explorer tree on the left:
+
+It does not use a canvas. It uses a single div per line of text that you see (i.e.: a flat div per tree view node).
+
+How does Garbage Collection interact with a div element?
+
+How many total references are added to the app when I create an instance of a div element?
+
+In essence: how many fields recursively exist on a div element.
+If we assume each recursive field is a reference rather than a primitive we can get an estimation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
