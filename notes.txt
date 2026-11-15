@@ -764,7 +764,10 @@ How V8 Optimizes Prototype Getters
 
 Would you like to see how to inspect hidden classes (Map) and prototype descriptors using V8's %DebugPrint flag in Electron, or move on to another part of your editor/explorer architecture?
 
+====
 
+full disclosure I didn't know about getters and setters in JavaScript before just now
+Once I saw I lacked such an obvious detail I just feel like I got slapped in the face with reality.
 
 
 
