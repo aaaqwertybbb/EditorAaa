@@ -242,3 +242,12 @@ With AI code generation you will get maximum performance by altering the code it
 This will be simple you just ask the AI to do it and it'll be done it isn't nearly as complicated as it sounds
 
 Then since the AI generated the code you can modify ANY part of it you want you have the entire source code.
+
+"how will AI generate it etc..."
+
+I'm gonna hand craft every part of the app including the first language server implementation
+
+and then you just use my drafts for the AI to generate the equivalent in whatever language you want.
+
+It's a lot of code I toss around some AI generated code snippets from time to time
+but long term I will have read every single line and customized all of it to my liking before the first version.
