@@ -383,32 +383,6 @@ class TreeViewComponent_v2 {
             diff = 0;
         }
 
-        this.cacheLines(new_lowerBound, this.ringBufferIndexZero, diff);
-
-        this.renderLines();
-    }
-
-    cacheLines(indexItem, indexRingBuffer, count) {
-        for (let i = 0; i < count; i++) {
-            if (i < treeViewComponent_v2_debug.countAbstract) {
-                //treeViewComponent_v2_debug.dataLiteral[i * 4]ctx.fillText('apple', 0, vertical); // There's a max width argument in the fillText?
-
-                this.lineCache[indexRingBuffer] = indexItem + i;
-                //ctx.fillText(i, 0, vertical); // There's a max width argument in the fillText?
-            }
-            else {
-                this.lineCache[indexRingBuffer] = '~';
-                //ctx.fillText('~', 0, vertical); // There's a max width argument in the fillText?
-            }
-            
-            indexRingBuffer++;
-            if (indexRingBuffer >= this.virtualCount) {
-                indexRingBuffer -= this.virtualCount;
-            }
-        }
-    }
-    
-    renderLines() {
         const ctx = treeViewComponent_v2_debug.canvas.getContext('2d');
         ctx.clearRect(0, 0, treeViewComponent_v2_debug.canvas.width, treeViewComponent_v2_debug.canvas.height);
         ctx.fillStyle = '#d4d4d4';
@@ -416,17 +390,75 @@ class TreeViewComponent_v2 {
         const lower = this.currentVirtualIndex;
         const upper = this.currentVirtualIndex + this.virtualCount;
 
+        const new_loopLimit = new_lowerBound + diff;
+
         let vertical = 0;
-        let ringBufferIndex = this.ringBufferIndexZero;
+        let ringBufferIndex = this.ringBufferIndexZero - 1;
         for (let i = lower; i < upper; i++) {
-            ctx.fillText(this.lineCache[ringBufferIndex], 0, vertical); // There's a max width argument in the fillText?
             ringBufferIndex++;
             if (ringBufferIndex >= this.virtualCount) {
                 ringBufferIndex -= this.virtualCount;
             }
+
+            if (i >= new_lowerBound && i < new_loopLimit) {
+                if (i < treeViewComponent_v2_debug.countAbstract) {
+                    this.lineCache[ringBufferIndex] = i;
+                }
+                else {
+                    this.lineCache[ringBufferIndex] = '~';
+                }
+            }
+
+            ctx.fillText(this.lineCache[ringBufferIndex], 0, vertical); // There's a max width argument in the fillText?
             vertical += this.itemHeightNumber;
         }
+
+        //this.cacheLines(new_lowerBound, this.ringBufferIndexZero, diff);
+//
+        //this.renderLines();
     }
+
+    //cacheLines(indexItem, indexRingBuffer, count) {
+    //    //const new_loopLimit = new_lowerBound + diff;
+//
+    //    for (let i = 0; i < count; i++) {
+    //        if (i < treeViewComponent_v2_debug.countAbstract) {
+    //            //treeViewComponent_v2_debug.dataLiteral[i * 4]ctx.fillText('apple', 0, vertical); // There's a max width argument in the fillText?
+//
+    //            this.lineCache[indexRingBuffer] = indexItem + i;
+    //            //ctx.fillText(i, 0, vertical); // There's a max width argument in the fillText?
+    //        }
+    //        else {
+    //            this.lineCache[indexRingBuffer] = '~';
+    //            //ctx.fillText('~', 0, vertical); // There's a max width argument in the fillText?
+    //        }
+    //        
+    //        indexRingBuffer++;
+    //        if (indexRingBuffer >= this.virtualCount) {
+    //            indexRingBuffer -= 0;
+    //        }
+    //    }
+    //}
+    
+    //renderLines() {
+    //    const ctx = treeViewComponent_v2_debug.canvas.getContext('2d');
+    //    ctx.clearRect(0, 0, treeViewComponent_v2_debug.canvas.width, treeViewComponent_v2_debug.canvas.height);
+    //    ctx.fillStyle = '#d4d4d4';
+//
+    //    const lower = this.currentVirtualIndex;
+    //    const upper = this.currentVirtualIndex + this.virtualCount;
+//
+    //    let vertical = 0;
+    //    let ringBufferIndex = this.ringBufferIndexZero;
+    //    for (let i = lower; i < upper; i++) {
+    //        ctx.fillText(this.lineCache[ringBufferIndex], 0, vertical); // There's a max width argument in the fillText?
+    //        ringBufferIndex++;
+    //        if (ringBufferIndex >= this.virtualCount) {
+    //            ringBufferIndex -= this.virtualCount;
+    //        }
+    //        vertical += this.itemHeightNumber;
+    //    }
+    //}
 
     TREEVIEW_render_do_Scroll() {
         if (this.ringBufferLength !== this.virtualCount) {

@@ -607,9 +607,9 @@ function DIALOG_Debug_treeViewComponent_v2_Create() {
     treeViewComponent_v2_debug.scrollbarSpaceGenerator.style.height = treeViewComponent_v2_debug_heightTotal + 'px';
 
     
-
-    treeViewComponent_v2_debug.cacheLines(0 /*indexItem*/, 0 /*indexRingBuffer*/, treeViewComponent_v2_debug.virtualCount /*count*/);
-    treeViewComponent_v2_debug.renderLines();
+    treeViewComponent_v2_debug.renderScroll();
+    //treeViewComponent_v2_debug.cacheLines(0 /*indexItem*/, 0 /*indexRingBuffer*/, treeViewComponent_v2_debug.virtualCount /*count*/);
+    //treeViewComponent_v2_debug.renderLines();
 
     treeViewComponent_v2_debug.draw_addEvents();
 }
