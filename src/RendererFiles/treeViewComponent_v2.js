@@ -1,27 +1,3 @@
-
-/** File contains more than one class (noted only because it doesn't feel obvious that there would be more than one class, this note doesn't exist in every file) */
-
-/** See the "interface TreeViewDirector" towards the bottom of this file */
-
-/*
-########################################################################
-# Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem': #
-########################################################################
-
-// TODO: This is an awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'...
-// ...the initial declaration of 'let ringBufferIndex' is assigned what I refer to as the "virtualIndex"
-// but 'ringBufferIndex' is the output of the function, and a 'virtualIndex' variable is only needed temporarily
-// for the calculation. So by storing the 'virtualIndex' in 'ringBufferIndex' at the start I skip a variable declaration.
-|
-(retrospective comment): I see what I was doing.
-It isn't just the single variable declaration.
-You can't do the modulo logic UNLESS the virtual index is valid (that the line of text is actually being drawn in the UI).
-BUT I think this was an assumption on my end.
-I wonder if the modulo math would work out such that I could...
-well I guess I'd need to add an if to verify that the modulo math went correctly
-thus the same thing happens but now I can't just re-use that I'm virtual index first then you're safe thus the if else part...
-*/
-
 /*
 const v2_TREEVIEWrenderKind_None = 0;
 const v2_TREEVIEWrenderKind_Cursor = 1;
@@ -40,12 +16,77 @@ const v2_TreeViewNodeKind_NOTisExpandable_isExpanded = 3;
 const v2_TreeViewNodeKind_NOTisExpandable_NOTisExpanded = 4;
 */
 
+class TreeViewComponent_v2_staticRunner {
+
+    constructor() {
+        this.queueHead = 0;
+        this.queueTail = 0;
+        this.renderIsPending = false;
+
+        this.UI_SLOT_MASK = 31;
+        this.MASTER_RENDER_BUFFER = new Uint8Array(32 /* const MASTER_BUFFER_SIZE = 160; */);
+    }
+
+    TreeViewComponent_v2_render_request(renderKind) {
+        if (this.queueHead !== this.queueTail) {
+            const lastAbsoluteIndex = (this.queueTail - 1) & this.UI_SLOT_MASK;
+            if (this.MASTER_RENDER_BUFFER[lastAbsoluteIndex] === renderKind) {
+                return;
+            }
+        }
+
+        const absoluteIndex = this.queueTail & this.UI_SLOT_MASK;
+        this.MASTER_RENDER_BUFFER[absoluteIndex] = renderKind;
+        this.queueTail++;
+        
+        if (this.renderIsPending === 0) {
+            this.renderIsPending = 1;
+            requestAnimationFrame(this.TreeViewComponent_v2_render_do);
+        }
+    }
+
+    TreeViewComponent_v2_render_do() {
+        while (this.queueHead !== this.queueTail) {
+            // Uses the exact same masking logic, but reads from the higher memory region
+            const absoluteIndex = this.queueHead & this.UI_SLOT_MASK;
+            const renderKind = this.MASTER_RENDER_BUFFER[absoluteIndex];
+            this.queueHead++; 
+
+            switch (renderKind) {
+                case TREEVIEWrenderKind_Cursor:
+                    this.TreeViewComponent_v2_render_do_Cursor();
+                    break;
+                case TREEVIEWrenderKind_Create:
+                    this.TreeViewComponent_v2_render_do_Create();
+                    break;
+                case TREEVIEWrenderKind_Batch:
+                    this.TreeViewComponent_v2_render_do_Batch();
+                    break;
+                case TREEVIEWrenderKind_Scroll:
+                    this.TreeViewComponent_v2_render_do_Scroll();
+                    break;
+                case TREEVIEWrenderKind_Scroll_PullDataDrawResult:
+                    this.TreeViewComponent_v2_render_do_Scroll_PullDataDrawResult();
+                    break;
+                case TREEVIEWrenderKind_SetItems:
+                    this.TreeViewComponent_v2_render_do_SetItems();
+                    break;
+                case TREEVIEWrenderKind_FullReset:
+                    this.TreeViewComponent_v2_render_do_FullReset();
+                    break;
+                case TREEVIEWrenderKind_Resize:
+                    this.TreeViewComponent_v2_render_do_Resize();
+                    break;
+            }
+        }
+        this.isRenderPending = 0;
+    }
+}
+
+
+
 /**
- * The director maintains a flat optimized list of every element i.e.: represent each element in a uint8array and each one is a byte that maps to the actual.
  * 
- * Then the actual can be a hierarchical datastructure.
- * 
- * You just keep flattening it into a byte array and map back and forth.
  */
 class TreeViewComponent_v2 {
     constructor(initialCapacity_abstract) {
@@ -63,19 +104,9 @@ class TreeViewComponent_v2 {
 
         this.visual_canvas = document.createElement('div');
         this.visual_canvas.className = 'TREEVIEW_visual_canvas';
-        this.text = document.createElement('div');
-        this.text.className = 'TREEVIEW_text';
-        this.visual_canvas.appendChild(this.text);
+        this.canvas = document.createElement('canvas');
+        this.visual_canvas.appendChild(this.canvas);
         this.rootElement.appendChild(this.visual_canvas);
-
-        /** Consider the existence of such methods as 'state_cursor_setIndex' before mutating state directly */
-        this.cursorElement = document.createElement('div');
-        this.cursorElement.className = 'TREEVIEW_cursor';
-        this.text.appendChild(this.cursorElement);
-
-        this.itemListElement = document.createElement('div');
-        this.itemListElement.className = 'TREEVIEW_itemList';
-        this.text.appendChild(this.itemListElement);
 
         this.itemHeightTotal = 0;
 
@@ -145,6 +176,9 @@ class TreeViewComponent_v2 {
     }
 
     TREEVIEW_render_request(renderKind) {
+
+        // track the last pushed src
+
         if (this.TREEVIEW_renderKindArray[this.TREEVIEW_renderKindArray.length - 1] !== renderKind) {
             this.TREEVIEW_renderKindArray.push(renderKind);
         }
@@ -902,3 +936,22 @@ class TreeViewComponent_v2 {
         }
     }
 }
+
+/*
+########################################################################
+# Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem': #
+########################################################################
+
+// TODO: This is an awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'...
+// ...the initial declaration of 'let ringBufferIndex' is assigned what I refer to as the "virtualIndex"
+// but 'ringBufferIndex' is the output of the function, and a 'virtualIndex' variable is only needed temporarily
+// for the calculation. So by storing the 'virtualIndex' in 'ringBufferIndex' at the start I skip a variable declaration.
+|
+(retrospective comment): I see what I was doing.
+It isn't just the single variable declaration.
+You can't do the modulo logic UNLESS the virtual index is valid (that the line of text is actually being drawn in the UI).
+BUT I think this was an assumption on my end.
+I wonder if the modulo math would work out such that I could...
+well I guess I'd need to add an if to verify that the modulo math went correctly
+thus the same thing happens but now I can't just re-use that I'm virtual index first then you're safe thus the if else part...
+*/
