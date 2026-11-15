@@ -156,6 +156,8 @@ class TreeViewComponent_v2 {
 
         this.scrollLeft = 0;
         this.scrollTop = 0;
+
+        this.lineCache = [];
         
         this.scrollTimer = null;
         this.hasTrailingCall = false;
@@ -351,7 +353,30 @@ class TreeViewComponent_v2 {
 
     renderScroll() {
         this.currentVirtualIndex = this.scrollTop / this.itemHeightNumber | 0;
+
+        //this.lineCache;
+
         this.renderLines();
+    }
+
+    cacheLines(indexItem, indexRingBuffer, count) {
+        for (let i = 0; i < count; i++) {
+            if (i < treeViewComponent_v2_debug.countAbstract) {
+                //treeViewComponent_v2_debug.dataLiteral[i * 4]ctx.fillText('apple', 0, vertical); // There's a max width argument in the fillText?
+
+                this.lineCache[indexRingBuffer] = indexItem + i;
+                //ctx.fillText(i, 0, vertical); // There's a max width argument in the fillText?
+            }
+            else {
+                this.lineCache[indexRingBuffer] = '~';
+                //ctx.fillText('~', 0, vertical); // There's a max width argument in the fillText?
+            }
+            
+            indexRingBuffer++;
+            if (indexRingBuffer >= this.virtualCount) {
+                indexRingBuffer -= this.virtualCount;
+            }
+        }
     }
     
     renderLines() {
@@ -363,13 +388,12 @@ class TreeViewComponent_v2 {
         const upper = this.currentVirtualIndex + this.virtualCount;
 
         let vertical = 0;
+        let ringBufferIndex = this.ringBufferIndexZero;
         for (let i = lower; i < upper; i++) {
-            if (i < treeViewComponent_v2_debug.countAbstract) {
-                //treeViewComponent_v2_debug.dataLiteral[i * 4]ctx.fillText('apple', 0, vertical); // There's a max width argument in the fillText?
-                ctx.fillText(i, 0, vertical); // There's a max width argument in the fillText?
-            }
-            else {
-                ctx.fillText('~', 0, vertical); // There's a max width argument in the fillText?
+            ctx.fillText(this.lineCache[ringBufferIndex], 0, vertical); // There's a max width argument in the fillText?
+            ringBufferIndex++;
+            if (ringBufferIndex >= this.virtualCount) {
+                ringBufferIndex -= this.virtualCount;
             }
             vertical += this.itemHeightNumber;
         }
