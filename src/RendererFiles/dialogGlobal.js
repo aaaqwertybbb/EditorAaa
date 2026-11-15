@@ -147,6 +147,9 @@ function DIALOG_render_do_Show() {
         case DialogKind_Debug:
             DIALOG_Debug_Create();
             break;
+        case DialogKind_Debug_treeViewComponent_v2:
+            DIALOG_Debug_treeViewComponent_v2_Create();
+            break;
     }
 
     BYTES[byteDIALOG_currentDialogKind] = DIALOG_request.dialogKind;
@@ -198,6 +201,9 @@ function DIALOG_render_do_Hide() {
             break;
         case DialogKind_Debug:
             DIALOG_Debug_Delete();
+            break;
+        case DialogKind_Debug_treeViewComponent_v2:
+            DIALOG_Debug_treeViewComponent_v2_Delete();
             break;
     }
 

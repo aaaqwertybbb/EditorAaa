@@ -564,3 +564,19 @@ function DIALOG_Debug_Refresh(customEditorGetNodesAdjacentToCursorFromLspRequest
     textNode = afterDiv.firstChild;
     textNode.replaceData(0, textNode.length, `${customEditorGetNodesAdjacentToCursorFromLspRequestResponse.After.SyntaxKindString}\n\t${customEditorGetNodesAdjacentToCursorFromLspRequestResponse.After.Identifier}\n\t(${customEditorGetNodesAdjacentToCursorFromLspRequestResponse.After.PositionIndex})`);
 }
+
+function DIALOG_Debug_treeViewComponent_v2_Create() {
+    let dialogBody = document.getElementById('DIALOG_body');
+    if (!dialogBody) return;
+
+    const div = document.createElement('div');
+    div.id = 'Debug_treeViewComponent_v2_div';
+    div.style.marginTop = APP_lineHeightStringWithPx; // Dialog looks jank at the moment I'm gonna just do this so I can read the text
+    div.style.height = APP_lineHeightStringWithPx;
+    div.appendChild(document.createTextNode('aaa'));
+
+    dialogBody.appendChild(div);
+}
+
+function DIALOG_Debug_treeViewComponent_v2_Delete() {
+}

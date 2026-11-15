@@ -315,6 +315,10 @@ function init() {
     document
         .getElementById('HEADER_buttonSettings')
         .addEventListener('click', HEADER_buttonSettings_onClick);
+    
+    document
+        .getElementById('treeViewComponent_v2_button')
+        .addEventListener('click', treeViewComponent_v2_button_onClick);
 
     //window.myAPI.onMessage(window_myAPI_onMessage);
 
@@ -560,4 +564,8 @@ function documentBody_onKeyDown(event) {
 
 function HEADER_buttonSettings_onClick() {
     DIALOG_show(DialogKind_Settings, null, null);
+}
+
+function treeViewComponent_v2_button_onClick() {
+    DIALOG_show(DialogKind_Debug_treeViewComponent_v2, null, null);
 }
