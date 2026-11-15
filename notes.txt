@@ -508,16 +508,56 @@ Would you like to look at how DOM node pooling (recycling <div> rows) compares t
 
 
 
+>
+I'm thinking about using a 3 canvas rewrite for the file explorer.
+
+Canvases:
+1. The file names
+2. The '+', '-', ''
+3. The cursor
 
 
 
 
+<
+I would stick with a virtualized pool of flat <div> rows rather than rewriting the file explorer into 3 canvases.
+
+Since your entire app lives in a single monolithic vanilla JS module and you already render the editor with 3 canvases (gutter, text, cursor),
+mirroring that exact 3-layer architecture for the explorer is conceptually consistent—and it drops per-row DOM/GC overhead to literally zero.
+However, the trade-offs between a 3-canvas explorer and a fixed DOM pool heavily favor keeping the DOM for a sidebar tree.
+
+Trade-offs: 3-Canvas Explorer vs. Pooled DOM <div>s
 
 
+Dimension                       | 3-Canvas Explorer (names, toggles, cursor)                                                                                         | Virtualized <div> Pool (~40–60 reused <div>s)
+===============================================================================================================================================================================================================================================================================
+GC & Memory Pressure            | 0 DOM allocations after setup; state is pure JS arrays/typed arrays.                                                               | Near-0 allocations after initial pool creation; <div>s are recycled on scroll, never created/destroyed.
+Text Crispness & Font Rendering | Requires manual window.devicePixelRatio scaling, subpixel alignment, and manual text truncation (...) when the sidebar resizes.    | Native subpixel text rendering, automatic text-overflow: ellipsis, and crisp DPI scaling out of the box.
+Hit Testing & Interaction       | You must manually compute row index and X-bounds on mousemove/click to distinguish clicking +/- vs. selecting a file vs. hovering. | Native :hover CSS, native cursor changes, and a single delegated click listener checking e.target.
+Input & Renaming Files          | Inline file rename or filter-as-you-type requires floating a temporary <input> overlay aligned to canvas coordinates.              | Swap textContent for an <input> inside the existing row <div> (or toggle contentEditable).
+Accessibility & Screen Readers  | Invisible to OS accessibility trees unless you maintain a parallel hidden ARIA DOM anyway.                                         | Built-in role="treeitem" and keyboard focus support if needed.
+
+Why 3 Canvases Makes Sense for the Editor, Less So for the Explorer
+1. Frequency of Full-Viewport Redraws: In your code editor, typing a character or scrolling shifts thousands of syntax-highlighted tokens at 60–120 FPS—canvas shines there.
+   A file explorer is static 99% of the time; it only changes when you click a folder, move the selection cursor, or scroll.
+2. Dynamic Sidebar Width: Users constantly drag the splitter between the file explorer and the editor.
+   With 3 canvases, resizing the sidebar forces you to resize all 3 backing bitmaps (canvas.width = w * dpr), re-apply context state (font, textBaseline, scale),
+   and re-measure/truncate every visible filename on every drag frame. CSS handles width changes in C++ without touching JS.
+3. Why 3 Layers Isn't Necessary on Canvas Either: Even if you do go the canvas route, splitting +/- icons and file names onto separate canvases doesn't save meaningful work—you
+   can draw the toggle glyph and filename in the same row loop on a single text canvas, keeping only the cursor/highlight layer separate so hover/selection moves don't redraw text.
+
+Recommended Approach: Keep the DOM, Eliminate the GC Churn
+
+If your goal is zero GC spikes and instant expansion of massive folders (like node_modules), you can get 100% of the memory benefits of canvas while keeping your existing DOM styling:
+1. Flat Array Model: Store your visible tree as a flat JS array of lightweight objects: { name, depth, type, expanded, path }.
+2. Fixed <div> Pool: Create only enough <div> rows to fill the sidebar height (e.g., Math.ceil(sidebarHeight / rowHeight) + 2 ≈ 50 <div>s total). Never call createElement or remove() when expanding folders or scrolling.
+3. Scroll Offset Binding: On scroll or folder toggle, slice visibleNodes[startIndex ... endIndex] and update the existing 50 <div>s (row.style.transform = ..., row.dataset.index = i, and textContent).
+4. Single Delegated Listener: Attach one mousedown listener on the parent container instead of per-row listeners, reading e.target.closest('[data-index]').dataset.index.
+
+(If you still want to build the 3-canvas explorer for architectural symmetry and total pixel control,
+ keep the cursor canvas underneath the text canvas using mix-blend-mode or opaque background fills so selection highlights don't tint your crisp subpixel text.)
+
+Would you like a compact vanilla JS implementation of either the fixed <div> pool or the 3-canvas explorer loop (with devicePixelRatio and hit-testing)?
 
 
-
-
-
-(TODO: How are DOM children "stored" behind the scenes. For example the simplest way would assumedly be to allocate a List of child nodes foreach node that contains children.)
 
