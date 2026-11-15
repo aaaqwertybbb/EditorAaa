@@ -608,6 +608,13 @@ If you keep the DOM pool to ~50 rows and avoid attaching per-row closures or cus
 
 Would you like to look at how to structure the file tree data model (e.g., flat parallel arrays vs. node objects) to minimize V8 Old Space tracing across large workspaces?
 
+<
+This question is somewhat difficult to ask because there's so many details involved.
 
+In its simplest form the question is: how many old generation objects does it take to create noticeable performance degradation for the user.
+
+The difficulty in the question is: objects can be varying sizes, they can have varying levels of depth, various levels of recursive references.
+
+But nevertheless do you have any comments on this?
 
 
