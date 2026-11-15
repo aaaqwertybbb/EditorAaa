@@ -4,6 +4,7 @@
  */
 let treeViewComponent_v2_debug = null;
 let treeViewComponent_v2_debug_lineHeight = 0;
+let treeViewComponent_v2_debug_heightTotal = 0;
 let treeViewComponent_v2_debug_characterWidth = 0;
 let treeViewComponent_v2_debug_offsetWidth = 0;
 let treeViewComponent_v2_debug_offsetHeight = 0;
@@ -598,11 +599,25 @@ function DIALOG_Debug_treeViewComponent_v2_Create() {
     const ctx = treeViewComponent_v2_debug.canvas.getContext('2d');
     ctx.fillStyle = 'red';
     ctx.fillText('apple', 0, 0);
+
+    //EXPLORER_treeViewNodes.clear();
+//
+    //if (!EXPLORER_chosenWorkspace) return;
+
+    const count_literal = EXPLORER_treeViewNodes.count_abstract * 4;
+    for (let i = 0; i < count_literal; i += 4) {
+        treeViewComponent_v2_debug.insert(EXPLORER_treeViewNodes.data_literal[i + 0], EXPLORER_treeViewNodes.data_literal[i + 1], EXPLORER_treeViewNodes.data_literal[i + 2], EXPLORER_treeViewNodes.data_literal[i + 3]);
+    }
+
+    treeViewComponent_v2_debug_heightTotal = treeViewComponent_v2_debug.countAbstract * treeViewComponent_v2_debug_lineHeight;
+    treeViewComponent_v2_debug.scrollbarSpaceGenerator.style.height = treeViewComponent_v2_debug_heightTotal + 'px';
 }
 
 function DIALOG_Debug_treeViewComponent_v2_Delete() {
-    treeViewComponent_v2_staticRunner.remove(treeViewComponent_v2_debug.runnerId);
-    treeViewComponent_v2_debug = null;
+    if (treeViewComponent_v2_debug !== null) {
+        treeViewComponent_v2_staticRunner.remove(treeViewComponent_v2_debug);
+        treeViewComponent_v2_debug = null;
+    }
 }
 
 function Debug_treeViewComponent_v2_resizeCanvases() {
