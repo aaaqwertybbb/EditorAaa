@@ -171,4 +171,5 @@ The only way to make them a reality is to work part time so I can be my own boss
 By working as a cashier I'm standing the entire shift and NOT burning my self out writing code that I don't care about.
 This way in my free time I have all the energy and desire to code what is meaningful.
 
-
+I'm not making VSCode or Visual Studio. I'm making the next generation of editing.
+I'm going to surpass all of the existing apps
