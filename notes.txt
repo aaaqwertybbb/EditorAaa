@@ -793,6 +793,46 @@ Are you designing the in-memory representation for the file tree right now, or a
 
 
 
+>
+In an app that uses electron, and vanilla javascript as a single monolithic ES6 module: what is the overhead cost of encapsulation ("creating a class for each feature"),
+versus having the majority of your code be at the module level scope.
+
+
+
+
+<
+In V8 (Electron), creating a class per major feature (e.g., 10–50 singleton manager/feature classes) has zero measurable runtime or GC overhead compared to flat module-level scope—it
+only hurts if you instantiate thousands of small class instances per second on hot paths.
+
+Because your app is a single monolithic ES6 module, V8 actually optimizes module-scope variables and singleton class instances almost identically under the hood.
+
+How V8 Compiles Module Scope vs. Feature Classes
+
+Factor                           | Module-Level Scope (let state = ...; function render() {})                                                                                                                        | Feature Class (class FileExplorer { ... })
+================================================================================================================================================================================================================================================================================================================================================================================================================================================================================================
+Memory & GC Overhead             | ~0 bytes per variable. Top-level ES6 module let/const bindings live in a single internal Module / Context slot array allocated once at load time.                                 | ~32–64 bytes per class instance + ~1 KB per class definition. Creating 20 feature classes adds < 20 KB total to Old Space and 0 GC pauses.
+Property / Variable Lookup Speed | Direct Context slot load. TurboFan (V8's JIT) compiles module-level let/const reads into a single constant-offset memory read—zero hash lookups.                                  | Monomorphic Inline Cache (IC) load. When a class is instantiated once (singleton) with all properties initialized in constructor(), TurboFan compiles this.prop to a single constant-offset memory read—identical speed to module variables.
+Function Call & Inlining Speed   | Direct static function call; TurboFan inlines small hot functions aggressively.                                                                                                   | Prototype method call with a single hidden class (Map); TurboFan checks the receiver Map once and inlines the method identically.
+Hidden Hazards / Footguns        | Scope pollution & accidental closures: Any inner arrow function capturing a module let keeps that Context slot alive; harder to reset state cleanly when opening a new workspace. | Dynamic property addition & #private fields: Adding this.newProp = ... outside constructor() triggers a Map transition; #private fields use a WeakMap-like private symbol slot (negligible for 20 singletons, slightly slower than normal properties in ultra-hot loops).
+
+Where Encapsulation Actually Costs Performance (And Where It Doesn't)
+1. Singleton Feature Classes (EditorCore, FileExplorer, GutterRenderer, CursorController) = Free:
+	• Having 15–30 architectural classes instantiated once at startup costs less than 0.05 ms at startup and 0 ms per frame.
+	• V8's Inline Caches see only one Map (hidden class) per class (monomorphic), so this.cursorLine compiles down to the exact same machine instruction (mov rax, [rdi + 0x18])
+    as reading a module-level let cursorLine.
+2. Per-Item / Per-Line / Per-Token Classes (new Line(), new Token(), new TreeNode()) = Expensive:
+	• Encapsulating data records into 500,000 class instances floods V8 Old Space with heap headers, pointer edges, and GC marking work (as discussed earlier).
+	• Keep behavior/subsystems in classes, and keep bulk data in flat module-level or class-owned TypedArrays / parallel arrays.
+3. One Subtle Advantage of Module Scope on Ultra-Hot Inner Loops:
+	• Inside a tight loop running 100,000 times per frame (e.g., character measurement or canvas blitting), caching a class property into a local variable
+    (const ctx = this.ctx; const widths = this.charWidths;) eliminates even the single pointer dereference through this, matching module-level speed 100%.
+
+Practical Rule for Your Monolithic ES6 Module
+
+Use classes for subsystems/features (clean boundaries, easy workspace reset via new ExplorerState(), zero runtime cost) and
+flat arrays/TypedArrays inside those classes for data. Avoid creating per-frame or per-line object instances.
+
+Are you considering refactoring existing module-level code into feature classes, or deciding how to structure a new subsystem (like the file explorer or command palette)?
 
 
 
@@ -805,19 +845,4 @@ Are you designing the in-memory representation for the file tree right now, or a
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+(TODO: Can functions be inlined if declared as `function render() {}` i.e.: it isn't a constant and I can redefine it at any point. Perhaps the alternative would be a const arrow function.)
