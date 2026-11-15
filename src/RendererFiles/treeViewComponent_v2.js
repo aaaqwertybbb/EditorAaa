@@ -107,7 +107,9 @@ class TreeViewComponent_v2_staticRunner {
 const treeViewComponent_v2_staticRunner = new TreeViewComponent_v2_staticRunner();
 
 /**
- * 
+ * You could probably calculate the ringBuffer diff in the scroll event then pass that information to a non-TreeViewComponent_v2 defined function.
+ * The consumer of the 'TreeViewComponent_v2' would provide a function that knows how to draw everything?
+ * The main thing to avoid is probably invoking "per line being drawn" some function that knows how to draw a line.
  */
 class TreeViewComponent_v2 {
     /**
@@ -157,8 +159,8 @@ class TreeViewComponent_v2 {
 
         this.ringBufferIndexZero = 0;
 
-        this.TREEVIEW_ArrayFrom_itemListElement_children = [];
-        this.TREEVIEW_ArrayFrom_itemListElement_children_length = 0;
+        this.ringBuffer = [];
+        this.ringBufferLength = 0;
 
         this.TREEVIEW_draw_create_request_parentElement = null;
         this.TREEVIEW_draw_create_request_insertBeforeThisChild = null;
@@ -337,7 +339,7 @@ class TreeViewComponent_v2 {
     }
 
     TREEVIEW_render_do_Scroll() {
-        if (this.TREEVIEW_ArrayFrom_itemListElement_children_length !== this.virtualCount) {
+        if (this.ringBufferLength !== this.virtualCount) {
             this.TREEVIEW_render_do_FullReset();
         }
         else {
@@ -359,7 +361,7 @@ class TreeViewComponent_v2 {
             this._ONSCROLLvirtualIndex = this.virtualIndex_ofScrollTop;
 
             if (this._ONSCROLLvirtualCount === this.virtualCount &&
-                this.TREEVIEW_ArrayFrom_itemListElement_children_length === this.virtualCount) {
+                this.ringBufferLength === this.virtualCount) {
 
                 let diff = currVli - prevVli;
 
@@ -442,8 +444,8 @@ class TreeViewComponent_v2 {
                 this.director.pullData_array_count = 0;
             }
 
-            this.TREEVIEW_ArrayFrom_itemListElement_children = Array.from(this.itemListElement.children);
-            this.TREEVIEW_ArrayFrom_itemListElement_children_length = this.TREEVIEW_ArrayFrom_itemListElement_children.length;
+            this.ringBuffer = Array.from(this.itemListElement.children);
+            this.ringBufferLength = this.ringBuffer.length;
         }
 
         // TODO: This if statement check is awkward because the previous if statement ought to have guaranteed this one to be true.
@@ -477,11 +479,11 @@ class TreeViewComponent_v2 {
 
         // See comment "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" for more information.
         let ringBufferIndexItem = ((indexItem)) - this.virtualIndex_ofScrollTop;
-        if (ringBufferIndexItem >= this.TREEVIEW_ArrayFrom_itemListElement_children_length || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
+        if (ringBufferIndexItem >= this.ringBufferLength || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
         else ringBufferIndexItem = (ringBufferIndexItem + this.ringBufferIndexZero) % this.virtualCount;
         if (ringBufferIndexItem < 0) return;
 
-        let divItem = this.TREEVIEW_ArrayFrom_itemListElement_children[ringBufferIndexItem];
+        let divItem = this.ringBuffer[ringBufferIndexItem];
 
         // TODO: 'event_dblclick' with this depth logic?
         // TODO: this component throws an exception when scrolling it just straight up doesn't work (well it does until it crashes the app)
@@ -504,21 +506,21 @@ class TreeViewComponent_v2 {
 
         // See comment "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" for more information.
         let ringBufferIndexItem = ((indexItem)) - this.virtualIndex_ofScrollTop;
-        if (ringBufferIndexItem >= this.TREEVIEW_ArrayFrom_itemListElement_children_length || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
+        if (ringBufferIndexItem >= this.ringBufferLength || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
         else ringBufferIndexItem = (ringBufferIndexItem + this.ringBufferIndexZero) % this.virtualCount;
 
         if (ringBufferIndexItem < 0) return;
-        let divItem = this.TREEVIEW_ArrayFrom_itemListElement_children[ringBufferIndexItem];
+        let divItem = this.ringBuffer[ringBufferIndexItem];
 
         // if not clicked "chevron"
         if (event_target !== divItem.children[0]) {
             // See comment "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" for more information.
             let ringBufferIndexItem = ((this.cursorIndex)) - this.virtualIndex_ofScrollTop;
-            if (ringBufferIndexItem >= this.TREEVIEW_ArrayFrom_itemListElement_children_length || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
+            if (ringBufferIndexItem >= this.ringBufferLength || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
             else ringBufferIndexItem = (ringBufferIndexItem + this.ringBufferIndexZero) % this.virtualCount;
 
             if (ringBufferIndexItem < 0) return;
-            return this.director.tvd_ondblclick_async(this.TREEVIEW_ArrayFrom_itemListElement_children[ringBufferIndexItem], this.cursorIndex);
+            return this.director.tvd_ondblclick_async(this.ringBuffer[ringBufferIndexItem], this.cursorIndex);
         }
     }
 
@@ -535,11 +537,11 @@ class TreeViewComponent_v2 {
 
             // See comment "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" for more information.
             let ringBufferIndexItem = ((this.cursorIndex)) - this.virtualIndex_ofScrollTop;
-            if (ringBufferIndexItem >= this.TREEVIEW_ArrayFrom_itemListElement_children_length || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
+            if (ringBufferIndexItem >= this.ringBufferLength || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
             else ringBufferIndexItem = (ringBufferIndexItem + this.ringBufferIndexZero) % this.virtualCount;
 
             if (ringBufferIndexItem < 0) return;
-            return this.director.tvd_oncontextmenu_async(this.TREEVIEW_ArrayFrom_itemListElement_children[ringBufferIndexItem], this.cursorIndex, event_button, event_clientX, event_clientY, ringBufferIndexItem);
+            return this.director.tvd_oncontextmenu_async(this.ringBuffer[ringBufferIndexItem], this.cursorIndex, event_button, event_clientX, event_clientY, ringBufferIndexItem);
         }
         else {
             if (this.cursorIndex >= this.director.tvd_getTotalCount()) {
@@ -551,13 +553,13 @@ class TreeViewComponent_v2 {
 
             // See comment "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" for more information.
             let ringBufferIndexItem = ((this.cursorIndex)) - this.virtualIndex_ofScrollTop;
-            if (ringBufferIndexItem >= this.TREEVIEW_ArrayFrom_itemListElement_children_length || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
+            if (ringBufferIndexItem >= this.ringBufferLength || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
             else ringBufferIndexItem = (ringBufferIndexItem + this.ringBufferIndexZero) % this.virtualCount;
 
             if (ringBufferIndexItem < 0) return;
 
             // TODO: Handle context menu with keyboard when active node is out of view
-            return this.director.tvd_oncontextmenu_async(this.TREEVIEW_ArrayFrom_itemListElement_children[ringBufferIndexItem], this.cursorIndex, event_button, event_clientX, event_clientY, ringBufferIndexItem);
+            return this.director.tvd_oncontextmenu_async(this.ringBuffer[ringBufferIndexItem], this.cursorIndex, event_button, event_clientX, event_clientY, ringBufferIndexItem);
         }
     }
 
@@ -593,11 +595,11 @@ class TreeViewComponent_v2 {
 
                     // See comment "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" for more information.
                     let ringBufferIndexItem = ((this.cursorIndex)) - this.virtualIndex_ofScrollTop;
-                    if (ringBufferIndexItem >= this.TREEVIEW_ArrayFrom_itemListElement_children_length || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
+                    if (ringBufferIndexItem >= this.ringBufferLength || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
                     else ringBufferIndexItem = (ringBufferIndexItem + this.ringBufferIndexZero) % this.virtualCount;
 
                     if (ringBufferIndexItem < 0) return;
-                    return this.director.tvd_arrowRight_async(this.TREEVIEW_ArrayFrom_itemListElement_children[ringBufferIndexItem], this.cursorIndex);
+                    return this.director.tvd_arrowRight_async(this.ringBuffer[ringBufferIndexItem], this.cursorIndex);
                 }
                 return;
             case 'ArrowLeft':
@@ -608,11 +610,11 @@ class TreeViewComponent_v2 {
                     
                     // See comment "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" for more information.
                     let ringBufferIndexItem = ((this.cursorIndex)) - this.virtualIndex_ofScrollTop;
-                    if (ringBufferIndexItem >= this.TREEVIEW_ArrayFrom_itemListElement_children_length || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
+                    if (ringBufferIndexItem >= this.ringBufferLength || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
                     else ringBufferIndexItem = (ringBufferIndexItem + this.ringBufferIndexZero) % this.virtualCount;
 
                     if (ringBufferIndexItem < 0) return;
-                    return this.director.tvd_arrowLeft_async(this.TREEVIEW_ArrayFrom_itemListElement_children[ringBufferIndexItem], this.cursorIndex);
+                    return this.director.tvd_arrowLeft_async(this.ringBuffer[ringBufferIndexItem], this.cursorIndex);
                 }
             	return;
             case ' ':
@@ -623,11 +625,11 @@ class TreeViewComponent_v2 {
                 
                 // See comment "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" for more information.
                 let ringBufferIndexItem = ((this.cursorIndex)) - this.virtualIndex_ofScrollTop;
-                if (ringBufferIndexItem >= this.TREEVIEW_ArrayFrom_itemListElement_children_length || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
+                if (ringBufferIndexItem >= this.ringBufferLength || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
                 else ringBufferIndexItem = (ringBufferIndexItem + this.ringBufferIndexZero) % this.virtualCount;
 
                 if (ringBufferIndexItem < 0) return;
-                return this.director.tvd_onkeydown_async(this.TREEVIEW_ArrayFrom_itemListElement_children[ringBufferIndexItem], this.cursorIndex, event.key);
+                return this.director.tvd_onkeydown_async(this.ringBuffer[ringBufferIndexItem], this.cursorIndex, event.key);
         }
     }
 
