@@ -408,7 +408,7 @@ class TreeViewComponent_v2 {
 
             if (i >= new_lowerBound && i < new_loopLimit) {
                 if (i < treeViewComponent_v2_debug.countAbstract) {
-                    const key = this.dataLiteral[i * 4 + this.keyOffset];
+                    const key = this.dataLiteral[i * this.fieldCount + this.keyOffset];
                     this.lineCache[ringBufferIndex] = treeViewComponent_v2_debug_stringsMapByPathId.get(key) ?? `unknown_${i}`;
                 }
                 else {
