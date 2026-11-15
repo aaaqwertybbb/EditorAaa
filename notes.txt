@@ -740,6 +740,75 @@ Would you like to see how to structure fast subtree expansion/collapse or increm
 
 
 
+>
+Is there any scenario where an interleaved UInt8Array would be "better" than have 2 separate UInt8Array as a parallel equivalent.
+
+
+
+
+<
+Yes — an interleaved Uint8Array is better whenever your hot loop reads both bytes together for the same item, especially during random access or sparse/indexed lookups.
+
+Because both layouts use Uint8Array, V8 GC overhead is identical (zero)—the entire difference comes down to CPU cache lines, TLB (Translation Lookaside Buffer) pressure, and memory bandwidth.
+
+When Interleaved Uint8Array Wins
+
+Scenario                                                                                 | Why Interleaved [a0, b0, a1, b1, ...] Wins                                                                     | Why 2 Parallel Uint8Arrays Lose
+=======================================================================================================================================================================================================================================================================================================================
+1. Random / Non-Sequential Access (e.g., jumping via visibleIndices[row] or nextSibling) | a[i] and b[i] sit side-by-side in the same 64-byte L1 cache line. One cache miss fetches both values for free. | Reading a[idx] and b[idx] hits two separate memory pages, doubling L1/L2 cache misses and TLB page lookups.
+2. Per-Row Rendering Loops (drawing the 50 visible rows on screen)                       | Every visible row needs both depth and flags at the exact same time to indent and pick the +/- icon.           | Fetches 2 cache lines per step instead of 1 (and twice the hardware prefetcher streams).
+3. Frequent Row Insertion / Splice / Swap                                                | Moving or copying an entry is a single contiguous copyWithin() or Uint16Array view move (u16[dst] = u16[src]). | Requires updating two separate buffers and keeping their lengths/capacities synchronized.
+4. Very Large Buffers (> L2/L3 Cache)                                                    | Uses 1 hardware prefetcher stream and half as many TLB entries when stepping through items together.           | Parallel streams compete for L1 cache ways and TLB entries when arrays span megabytes.
+
+When 2 Separate Uint8Arrays Win
+1. Full-Array Single-Field Scans / Filtering: If you scan 100,000 rows checking only flags (e.g., counting visible rows or finding dirty nodes)
+   without touching depth, separate Uint8Arrays pack 64 flags per 64-byte cache line instead of 32—giving you 2x the scan throughput and half the memory bandwidth.
+2. TypedArray Bulk Operations / SIMD-like Loops: Calling flags.fill(0), flags.indexOf(target),
+   or passing a single channel directly to WebGL/Canvas/IPC works cleanly without striding (i += 2).
+3. Different Bit-Widths: Mixing a Uint8 and an Int32 in one ArrayBuffer requires manual alignment padding or DataView overhead,
+   whereas separate Uint8Array and Int32Array stay naturally aligned.
+
+The Best of Both Worlds for Two Uint8s: Bit-Packing into a Single Uint16Array
+
+If you have two Uint8 fields (like depth and flags) that are almost always read together, you don't even need to stride by i * 2 in an interleaved Uint8Array—you can pack both into one Uint16Array:
+
+```js
+// Pack depth (0–255) and flags (0–255) into 1 Uint16 per node
+const meta = new Uint16Array(capacity);
+
+// Write
+meta[i] = (depth << 8) | flags;
+
+// Read (single memory load, 1 index, 0 striding)
+const depth = meta[i] >>> 8;
+const flags = meta[i] & 0xFF;
+```
+
+• Single memory load (1 register fetch instead of 2 Uint8 loads).
+• No i * 2 index math in JS.
+• Same cache-line locality as an interleaved Uint8Array, with cleaner code and half the bounds checks in V8's TurboFan JIT compiler.
+
+Are you designing the in-memory representation for the file tree right now, or also looking at per-character / per-line metadata in the text editor?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
