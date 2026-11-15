@@ -837,6 +837,36 @@ Are you considering refactoring existing module-level code into feature classes,
 
 
 
+>
+Can functions be inlined if declared as `function render() {}` i.e.: it isn't a constant and I can redefine it at any point. Perhaps the alternative would be a const arrow function.
+
+
+
+
+<
+Yes — V8's JIT compiler (TurboFan / Maglev) inlines standard function render() {} declarations just as aggressively as const render = () => {}, as long as you don't actually reassign it.
+
+How V8 Handles function Declarations vs. const Arrow Functions
+1. Speculative Optimization & Constness Tracking:
+	• Even though function render() {} creates a mutable binding in JavaScript, V8 tracks Cell constness on module-scope and script-scope bindings.
+	• Until you execute render = somethingElse, V8 marks that binding's internal PropertyCell as constant (kConst).
+	• TurboFan embeds a direct pointer to render's compiled code and inserts a lightweight dependency guard (a deoptimization trigger, not even an if check in the machine code). If you never reassign render, it runs at 100% full inlined speed with zero runtime overhead. If you ever do reassign render, V8 immediately triggers a deoptimization and recompiles the caller.
+2. Call-Site Feedback Vector (Inline Caches):
+	• Even for non-constant bindings (let fn = ...), V8 records the exact target function observed at each call site in a Feedback Vector.
+	• If a call site consistently calls the same function (monomorphic), TurboFan speculatively inlines it guarded by a single pointer comparison (cmp rax, expected_fn_addr).
+3. Why const Arrow Functions Are Identical (With Two Minor Caveats):
+	• const render = () => {} guarantees the binding itself is immutable (kConst from birth), so there is zero ambiguity for the compiler.
+	• Caveat 1 — Stack Traces & Debugging: function render() {} is hoisted and always has a clean name in DevTools flamegraphs and stack traces. const render = () => {} infers its name cleanly too, though anonymous callbacks or reassigned variables can appear as (anonymous).
+	• Caveat 2 — Recursive Self-Calls: Inside function render() {}, calling render() directly resolves statically; with const render = () => { render(); }, the self-reference goes through the module Context slot (still optimized once initialized, just slightly less direct during early Ignition bytecode execution).
+
+What Actually Prevents V8 From Inlining a Function
+
+Whether you use function foo() {} or const foo = () => {}, V8 decides to inline based on callee complexity, not declaration syntax:
+• Bytecode size budget: Functions larger than ~450–600 bytes of Ignition bytecode (roughly 35–50+ lines of dense code) exceed TurboFan's default inlining budget—which is ideal anyway,
+  because tiny helpers (getRowY(), isDir(), clamp()) get inlined into render(), while render() itself is big enough that inlining it wouldn't save call overhead.
+• Polymorphic call sites: Passing different callback functions into the same call site (cb(i) where cb varies across 4+ functions) makes the call site megamorphic and blocks inlining.
+• try / catch or eval / with: Certain legacy constructs or complex exception handlers can limit optimization in older patterns
+  (though modern TurboFan handles standard try/catch much better than older V8).
 
 
 
@@ -845,4 +875,41 @@ Are you considering refactoring existing module-level code into feature classes,
 
 
 
-(TODO: Can functions be inlined if declared as `function render() {}` i.e.: it isn't a constant and I can redefine it at any point. Perhaps the alternative would be a const arrow function.)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"TODO: Even though function render() {} creates a mutable binding in JavaScript, V8 tracks Cell constness on module-scope and script-scope bindings. (class functions?)"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
