@@ -185,6 +185,7 @@ class TreeViewComponent_v2 {
 
         // Bind once in constructor so ... doesn't allocate a closure per ...
         this.eventScroll = this.event_scroll.bind(this);
+        this.eventClick = this.event_click.bind(this);
 
         // tvnl_
 
@@ -308,7 +309,7 @@ class TreeViewComponent_v2 {
         this.scrollViewport.addEventListener('scroll', this.eventScroll, { passive: true });
         //this.scrollViewport.addEventListener.
 
-        //this.rootElement.addEventListener('click', this);
+        this.rootElement.addEventListener('click', this.eventClick);
         //this.rootElement.addEventListener('keydown', this);
         //this.scrollViewport.addEventListener('scroll', this, { passive: true });
         //this.rootElement.addEventListener('dblclick', this);
@@ -492,19 +493,19 @@ class TreeViewComponent_v2 {
 
             this.text.style.transform = `translate3d(-${this.scrollLeft}px, -${this.scrollTop}px, 0)`;
 
-            this.virtualIndex_ofScrollTop = Math.floor(this.scrollTop / this.itemHeightNumber);
+            this.currentVirtualIndex = Math.floor(this.scrollTop / this.itemHeightNumber);
 
-            if (this._ONSCROLLvirtualIndex === this.virtualIndex_ofScrollTop &&
+            if (this.previousVirtualIndex === this.currentVirtualIndex &&
                 this._ONSCROLLvirtualCount === this.virtualCount) {
                     return;
             }
 
-            // If I delay setting 'this._ONSCROLLvirtualIndex' then I can just use that.
+            // If I delay setting 'this.previousVirtualIndex' then I can just use that.
             // I can't bear to do that right now though. I'm just gonna make this variable.
-            let prevVli = this._ONSCROLLvirtualIndex;
-            let currVli = this.virtualIndex_ofScrollTop;
+            let prevVli = this.previousVirtualIndex;
+            let currVli = this.currentVirtualIndex;
 
-            this._ONSCROLLvirtualIndex = this.virtualIndex_ofScrollTop;
+            this.previousVirtualIndex = this.currentVirtualIndex;
 
             if (this._ONSCROLLvirtualCount === this.virtualCount &&
                 this.ringBufferLength === this.virtualCount) {
@@ -522,7 +523,7 @@ class TreeViewComponent_v2 {
                         this.director.tvd_drawItem_BATCH_CASE_DIFF_EQUALS_ZERO();
                     }
                     else {
-                        this.director.tvd_drawItem_BATCH(this.virtualIndex_ofScrollTop, this.virtualCount, 3, undefined);
+                        this.director.tvd_drawItem_BATCH(this.currentVirtualIndex, this.virtualCount, 3, undefined);
                     }
                 }
             }
@@ -548,7 +549,7 @@ class TreeViewComponent_v2 {
 
         this._ONSCROLLvirtualCount = this.virtualCount;
 
-        this.virtualIndex_ofScrollTop = Math.floor(this.scrollTop / this.itemHeightNumber);
+        this.currentVirtualIndex = Math.floor(this.scrollTop / this.itemHeightNumber);
         this.ringBufferIndexZero = 0;
 
         if (this.itemListElement.children.length !== this.virtualCount) {
@@ -596,7 +597,7 @@ class TreeViewComponent_v2 {
 
         // TODO: This if statement check is awkward because the previous if statement ought to have guaranteed this one to be true.
         if (this.itemListElement.children.length === this.virtualCount) {
-            this.director.tvd_drawItem_BATCH(this.virtualIndex_ofScrollTop, this.virtualCount, 3, undefined);
+            this.director.tvd_drawItem_BATCH(this.currentVirtualIndex, this.virtualCount, 3, undefined);
         }
     }
 
@@ -615,7 +616,11 @@ class TreeViewComponent_v2 {
      * ...thus, you should consider checking the x position of the event against the x position of the nodeElement.children[0].
      * @param {*} event 
      */
-    event_click(event_clientY, event_clientX) {
+    event_click(event) {
+
+        const event_clientY = event.clientY;
+        const event_clientX = event.clientX;
+
         // TODO: Change order of the function parameters?
         this.ensure_boundingClientRect();
 
@@ -624,23 +629,27 @@ class TreeViewComponent_v2 {
         indexItem = this.state_cursor_validateIndex(indexItem);
 
         // See comment "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" for more information.
-        let ringBufferIndexItem = ((indexItem)) - this.virtualIndex_ofScrollTop;
-        if (ringBufferIndexItem >= this.ringBufferLength || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
+        let ringBufferIndexItem = ((indexItem)) - this.currentVirtualIndex;
+        if (ringBufferIndexItem >= this.virtualCount || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
         else ringBufferIndexItem = (ringBufferIndexItem + this.ringBufferIndexZero) % this.virtualCount;
         if (ringBufferIndexItem < 0) return;
 
-        let divItem = this.ringBuffer[ringBufferIndexItem];
+        let divItem = this.lineCache[ringBufferIndexItem];
 
         // TODO: 'event_dblclick' with this depth logic?
         // TODO: this component throws an exception when scrolling it just straight up doesn't work (well it does until it crashes the app)
-        const depth = this.director.nodeList.getDepth(indexItem);
+        const depth = this.getDepth(indexItem);
         const rX = (event_clientX - this.boundingClientRect.left + this.scrollLeft) - (depth * CONST_EXPLORER_offsetPerDepth);
         if (rX >= 0 && rX <= EDI_characterWidth) {
-            return this.director.tvd_expandCollapseIconWasClicked_async(divItem, indexItem);
+            this.expandCollapseIconWasClicked(divItem, indexItem);
         }
         else {
             this.state_cursor_setIndex(indexItem);
         }
+    }
+
+    expandCollapseIconWasClicked() {
+        console.log('expandCollapseIconWasClicked()');
     }
 
     event_dblclick(event_clientY, event_target) {
@@ -651,7 +660,7 @@ class TreeViewComponent_v2 {
         indexItem = this.state_cursor_validateIndex(indexItem);
 
         // See comment "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" for more information.
-        let ringBufferIndexItem = ((indexItem)) - this.virtualIndex_ofScrollTop;
+        let ringBufferIndexItem = ((indexItem)) - this.currentVirtualIndex;
         if (ringBufferIndexItem >= this.ringBufferLength || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
         else ringBufferIndexItem = (ringBufferIndexItem + this.ringBufferIndexZero) % this.virtualCount;
 
@@ -661,7 +670,7 @@ class TreeViewComponent_v2 {
         // if not clicked "chevron"
         if (event_target !== divItem.children[0]) {
             // See comment "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" for more information.
-            let ringBufferIndexItem = ((this.cursorIndex)) - this.virtualIndex_ofScrollTop;
+            let ringBufferIndexItem = ((this.cursorIndex)) - this.currentVirtualIndex;
             if (ringBufferIndexItem >= this.ringBufferLength || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
             else ringBufferIndexItem = (ringBufferIndexItem + this.ringBufferIndexZero) % this.virtualCount;
 
@@ -682,7 +691,7 @@ class TreeViewComponent_v2 {
             // TODO: you need to move this above the divItem assignment and do checks earlier... double check all other uses
 
             // See comment "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" for more information.
-            let ringBufferIndexItem = ((this.cursorIndex)) - this.virtualIndex_ofScrollTop;
+            let ringBufferIndexItem = ((this.cursorIndex)) - this.currentVirtualIndex;
             if (ringBufferIndexItem >= this.ringBufferLength || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
             else ringBufferIndexItem = (ringBufferIndexItem + this.ringBufferIndexZero) % this.virtualCount;
 
@@ -698,7 +707,7 @@ class TreeViewComponent_v2 {
                 this.cursorIndex));
 
             // See comment "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" for more information.
-            let ringBufferIndexItem = ((this.cursorIndex)) - this.virtualIndex_ofScrollTop;
+            let ringBufferIndexItem = ((this.cursorIndex)) - this.currentVirtualIndex;
             if (ringBufferIndexItem >= this.ringBufferLength || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
             else ringBufferIndexItem = (ringBufferIndexItem + this.ringBufferIndexZero) % this.virtualCount;
 
@@ -740,7 +749,7 @@ class TreeViewComponent_v2 {
                     // TODO: 'ArrowRight' when the cursor is on a valid item but isn't part of the virtualization result.
 
                     // See comment "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" for more information.
-                    let ringBufferIndexItem = ((this.cursorIndex)) - this.virtualIndex_ofScrollTop;
+                    let ringBufferIndexItem = ((this.cursorIndex)) - this.currentVirtualIndex;
                     if (ringBufferIndexItem >= this.ringBufferLength || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
                     else ringBufferIndexItem = (ringBufferIndexItem + this.ringBufferIndexZero) % this.virtualCount;
 
@@ -755,7 +764,7 @@ class TreeViewComponent_v2 {
                         this.cursorIndex));
                     
                     // See comment "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" for more information.
-                    let ringBufferIndexItem = ((this.cursorIndex)) - this.virtualIndex_ofScrollTop;
+                    let ringBufferIndexItem = ((this.cursorIndex)) - this.currentVirtualIndex;
                     if (ringBufferIndexItem >= this.ringBufferLength || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
                     else ringBufferIndexItem = (ringBufferIndexItem + this.ringBufferIndexZero) % this.virtualCount;
 
@@ -770,7 +779,7 @@ class TreeViewComponent_v2 {
                     this.cursorIndex));
                 
                 // See comment "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" for more information.
-                let ringBufferIndexItem = ((this.cursorIndex)) - this.virtualIndex_ofScrollTop;
+                let ringBufferIndexItem = ((this.cursorIndex)) - this.currentVirtualIndex;
                 if (ringBufferIndexItem >= this.ringBufferLength || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
                 else ringBufferIndexItem = (ringBufferIndexItem + this.ringBufferIndexZero) % this.virtualCount;
 
@@ -848,8 +857,8 @@ class TreeViewComponent_v2 {
      * @param {*} indexItem 
      */
     state_cursor_validateIndex(indexItem) {
-        if (indexItem >= this.director.tvd_getTotalCount()) {
-            indexItem = this.director.tvd_getTotalCount() - 1;
+        if (indexItem >= this.countAbstract) {
+            indexItem = this.countAbstract - 1;
         }
         if (indexItem < 0) {
             indexItem = 0;
