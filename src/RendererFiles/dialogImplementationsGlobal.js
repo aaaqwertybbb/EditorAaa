@@ -603,7 +603,7 @@ function DIALOG_Debug_treeViewComponent_v2_Create() {
 
     
 
-    treeViewComponent_v2_debug_heightTotal = treeViewComponent_v2_debug.countAbstract * treeViewComponent_v2_debug.itemHeightNumber;
+    treeViewComponent_v2_debug_heightTotal = (treeViewComponent_v2_debug.countAbstract + 2) * treeViewComponent_v2_debug.itemHeightNumber;
     treeViewComponent_v2_debug.scrollbarSpaceGenerator.style.height = treeViewComponent_v2_debug_heightTotal + 'px';
 
     

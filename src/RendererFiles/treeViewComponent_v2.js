@@ -352,8 +352,8 @@ class TreeViewComponent_v2 {
     }
 
     forceFullscreen_renderScroll() {
-        this.currentVirtualIndex = (EDI_lastReadNumber_scrollTop / INTS[fEDI_lineHeight]) | 0;
-        this.previousVirtualIndex = INTS[fEDI_virtualIndexLine] + INTS[fEDI_virtualCount];
+        this.currentVirtualIndex = (this.scrollTop / this.itemHeightNumber) | 0;
+        this.previousVirtualIndex = this.currentVirtualIndex + this.virtualCount;
         this.renderScroll();
     }
 
