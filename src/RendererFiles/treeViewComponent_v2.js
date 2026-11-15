@@ -72,9 +72,10 @@ class TreeViewComponent_v2_staticRunner {
             const component = this.runnerContexts[runnerId];
             if (!component) continue; // Component was removed before frame fired
 
-            console.log('TreeViewComponent_v2_render_do');
-
             switch (renderKind) {
+                case TREEVIEWrenderKind_Scroll:
+                    component.renderScroll();
+                    break;
                 case TREEVIEWrenderKind_Cursor:
                     component.TreeViewComponent_v2_render_do_Cursor();
                     break;
@@ -345,6 +346,32 @@ class TreeViewComponent_v2 {
             case 'resize':
                 this.event_windowResize();
                 break;
+        }
+    }
+
+    renderScroll() {
+        this.currentVirtualIndex = this.scrollTop / this.itemHeightNumber | 0;
+        this.renderLines();
+    }
+    
+    renderLines() {
+        const ctx = treeViewComponent_v2_debug.canvas.getContext('2d');
+        ctx.clearRect(0, 0, treeViewComponent_v2_debug.canvas.width, treeViewComponent_v2_debug.canvas.height);
+        ctx.fillStyle = '#d4d4d4';
+
+        const lower = this.currentVirtualIndex;
+        const upper = this.currentVirtualIndex + this.virtualCount;
+
+        let vertical = 0;
+        for (let i = lower; i < upper; i++) {
+            if (i < treeViewComponent_v2_debug.countAbstract) {
+                //treeViewComponent_v2_debug.dataLiteral[i * 4]ctx.fillText('apple', 0, vertical); // There's a max width argument in the fillText?
+                ctx.fillText(i, 0, vertical); // There's a max width argument in the fillText?
+            }
+            else {
+                ctx.fillText('~', 0, vertical); // There's a max width argument in the fillText?
+            }
+            vertical += this.itemHeightNumber;
         }
     }
 

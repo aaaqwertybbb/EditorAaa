@@ -3,12 +3,10 @@
  * @type {TreeViewComponent_v2}
  */
 let treeViewComponent_v2_debug = null;
-let treeViewComponent_v2_debug_lineHeight = 0;
 let treeViewComponent_v2_debug_heightTotal = 0;
 let treeViewComponent_v2_debug_characterWidth = 0;
 let treeViewComponent_v2_debug_offsetWidth = 0;
 let treeViewComponent_v2_debug_offsetHeight = 0;
-let treeViewComponent_v2_debug_virtualCount = 0;
 
 class DIALOG_FindAll_TreeViewDirector {
 
@@ -596,33 +594,21 @@ function DIALOG_Debug_treeViewComponent_v2_Create() {
 
     Debug_treeViewComponent_v2_resizeCanvases();
 
-    const ctx = treeViewComponent_v2_debug.canvas.getContext('2d');
-    ctx.fillStyle = '#d4d4d4';
     
-
-    //EXPLORER_treeViewNodes.clear();
-//
-    //if (!EXPLORER_chosenWorkspace) return;
-
+    
     const count_literal = EXPLORER_treeViewNodes.count_abstract * 4;
     for (let i = 0; i < count_literal; i += 4) {
         treeViewComponent_v2_debug.insert(EXPLORER_treeViewNodes.data_literal[i + 0], EXPLORER_treeViewNodes.data_literal[i + 1], EXPLORER_treeViewNodes.data_literal[i + 2], EXPLORER_treeViewNodes.data_literal[i + 3]);
     }
 
-    treeViewComponent_v2_debug_heightTotal = treeViewComponent_v2_debug.countAbstract * treeViewComponent_v2_debug_lineHeight;
+    
+
+    treeViewComponent_v2_debug_heightTotal = treeViewComponent_v2_debug.countAbstract * treeViewComponent_v2_debug.itemHeightNumber;
     treeViewComponent_v2_debug.scrollbarSpaceGenerator.style.height = treeViewComponent_v2_debug_heightTotal + 'px';
 
-    let vertical = 0;
-    for (let i = 0; i < treeViewComponent_v2_debug_virtualCount; i++) {
-        if (i < treeViewComponent_v2_debug.countAbstract) {
-            //treeViewComponent_v2_debug.dataLiteral[i * 4]ctx.fillText('apple', 0, vertical); // There's a max width argument in the fillText?
-            ctx.fillText(i, 0, vertical); // There's a max width argument in the fillText?
-        }
-        else {
-            ctx.fillText('~', 0, vertical); // There's a max width argument in the fillText?
-        }
-        vertical += treeViewComponent_v2_debug_lineHeight;
-    }
+    
+
+    treeViewComponent_v2_debug.renderLines();
 
     treeViewComponent_v2_debug.draw_addEvents();
 }
@@ -672,7 +658,7 @@ function Debug_treeViewComponent_v2_resizeCanvases() {
 
     const fontHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
     const linePadding = 6; // Total padding between lines
-    treeViewComponent_v2_debug_lineHeight = fontHeight + linePadding;
+    treeViewComponent_v2_debug.itemHeightNumber = fontHeight + linePadding;
 
 
 
@@ -691,7 +677,7 @@ function Debug_treeViewComponent_v2_resizeCanvases() {
     treeViewComponent_v2_debug_offsetWidth = Math.floor(viewportRect.width);
     treeViewComponent_v2_debug_offsetHeight = Math.floor(viewportRect.height);
 
-    treeViewComponent_v2_debug_virtualCount = Math.ceil(treeViewComponent_v2_debug_offsetHeight / treeViewComponent_v2_debug_lineHeight);
+    treeViewComponent_v2_debug.virtualCount = Math.ceil(treeViewComponent_v2_debug_offsetHeight / treeViewComponent_v2_debug.itemHeightNumber);
 
     //EDI_character_count_that_fits_view = Math.ceil(INTS[fEDI_lastReadNumber_offsetWidth] / EDI_characterWidth);
 
