@@ -180,3 +180,6 @@ Step 2: continuously use this knowledge to push further
 
 I mention that cause someone's gonna go "hurr durr you are implementing some features that I already have"
 yeah cause I don't know what I'm doing but I know how to learn and I will learn and I will do better
+
+Even now as I write the code I notice a vast amount of features that do not exist.
+I have a grand plan for everything.
