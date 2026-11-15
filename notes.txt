@@ -8,15 +8,67 @@ When it comes to "canvas API" vs "many HTML nodes" to draw the UI.
 I was wondering something.
 
 I went the way of "canvas API" eventually because I figured essentially two things:
-- 1 VSCode gets away with using HTML nodes because they understand how layout works and have likely removed all the overhead, whereas the alternative is that your editor is incredibly slow due to the browser assuming the need for various layout related calculations.
+- 1 VSCode gets away with using HTML nodes because they understand how layout works and have likely removed all the overhead,
+    whereas the alternative is that your editor is incredibly slow due to the browser assuming the need for various layout related calculations.
 - 1.1 If I understood layout to the same degree as VSCode then I'd too be able to get away with using HTML nodes. And that it would be more customizable from an end user perspective.
-- 1.2 The garbage collection overhead isn't actually that big of a deal (it is non zero) but that the lack of layout understanding is what destroys performance. (also paint and etc... like is the entire app painting cause you clicked the editor and such).
+- 1.2 The garbage collection overhead isn't actually that big of a deal (it is non zero) but that the lack of layout understanding is what destroys performance.
+      (also paint and etc... like is the entire app painting cause you clicked the editor and such).
+
 
 
 
 
 <
-...
+Your intuition is spot on—browser layout recalculation (reflow) and unnecessary paint invalidations are the primary bottlenecks in DOM-based editors, not garbage collection.
+
+While you could achieve VS Code-level performance using HTML nodes, doing so requires essentially bypassing the browser's natural layout engine—which puts you right back into
+doing manual geometry math, just like Canvas.
+
+Why VS Code Gets Away With HTML Nodes
+
+VS Code (via the Monaco editor) relies on strict architectural constraints to prevent the browser from ever doing expensive layout work:
+• Viewport Virtualization: It never renders the whole file in the DOM. It only creates <div> elements for the exact lines currently visible on screen (plus a tiny buffer).
+• Absolute Positioning & Fixed Line Heights: Every single line <div> is positioned via top: Xpx with a hardcoded height.
+  Because elements are taken out of the normal document flow, changing one line never forces the browser to recalculate the positions of sibling lines.
+• CSS Containment: Modern DOM editors use contain: strict or contain: layout paint on editor containers to tell the browser that mutations inside a line will never
+  affect the layout of the rest of the page.
+• Layer Promotion: Elements that move frequently—like your cursor or selection highlights—are promoted to their own GPU compositor layers (using transform: translate3d(...) and will-change: transform)
+  so clicking or typing doesn't trigger a full-screen repaint.
+
+Canvas vs. DOM: The Real Trade-offs
+
+Since you have already built a 3-canvas architecture (gutter, text, cursor), you have actually made a very clean, industry-proven choice
+(similar to how Google Docs, Zed, or GPU-accelerated terminals operate):
+
+
+Dimension              | 3-Canvas Architecture (Your Setup)                                                                                                                                            | Virtualized DOM (VS Code Style)
+===========================================================================================================================================================================================================================================================================================================================================================
+Layout & Paint Control | 100% deterministic. Nothing paints unless your loop explicitly draws it. Separating the cursor into its own canvas means blinking or moving it never dirties the text canvas. | Requires constant vigilance. A single accidental CSS property (like reading offsetHeight after a DOM write) triggers synchronous layout thrashing.
+Garbage Collection     | Near zero. Updating text is just mutating array buffers and calling fillText().                                                                                               | Moderate. Scrolling fast recycles or creates/destroys dozens of DOM nodes and <span> tokens per frame.
+User Customization     | Harder. End users can't easily inject custom CSS stylesheets to restyle tokens or UI widgets; you have to build a custom theming/plugin API.                                  | Native. Users can inspect elements and tweak fonts, borders, shadows, or ligatures directly via CSS.
+Text Shaping & Input   | Manual. You have to handle line wrapping, subpixel DPI scaling, complex Unicode/ligatures, and a hidden <textarea> for OS IME/clipboard events.                               | Free. The browser handles font fallback, ligatures, RTL text, and native selection/accessibility trees out of the box.
+
+The Verdict on Your Hypothesis
+• On 1.1: Yes, if you applied strict viewport virtualization, position: absolute, and CSS containment, your DOM editor would be fast and easily skinnable via CSS. However, you would still have to write your own text-measurement engine in JS to know where the cursor sits on click, because querying the DOM (getBoundingClientRect()) is too slow.
+• On 1.2: Correct. V8's generational garbage collector handles short-lived JS objects effortlessly, whereas forced synchronous layouts and full-layer repaints will easily drop a 60fps/120fps frame budget.
+
+By splitting your UI into gutter, text, and cursor canvases, you've already isolated your paint layers cleanly without having to fight the browser's rendering pipeline.
+Are you currently running into any specific rendering bottlenecks (like high-DPI text blurriness, scrolling latency, or cursor input lag) with your 3-canvas setup that you want to optimize?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
