@@ -706,19 +706,63 @@ Would you like to check any other V8 optimization patterns (such as hidden class
 
 
 
+>
+"Prototype method (drawRow() {}): Exists once in memory on FileExplorer.prototype (0 bytes per instance, kConst on the prototype Map, maximally inlined)."
+And previously you said something like many of the properties on the JavaScript DOM element objects are just getters that have 0 bytes per instance.
+How do you declare a getter in such a fashion from the perspective of JavaScript.
 
 
 
 
+<
+Use the get keyword directly inside a class definition (or inside an object literal assigned to .prototype).
 
+In JavaScript, get propName() { ... } automatically defines an accessor property on Class.prototype rather than an own data property on each instance—giving
+you 0 bytes per instance and full V8 prototype constness (kConst) and inlining.
 
+1. Standard Class Syntax (Recommended)
 
+```js
+class FileExplorer {
+  constructor(rowHeight) {
+    this.rowHeight = rowHeight; // Stored on instance (own data property)
+    this.scrollTop = 0;         // Stored on instance
+  }
 
+  // Stored ONCE on FileExplorer.prototype (0 bytes per instance)
+  get firstVisibleRow() {
+    return (this.scrollTop / this.rowHeight) | 0;
+  }
 
+  // Optional setter also lives on FileExplorer.prototype
+  set firstVisibleRow(row) {
+    this.scrollTop = row * this.rowHeight;
+  }
+}
+```
 
+2. Equivalent Under-the-Hood Prototype Definition
 
+What the class syntax above compiles down to in JavaScript is Object.defineProperty on .prototype
+(which is also how Chromium's WebIDL bindings attach getters like div.clientHeight or div.parentNode onto HTMLElement.prototype and Node.prototype):
+```js
+Object.defineProperty(FileExplorer.prototype, 'firstVisibleRow', {
+  get() {
+    return (this.scrollTop / this.rowHeight) | 0;
+  },
+  enumerable: false,
+  configurable: true
+});
+```
 
+How V8 Optimizes Prototype Getters
+• Zero Instance Memory: instance only holds rowHeight and scrollTop. The getter function lives inside an AccessorPair object on FileExplorer.prototype's DescriptorArray.
+• Fully Inlined by TurboFan: When you read explorer.firstVisibleRow in a loop, V8 treats it identically to a prototype method call (explorer.getFirstVisibleRow()):
+  it checks explorer's Map + PrototypeChainValidityCell once and inlines (this.scrollTop / this.rowHeight) | 0 directly into the caller's machine code with zero function call overhead.
+• What Not to Do: Defining a getter inside constructor() via Object.defineProperty(this, 'prop', { get() ... }) allocates a new closure and AccessorPair on every instance,
+  defeating the 0-byte prototype benefit. Always declare get prop() {} in the class body.
 
+Would you like to see how to inspect hidden classes (Map) and prototype descriptors using V8's %DebugPrint flag in Electron, or move on to another part of your editor/explorer architecture?
 
 
 
