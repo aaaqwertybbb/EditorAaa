@@ -372,7 +372,10 @@ aladdin 1992 a whole new world
 
 ====
 
-<
+
+
+
+>
 The file explorer tree on the left:
 
 It does not use a canvas. It uses a single div per line of text that you see (i.e.: a flat div per tree view node).
@@ -387,6 +390,68 @@ If we assume each recursive field is a reference rather than a primitive we can 
 
 
 
+<
+1. How Garbage Collection Interacts with a <div>
+
+In Electron (Chromium), a <div> does not live solely in JavaScript. It is split across two worlds connected by a unified heap:
+
+• The C++ DOM Object (Blink / Oilpan): When you call document.createElement('div'), Chromium's rendering engine (Blink) allocates a C++ HTMLDivElement on its own garbage-collected heap called Oilpan.
+• The JS Wrapper (V8): V8 creates a lightweight JavaScript wrapper object (HTMLDivElement) that points to the C++ object.
+• Cross-Component Tracing: V8 and Oilpan trace references together as one unified graph.
+	• As long as the <div> is attached to the active document tree, Blink's root keeps the C++ HTMLDivElement alive—which in turn keeps its V8 wrapper
+    (and any expando properties or event listeners attached to it) alive.
+	• Once you call div.remove() (or clear innerHTML) and drop all JS variables/closures/listeners referencing it, neither V8 nor Oilpan can reach it from a root.
+    Both the C++ node and the JS wrapper are swept on the next GC cycle.
+	• Detached DOM Trap: If you remove the <div> from the DOM, or collapse a folder and remove its child <div>s,
+    while still holding a reference to any single node in that detached subtree (even one child <div>),
+    Blink's internal tree pointers (parentNode, firstChild, nextSibling) keep the entire detached tree alive in memory.
+
+2. How Many References / Fields Are Added per <div>?
+
+Assuming every internal slot/field acts as a reference edge in the object graph, creating and attaching a single <div> with text adds roughly 15 to 25 direct object references across
+V8 and Blink (not hundreds). Most of the "fields" you see when inspecting a <div> in DevTools are prototype getters/methods shared across all HTMLDivElement instances—they cost
+0 bytes and 0 references per instance.
+
+Here is the actual per-instance breakdown:
+
+A. V8 (JavaScript Heap) — ~3 to 5 references
+
+1. The JS Wrapper (HTMLDivElement): A tiny V8 object (~24–32 bytes) containing:
+	• Hidden class (Map) pointer (shared)
+	• Properties backing store pointer (empty unless you attach custom div.myProp = ...)
+	• Elements backing store pointer (empty)
+	• Internal Embedder Fields (2 pointers): One pointing to the C++ HTMLDivElement in Oilpan, and one for type/wrapper info.
+2. Event Listener Map (if used): If you attach onclick directly to each <div>, V8 allocates a listener wrapper/closure per <div>.
+   (Using event delegation on the explorer container reduces this to 0 per <div>.)
+
+B. Blink / Oilpan (C++ Heap) — ~12 to 20 references
+
+An HTMLDivElement inherits from HTMLElement -> Element -> ContainerNode -> Node -> EventTarget. In C++, a flat <div> containing a line of text actually creates two C++ nodes
+(HTMLDivElement + a child Text node) plus layout/style structures:
+
+• Tree Pointers (~8 pointers total across the <div> and its Text node):
+	• parent_or_shadow_host_ (points to explorer container)
+	• first_child_ & last_child_ (on the <div>, pointing to the Text node)
+	• previous_ & next_ sibling pointers (linking to adjacent rows)
+	• tree_scope_ (points to Document)
+• RareData / Attributes (~1–3 pointers):
+	• Blink uses a lazy ElementRareData pointer (null by default).
+	• Setting className, style, or dataset allocates an ElementData / AttributeCollection and InlineCSSStyleDeclaration (~2–3 pointers).
+• String Data (~1–2 pointers):
+	• The Text node holds a WTF::String pointer to the underlying character buffer (StringImpl).
+• Style & Layout (~3–5 pointers once rendered):
+	• ComputedStyle pointer (mostly shared via Blink's style cache)
+	• LayoutObject (LayoutNGBlockFlow for the <div> + LayoutText for the string), which hold parent/sibling layout tree pointers and line-box/fragment data.
+
+
+Summary Estimation
+• Total per-instance reference edges: ~15–25 references per <div> row (~250–450 bytes of combined V8 + Blink memory per row).
+• Why DevTools looks huge: When you expand a <div> in the DevTools console, you are viewing hundreds of inherited prototype properties
+  (HTMLElement.prototype, Element.prototype, Node.prototype, EventTarget.prototype), which exist once in memory for the entire window.
+• Scaling note: At ~20 references / ~400 bytes per <div>, 1,000 visible tree rows is negligible (~400 KB).
+  It only becomes noticeable if you render 50,000+ unvirtualized node_modules rows at once or retain detached <div> arrays across folder refreshes.
+
+Are you trying to decide whether to virtualize the DOM rows, port the file explorer to a 4th canvas, or track down a specific memory/GC pause?
 
 
 
@@ -407,16 +472,5 @@ If we assume each recursive field is a reference rather than a primitive we can 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+(TODO: How are DOM children "stored" behind the scenes. For example the simplest way would assumedly be to allocate a List of child nodes foreach node that contains children.)
 
