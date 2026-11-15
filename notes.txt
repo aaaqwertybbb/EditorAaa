@@ -770,7 +770,8 @@ full disclosure I didn't know about getters and setters in JavaScript before jus
 Once I saw I lacked such an obvious detail I just feel like I got slapped in the face with reality.
 rambling delusions of grandeur I look like a clown when I Do it
 
-
+I'm gonna go exercise
+then I can know that everything is in order or something
 
 
 
