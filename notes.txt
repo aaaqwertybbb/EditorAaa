@@ -17,7 +17,6 @@ I went the way of "canvas API" eventually because I figured essentially two thin
 
 
 
-
 <
 Your intuition is spot on—browser layout recalculation (reflow) and unnecessary paint invalidations are the primary bottlenecks in DOM-based editors, not garbage collection.
 
@@ -58,21 +57,6 @@ Are you currently running into any specific rendering bottlenecks (like high-DPI
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 > 
 I realize I actually lost my train of thought in the original question and only listed "1 thing".
 
@@ -87,6 +71,40 @@ I'm wondering if the browser has highly intelligent "partitioning" so that it do
 
 
 
+
+<
+Yes—for small edits on huge screens, the browser's DOM compositor uses dirty-rectangle tracking and GPU texture caching to repaint only the changed region,
+whereas clearing and redrawing a full Canvas brute-forces every visible character.
+
+However, because you have cached everything and separated your cursor onto its own canvas,
+your Canvas setup is likely still faster during heavy scrolling and stays well within a 60fps–120fps budget even at 4K resolutions.
+
+How the Browser "Partitions" HTML Rendering
+
+Modern browsers (like Chromium inside Electron) do not repaint the whole screen when a single character changes in a well-structured DOM:
+• Rasterization & Tiling: The browser divides the page into GPU tiles (typically 256×256 or 512×512 pixels).
+• Dirty-Rect Invalidation: When you edit one line of HTML, the browser marks only the specific tile(s) intersecting that line as "dirty."
+  It re-rasterizes just those tiles and composites them onto the screen using the GPU, leaving the rest of the screen untouched.
+• Glyph Atlases: Under the hood (via Skia in Chromium), the browser caches rasterized font glyphs into a GPU texture atlas.
+  Whether you use HTML or Canvas 2D, fillText() pulls from the exact same hardware-accelerated glyph cache.
+
+Where Canvas Still Beats DOM (Even on Large Screens)
+
+While HTML wins at partial updates (like typing one letter in the middle of a massive 4K monitor), Canvas often wins at full-screen updates:
+• Smooth Scrolling: When you scroll by 1 pixel, HTML either shifts a cached compositor layer (fast, until new lines enter the viewport) or mutates dozens of DOM nodes and <span> syntax tokens at once.
+  Redrawing cached text on Canvas just blasts pre-computed strings straight to Skia's GPU backend without touching the DOM tree or style recalculation engine.
+• Your 3-Canvas Advantage: Because your cursor is on its own canvas, cursor blinking and mouse movement already trigger zero redraws on your text canvas—matching the browser's layer isolation.
+
+How to Get "Dirty-Rect" Efficiency in Your Canvas Setup
+
+If you ever notice frame drops on huge 4K/5K monitors when typing on a single line, you don't need to switch to HTML—you can mimic the browser's partitioning in ~10 lines of Canvas code:
+1. Single-Line Dirty Redraw: When typing on a single line (without scrolling or inserting/deleting newlines), only call ctx.clearRect(0, lineY, canvas.width, lineHeight) and redraw that one line.
+2. Offscreen Scroll Blitting: When scrolling vertically by dy pixels, you can copy the still-visible portion of the canvas onto itself (ctx.drawImage(canvas, 0, dy, ...)),
+   clear only the newly exposed top or bottom strip, and draw only the 1–2 new lines entering the viewport.
+3. { alpha: false } Context: Initialize your main text canvas with canvas.getContext('2d', { alpha: false })
+   so Chromium doesn't waste GPU bandwidth alpha-blending the text layer over the page background every frame.
+
+Have you profiled your frame times yet on a 4K/high-DPI monitor during typing or fast scrolling, or are you thinking ahead about scaling limits?
 
 
 
