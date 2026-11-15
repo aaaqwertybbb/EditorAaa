@@ -456,7 +456,54 @@ Are you trying to decide whether to virtualize the DOM rows, port the file explo
 
 
 
+>
+How are DOM children "stored" behind the scenes. For example the simplest way would assumedly be to allocate a List of child nodes foreach node that contains children.
 
+
+
+
+<
+DOM children are not stored in a list or array per parent node; instead, Chromium's Blink engine uses an intrusive doubly-linked list distributed across the nodes themselves.
+
+Rather than allocating a separate List or Vector object on each ContainerNode (which would waste memory on empty containers and require resizing/reallocation on every insertion or removal),
+Blink embeds sibling pointers directly inside every Node.
+
+How Blink Stores Tree Relationships
+
+Every C++ Node instance carries 3 tree pointers:
+• parent_or_shadow_host_ (points up to the parent ContainerNode)
+• previous_ (points to the immediately preceding sibling Node)
+• next_ (points to the immediately following sibling Node)
+
+Any node capable of having children (ContainerNode, which HTMLDivElement inherits from) adds just 2 more pointers:
+• first_child_ (points to the first child Node)
+• last_child_ (points to the last child Node)
+
+```text
+[Parent ContainerNode]
+  ├── first_child_ ──────────────────────────┐
+  └── last_child_ ───────────────────────────│───────────┐
+                                             ▼           ▼
+  null ◄── [prev] [Child 1] [next] ◄──► [prev] [Child 2] [next] ──► null
+                     │                             │
+                     └──────────► parent ◄─────────┘
+```
+
+Why the DOM Uses Linked Pointers Instead of a List
+
+1. Zero Extra Heap Allocations: Appending or removing a <div> requires 0 heap allocations for container storage—it just rewires 2 to 4 pointers in O(1) time.
+2. Low Overhead for Leaf Nodes: A leaf <div> with no children only pays for two nullptr fields (first_child_ and last_child_) instead of an empty array header (data*, size, capacity).
+3. Why .children and .childNodes Feel Like Arrays in JS:
+	• When you access parent.children or parent.childNodes in JavaScript, Blink lazily creates a lightweight HTMLCollection or NodeList wrapper (stored in NodeRareData).
+	• Even then, it does not copy the nodes into an array. Instead, the NodeList caches a single cursor (last_accessed_node, last_accessed_index)
+    so sequential loops (for (let i = 0; i < children.length; i++)) step along next_ in O(1) per step, while random indexing (children[500]) walks the linked list from the nearest cached point.
+
+Implications for Your File Explorer
+• Sequential Append / Remove is Cheap: Appending 500 <div> rows or clearing container.textContent = '' walks first_child_ → next_ linearly without array shifts.
+• Index Lookups are O(n): Calling container.children[index] repeatedly with random indices walks sibling pointers under the hood.
+  In a flat file explorer, keeping your own JS array of row metadata (or reusing a fixed pool of <div> elements via a virtual scroller) avoids both DOM pointer chasing and GC churn altogether.
+
+Would you like to look at how DOM node pooling (recycling <div> rows) compares to rendering the explorer on a canvas for your architecture?
 
 
 
