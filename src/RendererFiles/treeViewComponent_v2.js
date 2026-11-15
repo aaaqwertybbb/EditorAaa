@@ -24,7 +24,7 @@ class TreeViewComponent_v2_staticRunner {
         this.renderIsPending = false;
 
         this.UI_SLOT_MASK = 31;
-        this.MASTER_RENDER_BUFFER = new Uint8Array(32 /* const MASTER_BUFFER_SIZE = 160; */);
+        this.MASTER_RENDER_BUFFER = new Uint8Array(32);
 
         this.runnerContexts = [];
     }
@@ -52,7 +52,7 @@ class TreeViewComponent_v2_staticRunner {
             // Uses the exact same masking logic, but reads from the higher memory region
             const absoluteIndex = this.queueHead & this.UI_SLOT_MASK;
             const renderKind = this.MASTER_RENDER_BUFFER[absoluteIndex];
-            this.queueHead++; 
+            this.queueHead++;
 
             switch (renderKind) {
                 case TREEVIEWrenderKind_Cursor:
@@ -84,9 +84,17 @@ class TreeViewComponent_v2_staticRunner {
         this.isRenderPending = 0;
     }
 
-    register(treeViewComponent_v2) {
+    /** returns 'runnerId' for the 'TreeViewComponent_v2' after adding it, does not check for duplicate invocations. */
+    add(treeViewComponent_v2) {
         this.runnerContexts.push(treeViewComponent_v2);
         return this.runnerContexts.length - 1;
+    }
+    
+    remove(treeViewComponent_v2) {
+        if (treeViewComponent_v2.runnerId === null || treeViewComponent_v2.runnerId === undefined) {
+            throw new Error();
+        }
+        this.runnerContexts.splice(treeViewComponent_v2.runnerId, 1);
     }
 }
 
@@ -97,9 +105,13 @@ const treeViewComponent_v2_staticRunner = new TreeViewComponent_v2_staticRunner(
  * 
  */
 class TreeViewComponent_v2 {
+    /**
+     * @param {number} initialCapacity_abstract 
+     * @param {TreeViewComponent_v2_staticRunner} treeViewComponent_v2_staticRunner 
+     */
     constructor(initialCapacity_abstract, treeViewComponent_v2_staticRunner) {
 
-        this.runnerId = treeViewComponent_v2_staticRunner.register(this);
+        this.runnerId = treeViewComponent_v2_staticRunner.add(this);
 
         this.rootElement = document.createElement('div');
         this.rootElement.classList.add('TREEVIEW', 'unselectable');
@@ -124,19 +136,19 @@ class TreeViewComponent_v2 {
         /** Consider the existence of such methods as 'state_cursor_setIndex' before mutating state directly */
         this.cursorIndex = 0;
 
-        this._ONSCROLLvirtualIndex = 0;
-        this._ONSCROLLvirtualCount = 0;
+        this.currentVirtualIndex = 0;
+        this.currentVirtualCount = 0;
 
-        this.lastReadNumber_scrollLeft = 0;
-        this.lastReadNumber_scrollTop = 0;
+        this.previousVirtualIndex = 0;
+        this.previousVirtualCount = 0;
+
+        this.scrollLeft = 0;
+        this.scrollTop = 0;
         
         this.scrollTimer = null;
         this.hasTrailingCall = false;
 
         this.ringBufferIndexZero = 0;
-
-        this.TREEVIEW_renderKindArray = [];
-        this.TREEVIEW_isRenderPending = false;
 
         this.TREEVIEW_ArrayFrom_itemListElement_children = [];
         this.TREEVIEW_ArrayFrom_itemListElement_children_length = 0;
@@ -373,9 +385,9 @@ class TreeViewComponent_v2 {
         }
         else {
 
-            this.text.style.transform = `translate3d(-${this.lastReadNumber_scrollLeft}px, -${this.lastReadNumber_scrollTop}px, 0)`;
+            this.text.style.transform = `translate3d(-${this.scrollLeft}px, -${this.scrollTop}px, 0)`;
 
-            this.virtualIndex_ofScrollTop = Math.floor(this.lastReadNumber_scrollTop / this.itemHeightNumber);
+            this.virtualIndex_ofScrollTop = Math.floor(this.scrollTop / this.itemHeightNumber);
 
             if (this._ONSCROLLvirtualIndex === this.virtualIndex_ofScrollTop &&
                 this._ONSCROLLvirtualCount === this.virtualCount) {
@@ -431,7 +443,7 @@ class TreeViewComponent_v2 {
 
         this._ONSCROLLvirtualCount = this.virtualCount;
 
-        this.virtualIndex_ofScrollTop = Math.floor(this.lastReadNumber_scrollTop / this.itemHeightNumber);
+        this.virtualIndex_ofScrollTop = Math.floor(this.scrollTop / this.itemHeightNumber);
         this.ringBufferIndexZero = 0;
 
         if (this.itemListElement.children.length !== this.virtualCount) {
@@ -502,7 +514,7 @@ class TreeViewComponent_v2 {
         // TODO: Change order of the function parameters?
         this.ensure_boundingClientRect();
 
-        let rY = event_clientY - this.boundingClientRect.top + this.lastReadNumber_scrollTop;
+        let rY = event_clientY - this.boundingClientRect.top + this.scrollTop;
         let indexItem = Math.floor(rY / this.itemHeightNumber);
         indexItem = this.state_cursor_validateIndex(indexItem);
 
@@ -517,7 +529,7 @@ class TreeViewComponent_v2 {
         // TODO: 'event_dblclick' with this depth logic?
         // TODO: this component throws an exception when scrolling it just straight up doesn't work (well it does until it crashes the app)
         const depth = this.director.nodeList.getDepth(indexItem);
-        const rX = (event_clientX - this.boundingClientRect.left + this.lastReadNumber_scrollLeft) - (depth * CONST_EXPLORER_offsetPerDepth);
+        const rX = (event_clientX - this.boundingClientRect.left + this.scrollLeft) - (depth * CONST_EXPLORER_offsetPerDepth);
         if (rX >= 0 && rX <= EDI_characterWidth) {
             return this.director.tvd_expandCollapseIconWasClicked_async(divItem, indexItem);
         }
@@ -529,7 +541,7 @@ class TreeViewComponent_v2 {
     event_dblclick(event_clientY, event_target) {
         this.ensure_boundingClientRect();
 
-        let rY = event_clientY - this.boundingClientRect.top + this.lastReadNumber_scrollTop;
+        let rY = event_clientY - this.boundingClientRect.top + this.scrollTop;
         let indexItem = Math.floor(rY / this.itemHeightNumber);
         indexItem = this.state_cursor_validateIndex(indexItem);
 
@@ -557,7 +569,7 @@ class TreeViewComponent_v2 {
         this.ensure_boundingClientRect();
 
         if (event_button === 2) {
-            let rY = event_clientY - this.boundingClientRect.top + this.lastReadNumber_scrollTop;
+            let rY = event_clientY - this.boundingClientRect.top + this.scrollTop;
 
             this.state_cursor_setIndex(this.state_cursor_validateIndex(
                 Math.floor(rY / this.itemHeightNumber)));
@@ -678,8 +690,8 @@ class TreeViewComponent_v2 {
     }
 
     event_scroll() {
-        this.lastReadNumber_scrollLeft = this.scroll_viewport.scrollLeft;
-        this.lastReadNumber_scrollTop = this.scroll_viewport.scrollTop;
+        this.scrollLeft = this.scroll_viewport.scrollLeft;
+        this.scrollTop = this.scroll_viewport.scrollTop;
         this.TREEVIEW_render_request(TREEVIEWrenderKind_Scroll);
     }
 
@@ -700,14 +712,14 @@ class TreeViewComponent_v2 {
         // If no UI modifications were made prior that are still pending this might avoid a synchronous layout.
         // TODO: If you touch the transform style first... I don't know what would happen it is a GPU related style... so I'm unsure.
         //
-        if (this.cursorTranslateYNumber + (2 * this.itemHeightNumber) > this.lastReadNumber_scrollTop + this.boundingClientRect.height) {
-            let currentBottom = this.lastReadNumber_scrollTop + this.boundingClientRect.height;
+        if (this.cursorTranslateYNumber + (2 * this.itemHeightNumber) > this.scrollTop + this.boundingClientRect.height) {
+            let currentBottom = this.scrollTop + this.boundingClientRect.height;
             let changeToMakeBottomTouch = this.cursorTranslateYNumber - currentBottom;
             let entireValueToScrollBy = changeToMakeBottomTouch + (2 * this.itemHeightNumber);
             this.scroll_viewport.scrollBy(0, entireValueToScrollBy);
         }
-        else if (this.cursorTranslateYNumber < this.lastReadNumber_scrollTop) {
-            this.scroll_viewport.scrollBy(0, this.cursorTranslateYNumber - this.lastReadNumber_scrollTop);
+        else if (this.cursorTranslateYNumber < this.scrollTop) {
+            this.scroll_viewport.scrollBy(0, this.cursorTranslateYNumber - this.scrollTop);
         }
 
         // transform last for optimal state flagging of the modified DOM element
