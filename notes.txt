@@ -183,3 +183,21 @@ yeah cause I don't know what I'm doing but I know how to learn and I will learn 
 
 Even now as I write the code I notice a vast amount of features that do not exist.
 I have a grand plan for everything.
+
+I don't want multicursor.
+
+Multicursor is a trap.
+
+I want extremely easy to use large scale editing by replacing confusing regexes with
+normal find all that integrates the AST.
+
+Not just the AST though because visual studio doesn't let me syntax highlight
+the way I want cause they're too focused on the AST
+
+I want the ability to also focus simply on lexical information. Either or.
+
+Any degree of specificity, any degree of "inaccuracy".
+
+And complete support for seeing a window of 'possible misses' of sorts.
+Extremely fuzzy searching through the entire document
+and editing every hit at once as a means of multicursor.
