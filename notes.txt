@@ -214,3 +214,12 @@ I want full support of perfect refactoring in addition to that.
 Sometimes I have tiny little details in my code where any human
 could look at it and go "yeah he wants to edit this that and the other thing"
 It just makes sense and trying to exactly match the AST isn't always the answer.
+
+The git integration will be 0 overhead because I'll share the language server so I get perfect language features
+without having to re-lex the file.
+
+Undo and redo will be highly tied to git itself.
+
+If I make a change in vscode I open github desktop, github desktop handles the text on its own.
+I'm gonna share it all and handle each part myself to reduce the total overhead on my machine.
+
