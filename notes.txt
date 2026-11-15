@@ -225,3 +225,9 @@ I'm gonna share it all and handle each part myself to reduce the total overhead 
 
 The app will approach 0 object allocations
 
+No plugins.
+
+Plugins are bloat.
+
+If you wanna do a plugin you edit the source code and rebuild it from scratch
+
