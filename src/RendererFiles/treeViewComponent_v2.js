@@ -178,6 +178,9 @@ class TreeViewComponent_v2 {
 
         this.LARGEST_DEPTH_SEEN_NOT_THE_CSS_JUST_THE_DEPTH = 0;
 
+        // Bind once in constructor so ... doesn't allocate a closure per ...
+        this.eventScroll = this.event_scroll.bind(this);
+
         // tvnl_
 
         this.dataLiteral = undefined;
@@ -297,21 +300,26 @@ class TreeViewComponent_v2 {
     }
 
     draw_addEvents() {
-        this.rootElement.addEventListener('click', this);
-        this.rootElement.addEventListener('keydown', this);
-        this.scrollViewport.addEventListener('scroll', this, { passive: true });
-        this.rootElement.addEventListener('dblclick', this);
-        this.rootElement.addEventListener('contextmenu', this);
-        window.addEventListener('resize', this);
+        this.scrollViewport.addEventListener('scroll', this.eventScroll, { passive: true });
+        //this.scrollViewport.addEventListener.
+
+        //this.rootElement.addEventListener('click', this);
+        //this.rootElement.addEventListener('keydown', this);
+        //this.scrollViewport.addEventListener('scroll', this, { passive: true });
+        //this.rootElement.addEventListener('dblclick', this);
+        //this.rootElement.addEventListener('contextmenu', this);
+        //window.addEventListener('resize', this);
     }
     
     draw_removeEvents() {
-        this.rootElement.removeEventListener('click', this);
-        this.rootElement.removeEventListener('keydown', this);
-        this.scrollViewport.removeEventListener('scroll', this, { passive: true });
-        this.rootElement.addEventListener('dblclick', this);
-        this.rootElement.addEventListener('contextmenu', this);
-        window.removeEventListener('resize', this);
+        this.scrollViewport.removeEventListener('scroll', this.eventScroll, { passive: true });
+
+        //this.rootElement.removeEventListener('click', this);
+        //this.rootElement.removeEventListener('keydown', this);
+        //this.scrollViewport.removeEventListener('scroll', this, { passive: true });
+        //this.rootElement.addEventListener('dblclick', this);
+        //this.rootElement.addEventListener('contextmenu', this);
+        //window.removeEventListener('resize', this);
     }
 
     // The browser automatically looks for this exact method name
@@ -651,7 +659,8 @@ class TreeViewComponent_v2 {
     event_scroll() {
         this.scrollLeft = this.scrollViewport.scrollLeft;
         this.scrollTop = this.scrollViewport.scrollTop;
-        this.TREEVIEW_render_request(TREEVIEWrenderKind_Scroll);
+        console.log('event_scroll');
+        //this.TREEVIEW_render_request(TREEVIEWrenderKind_Scroll);
     }
 
     ensure_boundingClientRect() {

@@ -623,10 +623,13 @@ function DIALOG_Debug_treeViewComponent_v2_Create() {
         }
         vertical += treeViewComponent_v2_debug_lineHeight;
     }
+
+    treeViewComponent_v2_debug.draw_addEvents();
 }
 
 function DIALOG_Debug_treeViewComponent_v2_Delete() {
     if (treeViewComponent_v2_debug !== null) {
+        treeViewComponent_v2_debug.draw_removeEvents();
         treeViewComponent_v2_staticRunner.remove(treeViewComponent_v2_debug);
         treeViewComponent_v2_debug = null;
     }
