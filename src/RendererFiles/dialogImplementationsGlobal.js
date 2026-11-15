@@ -579,13 +579,16 @@ function DIALOG_Debug_treeViewComponent_v2_Create() {
     let dialogBody = document.getElementById('DIALOG_body');
     if (!dialogBody) return;
 
-    const div = document.createElement('div');
-    div.id = 'Debug_treeViewComponent_v2_div';
-    //div.style.marginTop = APP_lineHeightStringWithPx; // Dialog looks jank at the moment I'm gonna just do this so I can read the text
-    //div.style.height = APP_lineHeightStringWithPx;
-    //div.appendChild(document.createTextNode('aaa'));
+    if (EXPLORER_chosenWorkspace === -1) {
+        const div = document.createElement('div');
+        div.id = 'Debug_treeViewComponent_v2_div';
+        div.style.marginTop = APP_lineHeightStringWithPx; // Dialog looks jank at the moment I'm gonna just do this so I can read the text
+        div.style.height = APP_lineHeightStringWithPx;
+        div.appendChild(document.createTextNode('EXPLORER_chosenWorkspace === -1'));
+        dialogBody.appendChild(div);
+        return;
+    }
 
-    dialogBody.appendChild(div);
 
     treeViewComponent_v2_debug = new TreeViewComponent_v2(16, treeViewComponent_v2_staticRunner);
     dialogBody.appendChild(treeViewComponent_v2_debug.rootElement);
