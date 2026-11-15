@@ -354,7 +354,36 @@ class TreeViewComponent_v2 {
     renderScroll() {
         this.currentVirtualIndex = this.scrollTop / this.itemHeightNumber | 0;
 
-        //this.lineCache;
+        const local_prevVli = this.previousVirtualIndex;
+        const local_currVli = this.currentVirtualIndex;
+        this.previousVirtualIndex = local_currVli;
+
+        let diff = local_currVli - local_prevVli;
+
+        let new_lowerBound = 0;
+
+        if (diff !== 0) {
+            if (diff >= this.virtualCount || diff <= -(this.virtualCount)) {
+                new_lowerBound = local_currVli;
+                diff = this.virtualCount; // Bound the loop run to the size of your screen viewport
+            }
+            else if (diff > 0) {
+                new_lowerBound = local_prevVli + this.virtualCount;
+                this.ringBufferIndexZero = (this.ringBufferIndexZero + diff) % this.virtualCount;
+            }
+            else {
+                new_lowerBound = local_currVli;
+                diff *= -1;
+                this.ringBufferIndexZero = (this.ringBufferIndexZero - diff + this.virtualCount) % this.virtualCount;
+            }
+        }
+        else {
+            // If diff is 0 (like a pure horizontal scroll), no newly visible lines need decoding
+            new_lowerBound = 0;
+            diff = 0;
+        }
+
+        this.cacheLines(new_lowerBound, this.ringBufferIndexZero, diff);
 
         this.renderLines();
     }
