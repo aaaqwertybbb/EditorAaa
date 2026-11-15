@@ -109,3 +109,15 @@ Have you profiled your frame times yet on a 4K/high-DPI monitor during typing or
 
 
 
+>
+When drawing text selection in the canvas. You went with an alpha based approach.
+
+I always imagined text selection as a change in background color that was fully opaque, but behind the text.
+
+I don't know do you have any comments on this?
+
+(clarification I think I when I first started coding I thought it was alpha based. But as I learned more I got optimization anxiety and started putting an opaque background.
+ But this means my cursor/selection canvas would have to be a cursor canvas alone.
+ And then a separate new canvas for the selection would need to be maintained that was somehow rendered behind the text or something?)
+
+
