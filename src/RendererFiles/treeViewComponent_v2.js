@@ -409,7 +409,24 @@ class TreeViewComponent_v2 {
             if (i >= new_lowerBound && i < new_loopLimit) {
                 if (i < treeViewComponent_v2_debug.countAbstract) {
                     const key = this.dataLiteral[i * this.fieldCount + this.keyOffset];
-                    this.lineCache[ringBufferIndex] = treeViewComponent_v2_debug_stringsMapByPathId.get(key) ?? `unknown_${i}`;
+                    const nodeKind = this.dataLiteral[i * this.fieldCount + this.nodeKindOffset];
+                    let name = treeViewComponent_v2_debug_stringsMapByPathId.get(key) ?? `unknown_${i}`;
+                    let chevronRepresentation = ' ';
+                    switch (nodeKind) {
+                        case TreeViewNodeKind_isExpandable_isExpanded:
+                            chevronRepresentation = '-';
+                            break;
+                        case TreeViewNodeKind_isExpandable_NOTisExpanded:
+                            chevronRepresentation = '+';
+                            break;
+                        case TreeViewNodeKind_NOTisExpandable_isExpanded:
+                            chevronRepresentation = '';
+                            break;
+                        case TreeViewNodeKind_NOTisExpandable_NOTisExpanded:
+                            chevronRepresentation = '';
+                            break;
+                    }
+                    this.lineCache[ringBufferIndex] = chevronRepresentation + name;
                 }
                 else {
                     this.lineCache[ringBufferIndex] = '~';
