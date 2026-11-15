@@ -260,3 +260,8 @@ Ima say all my ideas publically and write the code publically I
 don't care in the slightest if someone takes my idea I'm chaotic neutral I'm gonna just work as a cashier
 and not give a ****
 
+AI being able to duplicate code isn't the death of open source
+
+Open source will sky rocket in value and be the only means of writing software in the future
+due to the ability for AI to integrate any idea into the code itself and by pass the overhead of a plugin
+
