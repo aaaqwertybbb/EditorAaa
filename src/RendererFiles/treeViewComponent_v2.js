@@ -25,6 +25,8 @@ class TreeViewComponent_v2_staticRunner {
 
         this.UI_SLOT_MASK = 31;
         this.MASTER_RENDER_BUFFER = new Uint8Array(32 /* const MASTER_BUFFER_SIZE = 160; */);
+
+        this.runnerContexts = [];
     }
 
     TreeViewComponent_v2_render_request(renderKind) {
@@ -81,15 +83,24 @@ class TreeViewComponent_v2_staticRunner {
         }
         this.isRenderPending = 0;
     }
+
+    register(treeViewComponent_v2) {
+        this.runnerContexts.push(treeViewComponent_v2);
+        return this.runnerContexts.length - 1;
+    }
 }
 
-
+/** TODO: Does JavaScript have static classes, I don't want to go down a rabbit hole right now. */
+const treeViewComponent_v2_staticRunner = new TreeViewComponent_v2_staticRunner();
 
 /**
  * 
  */
 class TreeViewComponent_v2 {
-    constructor(initialCapacity_abstract) {
+    constructor(initialCapacity_abstract, treeViewComponent_v2_staticRunner) {
+
+        this.runnerId = treeViewComponent_v2_staticRunner.register(this);
+
         this.rootElement = document.createElement('div');
         this.rootElement.classList.add('TREEVIEW', 'unselectable');
         this.rootElement.tabIndex = 0;
