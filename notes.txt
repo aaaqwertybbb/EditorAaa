@@ -137,7 +137,6 @@ Because HTML <canvas> elements are just stacked DOM boxes with transparent backg
 3. z-index: 3 — Gutter Canvas: Draws line numbers, fold icons, and active-line markers.
 4. z-index: 4 — Cursor Canvas ({ alpha: true }): Draws only the blinking caret.
 
-
 Why This Solves Your Optimization Anxiety
 • Zero Text Redraws While Selecting: When a user holds Shift + ArrowRight or drags the mouse across 50 lines, you only clear and redraw the Selection Canvas (a few simple fillRect calls).
   The expensive Text Canvas isn't touched at all.
@@ -151,5 +150,24 @@ If your editor theme changes the text foreground color inside a selection (for e
 the glyphs. If you stick to modern editor conventions—where the selection changes only the background color and preserves syntax colors—your 4-layer stack handles it effortlessly.
 
 Does your editor's theme keep syntax colors intact inside a selection, or do you need the selected text color itself to invert/change?
+
+
+
+
+=======
+
+I have my 1 lb of chicken on my desk rn so I gotta type this quickly.
+
+But I've seen xxxtentacion what are you so afraid of in my recommended a few times recently.
+
+And the reason is people think I'm afraid of getting an actual dev job and for that reason I'm getting the such and such job that I got
+
+What I'm afraid of is wasting my time.
+
+I have revolutionary ideas and I know it.
+
+The only way to make them a reality is to work part  time so I can be my own boss and change the world
+
+
 
 
