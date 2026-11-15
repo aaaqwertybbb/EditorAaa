@@ -240,3 +240,5 @@ With AI code generation you will get maximum performance by altering the code it
 "write the language server yourself"
 
 This will be simple you just ask the AI to do it and it'll be done it isn't nearly as complicated as it sounds
+
+Then since the AI generated the code you can modify ANY part of it you want you have the entire source code.
