@@ -173,3 +173,7 @@ This way in my free time I have all the energy and desire to code what is meanin
 
 I'm not making VSCode or Visual Studio. I'm making the next generation of editing.
 I'm going to surpass all of the existing apps
+
+Step 1: replicate much of the existing functionality one expects as to learn everything there is about it
+
+Step 2: continuously use this knowledge to push further
