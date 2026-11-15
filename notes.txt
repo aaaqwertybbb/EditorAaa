@@ -233,3 +233,4 @@ If you wanna do a plugin you edit the source code and rebuild it from scratch
 
 No lsp you have to write your own language server per language.
 
+The need for plugins and lsp will be capable of going extinct given the advent of AI code generation
