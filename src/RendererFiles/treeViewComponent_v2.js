@@ -24,21 +24,22 @@ class TreeViewComponent_v2_staticRunner {
         this.renderIsPending = false;
 
         this.UI_SLOT_MASK = 31;
-        this.MASTER_RENDER_BUFFER = new Uint8Array(32);
+        this.MASTER_RENDER_BUFFER = new Uint8Array(64);
 
         this.runnerContexts = [];
     }
 
-    TreeViewComponent_v2_render_request(renderKind) {
+    TreeViewComponent_v2_render_request(renderKind, runnerId) {
         if (this.queueHead !== this.queueTail) {
             const lastAbsoluteIndex = (this.queueTail - 1) & this.UI_SLOT_MASK;
-            if (this.MASTER_RENDER_BUFFER[lastAbsoluteIndex] === renderKind) {
+            if (this.MASTER_RENDER_BUFFER[lastAbsoluteIndex] === renderKind && this.MASTER_RENDER_BUFFER[lastAbsoluteIndex + 1] === runnerId) {
                 return;
             }
         }
 
         const absoluteIndex = this.queueTail & this.UI_SLOT_MASK;
         this.MASTER_RENDER_BUFFER[absoluteIndex] = renderKind;
+        this.MASTER_RENDER_BUFFER[absoluteIndex + 1] = runnerId;
         this.queueTail++;
         
         if (this.renderIsPending === 0) {
@@ -52,32 +53,34 @@ class TreeViewComponent_v2_staticRunner {
             // Uses the exact same masking logic, but reads from the higher memory region
             const absoluteIndex = this.queueHead & this.UI_SLOT_MASK;
             const renderKind = this.MASTER_RENDER_BUFFER[absoluteIndex];
+            const runnerId = this.MASTER_RENDER_BUFFER[absoluteIndex + 1];
+            const component = this.runnerContexts[runnerId];
             this.queueHead++;
 
             switch (renderKind) {
                 case TREEVIEWrenderKind_Cursor:
-                    this.TreeViewComponent_v2_render_do_Cursor();
+                    component.TreeViewComponent_v2_render_do_Cursor();
                     break;
                 case TREEVIEWrenderKind_Create:
-                    this.TreeViewComponent_v2_render_do_Create();
+                    component.TreeViewComponent_v2_render_do_Create();
                     break;
                 case TREEVIEWrenderKind_Batch:
-                    this.TreeViewComponent_v2_render_do_Batch();
+                    component.TreeViewComponent_v2_render_do_Batch();
                     break;
                 case TREEVIEWrenderKind_Scroll:
-                    this.TreeViewComponent_v2_render_do_Scroll();
+                    component.TreeViewComponent_v2_render_do_Scroll();
                     break;
                 case TREEVIEWrenderKind_Scroll_PullDataDrawResult:
-                    this.TreeViewComponent_v2_render_do_Scroll_PullDataDrawResult();
+                    component.TreeViewComponent_v2_render_do_Scroll_PullDataDrawResult();
                     break;
                 case TREEVIEWrenderKind_SetItems:
-                    this.TreeViewComponent_v2_render_do_SetItems();
+                    component.TreeViewComponent_v2_render_do_SetItems();
                     break;
                 case TREEVIEWrenderKind_FullReset:
-                    this.TreeViewComponent_v2_render_do_FullReset();
+                    component.TreeViewComponent_v2_render_do_FullReset();
                     break;
                 case TREEVIEWrenderKind_Resize:
-                    this.TreeViewComponent_v2_render_do_Resize();
+                    component.TreeViewComponent_v2_render_do_Resize();
                     break;
             }
         }
@@ -111,6 +114,8 @@ class TreeViewComponent_v2 {
      */
     constructor(initialCapacityAbstract, treeViewComponent_v2_staticRunner) {
 
+        this.treeViewComponent_v2_staticRunner = treeViewComponent_v2_staticRunner;
+        
         this.runnerId = treeViewComponent_v2_staticRunner.add(this);
 
         this.rootElement = document.createElement('div');
