@@ -207,3 +207,10 @@ because I'll set 0 overhead flags before starting a sequence of messages.
 Then I'll just sent a byte or two each message.
 
 When I want a different message I send the flag to switch reading context.
+
+You don't only get the fuzzy searching that I mentioned.
+I want full support of perfect refactoring in addition to that.
+
+Sometimes I have tiny little details in my code where any human
+could look at it and go "yeah he wants to edit this that and the other thing"
+It just makes sense and trying to exactly match the AST isn't always the answer.
