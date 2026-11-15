@@ -121,3 +121,35 @@ I don't know do you have any comments on this?
  And then a separate new canvas for the selection would need to be maintained that was somehow rendered behind the text or something?)
 
 
+
+
+<
+Yes—stacking a dedicated, opaque Selection Canvas underneath a transparent Text Canvas (with the Cursor Canvas on top)
+is the cleanest architecture and eliminates both alpha-blending artifacts and text redraws during selection.
+
+You don't need to redraw your text every time the user drags their mouse to highlight words, nor do you need to compromise on opaque selection colors.
+
+How the 4-Canvas Layer Stack Works
+
+Because HTML <canvas> elements are just stacked DOM boxes with transparent backgrounds by default, you can layer them using CSS position: absolute and z-index:
+1. z-index: 1 — Selection Canvas ({ alpha: false }): Draws the solid editor background color first, then draws solid, fully opaque selection rectangles (fillRect) on top of it.
+2. z-index: 2 — Text Canvas ({ alpha: true }): Has a transparent background (clearRect leaves pixels transparent) and draws only the text glyphs.
+3. z-index: 3 — Gutter Canvas: Draws line numbers, fold icons, and active-line markers.
+4. z-index: 4 — Cursor Canvas ({ alpha: true }): Draws only the blinking caret.
+
+
+Why This Solves Your Optimization Anxiety
+• Zero Text Redraws While Selecting: When a user holds Shift + ArrowRight or drags the mouse across 50 lines, you only clear and redraw the Selection Canvas (a few simple fillRect calls).
+  The expensive Text Canvas isn't touched at all.
+• True Opaque Colors (No Washed-Out Text): When you draw a semi-transparent selection over text, the selection tint washes out your syntax-highlighting colors and reduces contrast.
+  Drawing an opaque selection behind the text keeps your font glyphs 100% crisp and vibrant—matching how VS Code, Sublime Text, and native OS text controls actually work.
+• Negligible Memory/GPU Cost: An extra <canvas> element at 1080p or 4K uses only ~8MB–32MB of VRAM, and Chromium's GPU compositor blends these 4 static layers together for free in under 0.1ms.
+
+One Caveat to Watch For
+
+If your editor theme changes the text foreground color inside a selection (for example, turning selected text pure white against a bright blue highlight), an underlying canvas alone won't recolor
+the glyphs. If you stick to modern editor conventions—where the selection changes only the background color and preserves syntax colors—your 4-layer stack handles it effortlessly.
+
+Does your editor's theme keep syntax colors intact inside a selection, or do you need the selected text color itself to invert/change?
+
+
