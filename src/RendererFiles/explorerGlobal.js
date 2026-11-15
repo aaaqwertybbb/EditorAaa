@@ -130,12 +130,16 @@ function EXPLORER_setChosenWorkspace(chooseWorkspaceResult) {
 
     EXPLORER_treeViewNodes.clear();
 
+    treeViewComponent_v2_debug_stringsMapByPathId.clear();
+
     if (!EXPLORER_chosenWorkspace) return;
 
     for (let i = 0; i < chooseWorkspaceResult.directories.length; i++) {
         let directory = chooseWorkspaceResult.directories[i];
         let nodeKind = TreeViewNodeKind_isExpandable_NOTisExpanded;
         EXPLORER_treeViewNodes.insert(EXPLORER_treeViewNodes.count_abstract, nodeKind, directory.id, 0);
+
+        treeViewComponent_v2_debug_stringsMapByPathId.set(directory.id, directory.basename);
     }
 
     INTS[fEXPLORER_itemHeightTotal] = EXPLORER_treeViewNodes.count_abstract * INTS[fEXPLORER_itemHeightNumber];

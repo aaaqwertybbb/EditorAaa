@@ -7,6 +7,7 @@ let treeViewComponent_v2_debug_heightTotal = 0;
 let treeViewComponent_v2_debug_characterWidth = 0;
 let treeViewComponent_v2_debug_offsetWidth = 0;
 let treeViewComponent_v2_debug_offsetHeight = 0;
+let treeViewComponent_v2_debug_stringsMapByPathId = new Map();
 
 class DIALOG_FindAll_TreeViewDirector {
 
