@@ -1,4 +1,14 @@
 
+/**
+ * @type {TreeViewComponent_v2}
+ */
+let treeViewComponent_v2_debug = null;
+let treeViewComponent_v2_debug_lineHeight = 0;
+let treeViewComponent_v2_debug_characterWidth = 0;
+let treeViewComponent_v2_debug_offsetWidth = 0;
+let treeViewComponent_v2_debug_offsetHeight = 0;
+let treeViewComponent_v2_debug_virtualCount = 0;
+
 class DIALOG_FindAll_TreeViewDirector {
 
     constructor() {
@@ -571,12 +581,111 @@ function DIALOG_Debug_treeViewComponent_v2_Create() {
 
     const div = document.createElement('div');
     div.id = 'Debug_treeViewComponent_v2_div';
-    div.style.marginTop = APP_lineHeightStringWithPx; // Dialog looks jank at the moment I'm gonna just do this so I can read the text
-    div.style.height = APP_lineHeightStringWithPx;
-    div.appendChild(document.createTextNode('aaa'));
+    //div.style.marginTop = APP_lineHeightStringWithPx; // Dialog looks jank at the moment I'm gonna just do this so I can read the text
+    //div.style.height = APP_lineHeightStringWithPx;
+    //div.appendChild(document.createTextNode('aaa'));
 
     dialogBody.appendChild(div);
+
+    treeViewComponent_v2_debug = new TreeViewComponent_v2(16, treeViewComponent_v2_staticRunner);
+    dialogBody.appendChild(treeViewComponent_v2_debug.rootElement);
+
+    Debug_treeViewComponent_v2_resizeCanvases();
+
+    const ctx = treeViewComponent_v2_debug.canvas.getContext('2d');
+    ctx.fillStyle = 'red';
+    ctx.fillText('apple', 0, 0);
 }
 
 function DIALOG_Debug_treeViewComponent_v2_Delete() {
+    treeViewComponent_v2_staticRunner.remove(treeViewComponent_v2_debug.runnerId);
+    treeViewComponent_v2_debug = null;
+}
+
+function Debug_treeViewComponent_v2_resizeCanvases() {
+    const dpr = window.devicePixelRatio || 1;
+
+    // 1. Get the real bounding dimensions of your visible viewport frame
+    const viewportRect = treeViewComponent_v2_debug.visualCanvas.getBoundingClientRect();
+    const viewWidth = viewportRect.width;
+    const viewHeight = viewportRect.height;
+
+    // --- 3. CONFIG DIGEST FOR TEXT CANVAS ---
+    const textCanvas = treeViewComponent_v2_debug.canvas;
+    const textLayoutWidth = viewWidth;
+    textCanvas.style.width = textLayoutWidth + 'px';
+    textCanvas.style.height = viewHeight + 'px';
+    textCanvas.width = textLayoutWidth * dpr;
+    textCanvas.height = viewHeight * dpr;
+
+    // --- 4. SCALE THE DRAWING CONTEXTS ---
+    // This step ensures your drawing coordinates (like fillText X/Y) 
+    // remain working in standard layout pixels, while the engine handles the high-DPI pixel math
+
+    const ctxText = textCanvas.getContext('2d');
+    ctxText.scale(dpr, dpr);
+    ctxText.font = '14px monospace';
+    ctxText.textBaseline = 'top';
+    ctxText.fillStyle = '#ffffff';
+    
+
+
+    //const metrics = ctxGutter.measureText('M'); // 'M' or '1' are great standard height references
+    //const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+
+    //console.log('The exact height of the text is:', textHeight);
+
+    const metrics = ctxText.measureText('M');
+
+    const fontHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+    const linePadding = 6; // Total padding between lines
+    treeViewComponent_v2_debug_lineHeight = fontHeight + linePadding;
+
+
+
+    // The exact pixel width of every single character in a monospace font
+    const charWidth = ctxText.measureText('M').width;
+    treeViewComponent_v2_debug_characterWidth = charWidth;
+
+    // Run once during setup / font configuration
+    ctxText.font = '14px monospace';
+
+    
+    const fontActualHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+
+    // If local_lineHeight is 24px and fontActualHeight is 14px, your vertical midpoint padding is 12px
+
+    treeViewComponent_v2_debug_offsetWidth = Math.floor(viewportRect.width);
+    treeViewComponent_v2_debug_offsetHeight = Math.floor(viewportRect.height);
+
+    treeViewComponent_v2_debug_virtualCount = Math.ceil(INTS[fEDI_lastReadNumber_offsetHeight] / INTS[fEDI_lineHeight]);
+
+    //EDI_character_count_that_fits_view = Math.ceil(INTS[fEDI_lastReadNumber_offsetWidth] / EDI_characterWidth);
+
+
+
+    // --- CONFIG DIGEST FOR CURSOR CANVAS ---
+    //const cursorCanvas = document.getElementById('EDI_cursor_canvas');
+    //cursorCanvas.style.width = textLayoutWidth + 'px';
+    //cursorCanvas.style.height = viewHeight + 'px';
+    //cursorCanvas.width = textLayoutWidth * dpr;
+    //cursorCanvas.height = viewHeight * dpr;
+//
+    //const ctxCursor = cursorCanvas.getContext('2d');
+    //ctxCursor.scale(dpr, dpr);
+    //
+    //// Set your editor's cursor color profile
+    //ctxCursor.fillStyle = '#528bff'; // A nice modern blue cursor, or white (#ffffff)
+
+    //EDI_lineStringCache = new Array(INTS[fEDI_virtualCount]);
+    //EDI_line_NUMBER_StringCache = new Array(INTS[fEDI_virtualCount]);
+    //INTS[fEDI_ArrayFrom_textElement_children_length] = INTS[fEDI_virtualCount];
+//
+    //const aaa = INTS[fEDI_virtualCount];
+    //for (let i = 0; i < aaa; i++) {
+    //    EDI_lineStringCache[i] = [];
+    //    //EDI_line_NUMBER_StringCache[i] = 0;
+    //}
+    //
+    //EDI_render_force_fullscreen_redraw();
 }
