@@ -608,7 +608,10 @@ If you keep the DOM pool to ~50 rows and avoid attaching per-row closures or cus
 
 Would you like to look at how to structure the file tree data model (e.g., flat parallel arrays vs. node objects) to minimize V8 Old Space tracing across large workspaces?
 
-<
+
+
+
+>
 This question is somewhat difficult to ask because there's so many details involved.
 
 In its simplest form the question is: how many old generation objects does it take to create noticeable performance degradation for the user.
@@ -618,3 +621,61 @@ The difficulty in the question is: objects can be varying sizes, they can have v
 But nevertheless do you have any comments on this?
 
 
+
+
+<
+In modern V8 (Electron), noticeable main-thread UI stutters (>16ms frame drops) typically begin around 500,000 to 2,000,000 live Old Generation objects with outgoing references,
+or roughly 150–300 MB of live pointer-heavy heap.
+
+Even though objects vary wildly in size and depth, V8’s Major GC (Orinoco) has very predictable bottlenecks because of how it splits work across threads.
+Understanding the difference between marking and sweeping/compacting makes it much easier to reason about your text editor's ceiling.
+
+1. Why Object Count & Pointer Depth Matter More Than Byte Size
+
+In V8's Mark-Sweep-Compact collector, the time it takes to run a Major GC is not proportional to total megabytes—it is proportional to the number of live objects and pointer edges the marker
+has to traverse:
+• 1 big ArrayBuffer or Uint32Array of 100 MB = 1 object, 0 outgoing pointers. V8 traces it in nanoseconds. It causes zero GC pause degradation.
+• 2,000,000 small JS objects of 48 bytes each (also ~96 MB) = 2,000,000 nodes + ~6,000,000 pointer edges. V8 must dereference every pointer, check its Map (hidden class),
+  and push/pop it on the marking deque.
+
+2. Where User-Visible Stutter Actually Happens (The 16.6ms Frame Budget)
+
+Modern V8 does ~90% of Old Generation marking concurrently on background worker threads while your JS runs on the main thread. However, three phases still pause the main thread:
+1. Incremental Marking Steps (~1–3ms slices): When allocation rate outpaces background threads, V8 steals small slices of main-thread time between frames.
+   Around 500k+ live objects, these slices start eating into your 16.6ms (60fps) or 8.3ms (120fps) frame budget during fast scrolling or typing.
+2. Atomic Pause / Finalize Marking (~5–20ms+): Before finishing a Major GC, V8 must pause the main thread to drain remaining marking queues and trace root handles
+   (including Blink/Oilpan cross-references). Around 1M–2M+ live JS objects, this final pause crosses the 16ms threshold and causes a visible micro-stutter.
+3. Compaction / Evacuation (The Real Frame-Killer): When Old Space becomes fragmented (lots of deleted objects mixed with surviving ones), V8 copies surviving objects to
+   contiguous pages and updates every pointer in the heap that points to them. High pointer density + fragmented Old Space is what causes rare 30–100ms+ freeze spikes.
+
+3. Practical Thresholds for a Text Editor
+
+To keep a text editor feeling instantaneous (zero dropped frames while typing or scrolling):
+
+
+Live Old-Gen Object Count | User Experience in Electron / V8                                                  | Typical Editor Equivalent
+========================================================================================================================================================================================================================================
+< 100,000 objects         | Completely invisible (< 1–2ms atomic pauses).                                     | Small/medium project, flat line arrays, pooled DOM.
+250,000 – 500,000 objects | Smooth, occasional minor frame dip only during heavy allocation spikes.           | Large repo (~50k files) stored as nested JS objects, or a 200k-line file with per-token objects.
+1,000,000+ objects        | Noticeable micro-stutters (15–40ms) during Major GC atomic pauses and compaction. | Deeply nested ASTs, massive undo histories storing full document snapshots, or unvirtualized file trees of node_modules.
+
+4. Three Rules of Thumb to Stay Well Below the Ceiling
+
+Since your app is a single monolithic vanilla JS module—which already avoids framework virtual-DOM object churn—you have full control over your object graph:
+1. Flatten Graphs Into Parallel TypedArrays / Flat Arrays: Instead of 100,000 tree node objects ({ id, parent, children[], name, depth }), store tree metadata in parallel flat arrays
+   (depths = new Uint8Array(N), parentIndices = new Int32Array(N), names = []). V8 skips tracing raw TypedArray buffers completely.
+2. Avoid Mutating Old-Gen Pointers: Reassigning properties on long-lived objects (oldNode.next = newNode) triggers V8 write barriers to record old-to-new pointers.
+   Replacing whole slices or using index integers (nextIndex = 42) instead of object references eliminates write barrier overhead entirely.
+3. Strings Count as Objects: Every sliced or concatenated string in V8 (ConsString, SlicedString, SeqOneByteString)
+   is a separate Old Generation heap object (~24–40 bytes header + payload).
+   Keeping raw text in a piece table or gap buffer backed by Uint8Array/Uint16Array (or chunked strings) prevents millions of tiny line/token strings from flooding Old Space.
+
+Would you like to look at how to measure your current Old Space object count and GC pause times directly in Electron (via performance.measureUserAgentSpecificMemory() or V8 trace flags)?
+
+
+
+
+
+
+
+(TODO: Parallel flat arrays vs interleaved flat array)
