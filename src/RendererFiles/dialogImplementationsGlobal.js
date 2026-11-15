@@ -597,8 +597,8 @@ function DIALOG_Debug_treeViewComponent_v2_Create() {
     Debug_treeViewComponent_v2_resizeCanvases();
 
     const ctx = treeViewComponent_v2_debug.canvas.getContext('2d');
-    ctx.fillStyle = 'red';
-    ctx.fillText('apple', 0, 0);
+    ctx.fillStyle = '#d4d4d4';
+    
 
     //EXPLORER_treeViewNodes.clear();
 //
@@ -611,6 +611,18 @@ function DIALOG_Debug_treeViewComponent_v2_Create() {
 
     treeViewComponent_v2_debug_heightTotal = treeViewComponent_v2_debug.countAbstract * treeViewComponent_v2_debug_lineHeight;
     treeViewComponent_v2_debug.scrollbarSpaceGenerator.style.height = treeViewComponent_v2_debug_heightTotal + 'px';
+
+    let vertical = 0;
+    for (let i = 0; i < treeViewComponent_v2_debug_virtualCount; i++) {
+        if (i < treeViewComponent_v2_debug.countAbstract) {
+            //treeViewComponent_v2_debug.dataLiteral[i * 4]ctx.fillText('apple', 0, vertical); // There's a max width argument in the fillText?
+            ctx.fillText(i, 0, vertical); // There's a max width argument in the fillText?
+        }
+        else {
+            ctx.fillText('~', 0, vertical); // There's a max width argument in the fillText?
+        }
+        vertical += treeViewComponent_v2_debug_lineHeight;
+    }
 }
 
 function DIALOG_Debug_treeViewComponent_v2_Delete() {
@@ -676,7 +688,7 @@ function Debug_treeViewComponent_v2_resizeCanvases() {
     treeViewComponent_v2_debug_offsetWidth = Math.floor(viewportRect.width);
     treeViewComponent_v2_debug_offsetHeight = Math.floor(viewportRect.height);
 
-    treeViewComponent_v2_debug_virtualCount = Math.ceil(INTS[fEDI_lastReadNumber_offsetHeight] / INTS[fEDI_lineHeight]);
+    treeViewComponent_v2_debug_virtualCount = Math.ceil(treeViewComponent_v2_debug_offsetHeight / treeViewComponent_v2_debug_lineHeight);
 
     //EDI_character_count_that_fits_view = Math.ceil(INTS[fEDI_lastReadNumber_offsetWidth] / EDI_characterWidth);
 
