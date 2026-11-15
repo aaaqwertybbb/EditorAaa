@@ -675,7 +675,80 @@ Would you like to look at how to measure your current Old Space object count and
 
 
 
+>
+Parallel flat arrays vs interleaved flat array
 
 
 
-(TODO: Parallel flat arrays vs interleaved flat array)
+
+<
+I would choose parallel flat arrays (Structure of Arrays) for your file explorer and editor data.
+
+In JavaScript (V8), parallel flat arrays give you zero GC tracing on numeric metadata, tighter CPU cache locality when scanning or filtering,
+and true primitive packing—whereas an interleaved flat array ([name0, depth0, flags0, name1, depth1, flags1, ...])
+forces V8 to box every number into a generic FixedArray of tagged pointers and still requires V8 to scan the entire array during Major GC.
+
+Architectural Comparison in V8
+
+Dimension                   | Parallel Flat Arrays (SoA)                                                                                                                                | Interleaved Flat Array (AoS-in-Array)
+================================================================================================================================================================================================================================================================================================================================================================================================================================
+Memory Layout               | names = new Array(N); depths = new Uint8Array(N); parentIdx = new Int32Array(N); flags = new Uint8Array(N)                                                | nodes = [name0, depth0, parent0, flags0, ...] (Single heterogeneous JS Array)
+V8 Old-Gen GC Cost          | Only names is traced. Uint8Array and Int32Array are raw binary backing stores—V8's marker completely skips them (0 pointer edges).                        | Every slot is traced. Mixing strings and numbers forces V8 into a PACKED_ELEMENTS array where GC must inspect every single index to check if it's a Smi or heap pointer.
+Memory Footprint            | ~10–14 bytes per row (4–8B string pointer + 1B depth + 4B parent + 1B flags).                                                                             | ~32 bytes per row (4 fields × 8 bytes per tagged pointer slot in 64-bit V8 with pointer compression = 16–32 bytes, plus Array resizing slack).
+Iteration & Filtering Speed | Fastest. Scanning flags or depths (e.g., to collapse a folder or count visible rows) streams contiguous bytes into L1 CPU cache without touching strings. | Slower. Striding by i += 4 pulls unused string pointers into cache lines while checking flags, and V8 must perform type-checks on every read because the array is polymorphic.
+Resizing / Insertion        | Slightly more code: must resize/splice 3–4 arrays together (or pre-allocate with a count cursor).                                                         | Simpler: single splice() or push() call on one array.
+
+Why Interleaved Arrays Have a Hidden Trap in V8
+
+In JavaScript, an interleaved array like [ "app.js", 1, 0, 2 ] mixes String pointers and Smi (small integers).
+V8 transitions that array's internal ElementsKind to PACKED_ELEMENTS (generic tagged pointers):
+1. Polymorphic Inline Caches (ICs): Every time your render loop reads nodes[i + 1] expecting a number, V8 cannot guarantee at the array level that the slot isn't a string,
+   adding subtle type-guard overhead in hot loops.
+2. GC Marking Overhead: During a Major GC, V8 cannot skip a PACKED_ELEMENTS array—it has to loop over all 4 * N slots and bit-test every single 32-bit/64-bit word to see
+   if it is a pointer to trace. With parallel TypedArrays, V8 skips 75% of your array data completely.
+
+(Note: A single Int32Array interleaved [depth0, parent0, flags0, depth1, ...] alongside a separate names array does avoid GC tracing,
+ because all fields inside the Int32Array share one primitive type—but you still waste 4 bytes per uint8 field and lose cache density when scanning just one field.)
+
+Recommended Pattern for Your File Explorer
+
+Keep one Array for strings and parallel TypedArrays for everything else, managed with a manual length counter and geometric growth (capacity *= 2)
+so expanding folders never triggers Array.push resizing churn:
+```js
+class FlatFileTree {
+  constructor(initialCapacity = 1024) {
+    this.capacity = initialCapacity;
+    this.count = 0;
+
+    // 1. Traced by V8 GC (strings only)
+    this.names = new Array(initialCapacity);
+
+    // 2. Untraced raw binary buffers (0 GC overhead)
+    this.depths = new Uint8Array(initialCapacity);
+    this.flags = new Uint8Array(initialCapacity);     // bit 0: isDir, bit 1: expanded, bit 2: visible
+    this.parentIdx = new Int32Array(initialCapacity); // -1 for root
+    this.nextSibling = new Int32Array(initialCapacity); // O(1) subtree skip when collapsing
+  }
+}
+```
+
+- Bonus Trick (nextSibling index): Storing nextSibling in a parallel Int32Array lets you collapse or hide an entire nested folder subtree in O(1)
+  without scanning children—you simply jump straight to nextSibling[folderIdx].
+
+Would you like to see how to structure fast subtree expansion/collapse or incremental path lookup on top of this parallel array layout?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
