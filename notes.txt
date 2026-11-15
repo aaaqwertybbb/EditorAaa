@@ -231,3 +231,5 @@ Plugins are bloat.
 
 If you wanna do a plugin you edit the source code and rebuild it from scratch
 
+No lsp you have to write your own language server per language.
+
