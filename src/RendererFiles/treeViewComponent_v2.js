@@ -154,6 +154,10 @@ class TreeViewComponent_v2 {
         this.itemHeightTotal = 0;
         this.itemHeightNumber = 0;
 
+        this.characterWidth = 0;
+        this.offsetPerDepthInPixels = 0;
+        this.offsetPerDepthInCharacterWidths = 0;
+
         this.cursorIndex = 0;
 
         this.currentVirtualIndex = 0;
@@ -300,7 +304,7 @@ class TreeViewComponent_v2 {
         // TODO: 'event_dblclick' with this depth logic?
         // TODO: this component throws an exception when scrolling it just straight up doesn't work (well it does until it crashes the app)
         const depth = this.getDepth(indexItem);
-        const rX = (event_clientX - this.boundingClientRect.left + this.scrollLeft) - (depth * CONST_EXPLORER_offsetPerDepth);
+        const rX = (event_clientX - this.boundingClientRect.left + this.scrollLeft) - (depth * this.offsetPerDepthInPixels);
         if (rX >= 0 && rX <= EDI_characterWidth) {
             this.expandCollapseIconWasClicked(divItem, indexItem, ringBufferIndexItem);
         }

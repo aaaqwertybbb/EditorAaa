@@ -3,7 +3,6 @@
  * @type {TreeViewComponent_v2}
  */
 let treeViewComponent_v2_debug = null;
-let treeViewComponent_v2_debug_characterWidth = 0;
 let treeViewComponent_v2_debug_stringsMapByPathId = new Map();
 
 class DIALOG_FindAll_TreeViewDirector {
@@ -632,7 +631,9 @@ function Debug_treeViewComponent_v2_resizeCanvases() {
     treeViewComponent_v2_debug.itemHeightNumber = fontHeight + linePadding;
     
     const charWidth = ctxText.measureText('M').width; // The exact pixel width of every single character in a monospace font
-    treeViewComponent_v2_debug_characterWidth = charWidth;
+    treeViewComponent_v2_debug.characterWidth = charWidth;
+    treeViewComponent_v2_debug.offsetPerDepthInPixels = charWidth;
+    treeViewComponent_v2_debug.offsetPerDepthInCharacterWidths = 1;
 
     ctxText.font = '14px monospace'; // Run once during setup / font configuration
 
@@ -698,6 +699,8 @@ function Debug_treeViewComponent_v2_renderLines(lineIndexLower, lineIndexUpper, 
                         chevronRepresentation = '';
                         break;
                 }
+                // I see what I was doing here now. I don't want to query depth in order to render something that was already cached with respect to text...
+                // ...ummm TODO: decide on this, maybe you should just query depth in order to render something.
                 if (previousDepthStringDepth !== depth) { // TODO: this is probably premature and unmeasured optimization that can thrash and provide no benefit when alternating back and forth between depth values.
                     previousDepthString = ' '.repeat(depth * 4);
                     previousDepthStringDepth = depth;
