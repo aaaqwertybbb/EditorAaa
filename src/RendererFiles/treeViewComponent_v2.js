@@ -305,7 +305,7 @@ class TreeViewComponent_v2 {
         // TODO: this component throws an exception when scrolling it just straight up doesn't work (well it does until it crashes the app)
         const depth = this.getDepth(indexItem);
         const rX = (event_clientX - this.boundingClientRect.left + this.scrollLeft) - (depth * this.offsetPerDepthInPixels);
-        if (rX >= 0 && rX <= EDI_characterWidth) {
+        if (rX >= 0 && rX <= this.characterWidth) {
             this.expandCollapseIconWasClicked(divItem, indexItem, ringBufferIndexItem);
         }
         else {

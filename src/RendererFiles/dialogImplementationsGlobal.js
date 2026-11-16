@@ -702,7 +702,7 @@ function Debug_treeViewComponent_v2_renderLines(lineIndexLower, lineIndexUpper, 
                 // I see what I was doing here now. I don't want to query depth in order to render something that was already cached with respect to text...
                 // ...ummm TODO: decide on this, maybe you should just query depth in order to render something.
                 if (previousDepthStringDepth !== depth) { // TODO: this is probably premature and unmeasured optimization that can thrash and provide no benefit when alternating back and forth between depth values.
-                    previousDepthString = ' '.repeat(depth * 4);
+                    previousDepthString = ' '.repeat(depth * treeViewComponent_v2_debug.offsetPerDepthInCharacterWidths);
                     previousDepthStringDepth = depth;
                 }
                 LINE_CACHE[ringBufferIndex] = previousDepthString + chevronRepresentation + name;
