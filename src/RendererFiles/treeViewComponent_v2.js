@@ -239,37 +239,36 @@ class TreeViewComponent_v2 {
 
         let diff = local_currVli - local_prevVli;
 
-        let new_lowerBound = 0;
+        let decodingBoundLower = 0;
 
         if (diff !== 0) {
             if (diff >= this.virtualCount || diff <= -(this.virtualCount)) {
-                new_lowerBound = local_currVli;
+                decodingBoundLower = local_currVli;
                 diff = this.virtualCount; // Bound the loop run to the size of your screen viewport
             }
             else if (diff > 0) {
-                new_lowerBound = local_prevVli + this.virtualCount;
+                decodingBoundLower = local_prevVli + this.virtualCount;
                 this.ringBufferIndexZero = (this.ringBufferIndexZero + diff) % this.virtualCount;
             }
             else {
-                new_lowerBound = local_currVli;
+                decodingBoundLower = local_currVli;
                 diff *= -1;
                 this.ringBufferIndexZero = (this.ringBufferIndexZero - diff + this.virtualCount) % this.virtualCount;
             }
         }
-        else {
-            // If diff is 0 (like a pure horizontal scroll), no newly visible lines need decoding
-            new_lowerBound = 0;
+        else { // If diff is 0 (like a pure horizontal scroll), no newly visible lines need decoding
+            decodingBoundLower = 0;
             diff = 0;
         }
 
         const lower = this.currentVirtualIndex;
         const upper = this.currentVirtualIndex + this.virtualCount;
 
-        const new_loopLimit = new_lowerBound + diff;
+        const decodingBoundUpper = decodingBoundLower + diff;
 
         let ringBufferIndex = this.ringBufferIndexZero - 1;
 
-        this.renderLines(lower, upper, ringBufferIndex, new_lowerBound, new_loopLimit);
+        this.renderLines(lower, upper, ringBufferIndex, decodingBoundLower, decodingBoundUpper);
     }
 
     /**

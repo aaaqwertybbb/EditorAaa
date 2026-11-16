@@ -642,7 +642,7 @@ function Debug_treeViewComponent_v2_resizeCanvases() {
     treeViewComponent_v2_debug.virtualCount = Math.ceil(treeViewComponent_v2_debug.offsetHeight / treeViewComponent_v2_debug.itemHeightNumber);
 }
 
-function Debug_treeViewComponent_v2_renderLines(lower, upper, ringBufferIndex, new_lowerBound, new_loopLimit) {
+function Debug_treeViewComponent_v2_renderLines(lineIndexLower, lineIndexUpper, ringBufferIndex, decodingBoundLower, decodingBoundUpper) {
 
     const ctx = treeViewComponent_v2_debug.canvas.getContext('2d');
     ctx.clearRect(0, 0, treeViewComponent_v2_debug.canvas.width, treeViewComponent_v2_debug.canvas.height);
@@ -650,17 +650,35 @@ function Debug_treeViewComponent_v2_renderLines(lower, upper, ringBufferIndex, n
 
     let vertical = 0;
 
-    for (let i = lower; i < upper; i++) {
+    // TODO: All of the below 'Optimization heuristic goal' suck. Cause you have no idea whether they're actually effective you're just hearing rumors and then throwing them all at a dart board and hoping everything works out.
+    //
+    /** Optimization heuristic goal: assumedly reduce reference chasing by creating a const reference to fields that are frequently accessed via a member access on a reference variable. It is rumored that this permits loop optimization. */
+    /** Optimization heuristic goal: similarly^ assumedly improve caching by explicitly telling the code generator that the reference which 'foo' points to "will not change". In garbage collection, when defragmenting the heap every reference to an object that was repositioned needs to have its reference updated to point to the new location of the object, so I'm not quite sure how this works out idk. It is rumored that this permits loop optimization. */
+    const VIRTUAL_COUNT = treeViewComponent_v2_debug.virtualCount;
+    const DATA_LITERAL = treeViewComponent_v2_debug.dataLiteral;
+    const COUNT_ABSTRACT = treeViewComponent_v2_debug.countAbstract;
+    const FIELD_COUNT = treeViewComponent_v2_debug.fieldCount;
+    const KEY_OFFSET = treeViewComponent_v2_debug.keyOffset;
+    const NODE_KIND_OFFSET = treeViewComponent_v2_debug.nodeKindOffset;
+    const LINE_CACHE = treeViewComponent_v2_debug.lineCache;
+    const ITEM_HEIGHT_NUMBER = treeViewComponent_v2_debug.itemHeightNumber;
+    /** Optimization heuristic goal: This one specifically is to bring this global scope variable into local scope rather than relying on caching alone this ought to signal further the importance of the variable being cached. It is rumored that this permits loop optimization. */
+    const STRINGS_MAP_BY_PATH_ID = treeViewComponent_v2_debug_stringsMapByPathId;
+
+    /** Optimization heuristic goal: make the upper bound a constant, and do not modify 'i' within the loop, have not measured if this is truly impactful. It is rumored that this permits loop optimization. */
+    const LINE_INDEX_UPPER = lineIndexUpper;
+
+    for (let i = lineIndexLower; i < LINE_INDEX_UPPER; i++) {
         ringBufferIndex++;
-        if (ringBufferIndex >= treeViewComponent_v2_debug.virtualCount) {
-            ringBufferIndex -= treeViewComponent_v2_debug.virtualCount;
+        if (ringBufferIndex >= VIRTUAL_COUNT) {
+            ringBufferIndex -= VIRTUAL_COUNT;
         }
 
-        if (i >= new_lowerBound && i < new_loopLimit) {
-            if (i < treeViewComponent_v2_debug.countAbstract) {
-                const key = treeViewComponent_v2_debug.dataLiteral[i * treeViewComponent_v2_debug.fieldCount + treeViewComponent_v2_debug.keyOffset];
-                const nodeKind = treeViewComponent_v2_debug.dataLiteral[i * treeViewComponent_v2_debug.fieldCount + treeViewComponent_v2_debug.nodeKindOffset];
-                let name = treeViewComponent_v2_debug_stringsMapByPathId.get(key) ?? `unknown_${i}`;
+        if (i >= decodingBoundLower && i < decodingBoundUpper) {
+            if (i < COUNT_ABSTRACT) {
+                const key = DATA_LITERAL[i * FIELD_COUNT + KEY_OFFSET];
+                const nodeKind = DATA_LITERAL[i * FIELD_COUNT + NODE_KIND_OFFSET];
+                let name = STRINGS_MAP_BY_PATH_ID.get(key) ?? `unknown_${i}`;
                 let chevronRepresentation = ' ';
                 switch (nodeKind) {
                     case TreeViewNodeKind_isExpandable_isExpanded:
@@ -676,14 +694,14 @@ function Debug_treeViewComponent_v2_renderLines(lower, upper, ringBufferIndex, n
                         chevronRepresentation = '';
                         break;
                 }
-                treeViewComponent_v2_debug.lineCache[ringBufferIndex] = chevronRepresentation + name;
+                LINE_CACHE[ringBufferIndex] = chevronRepresentation + name;
             }
             else {
-                treeViewComponent_v2_debug.lineCache[ringBufferIndex] = '~';
+                LINE_CACHE[ringBufferIndex] = '~';
             }
         }
 
-        ctx.fillText(treeViewComponent_v2_debug.lineCache[ringBufferIndex], 0, vertical); // There's a max width argument in the fillText?
-        vertical += treeViewComponent_v2_debug.itemHeightNumber;
+        ctx.fillText(LINE_CACHE[ringBufferIndex], 0, vertical); // There's a max width argument in the fillText?
+        vertical += ITEM_HEIGHT_NUMBER;
     }
 }
