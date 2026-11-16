@@ -657,11 +657,7 @@ function Debug_treeViewComponent_v2_renderLines(lineIndexLower, lineIndexUpper, 
     /** Optimization heuristic goal: assumedly reduce reference chasing by creating a const reference to fields that are frequently accessed via a member access on a reference variable. It is rumored that this permits loop optimization. */
     /** Optimization heuristic goal: similarly^ assumedly improve caching by explicitly telling the code generator that the reference which 'foo' points to "will not change". In garbage collection, when defragmenting the heap every reference to an object that was repositioned needs to have its reference updated to point to the new location of the object, so I'm not quite sure how this works out idk. It is rumored that this permits loop optimization. */
     const VIRTUAL_COUNT = treeViewComponent_v2_debug.virtualCount;
-    const DATA_LITERAL = treeViewComponent_v2_debug.dataLiteral;
     const COUNT_ABSTRACT = treeViewComponent_v2_debug.countAbstract;
-    const FIELD_COUNT = treeViewComponent_v2_debug.fieldCount;
-    const KEY_OFFSET = treeViewComponent_v2_debug.keyOffset;
-    const NODE_KIND_OFFSET = treeViewComponent_v2_debug.nodeKindOffset;
     const LINE_CACHE = treeViewComponent_v2_debug.lineCache;
     const ITEM_HEIGHT_NUMBER = treeViewComponent_v2_debug.itemHeightNumber;
     /** Optimization heuristic goal: This one specifically is to bring this global scope variable into local scope rather than relying on caching alone this ought to signal further the importance of the variable being cached. It is rumored that this permits loop optimization. */
@@ -669,6 +665,9 @@ function Debug_treeViewComponent_v2_renderLines(lineIndexLower, lineIndexUpper, 
 
     /** Optimization heuristic goal: make the upper bound a constant, and do not modify 'i' within the loop, have not measured if this is truly impactful. It is rumored that this permits loop optimization. */
     const LINE_INDEX_UPPER = lineIndexUpper;
+
+    let previousDepthString = '';
+    let previousDepthStringDepth = 0;
 
     for (let i = lineIndexLower; i < LINE_INDEX_UPPER; i++) {
         ringBufferIndex++;
@@ -678,8 +677,11 @@ function Debug_treeViewComponent_v2_renderLines(lineIndexLower, lineIndexUpper, 
 
         if (i >= decodingBoundLower && i < decodingBoundUpper) {
             if (i < COUNT_ABSTRACT) {
-                const key = DATA_LITERAL[i * FIELD_COUNT + KEY_OFFSET];
-                const nodeKind = DATA_LITERAL[i * FIELD_COUNT + NODE_KIND_OFFSET];
+                treeViewComponent_v2_debug.getElementAt(i);
+                const key = INTS[fTreeView_poolret_pooledNode_key];
+                const depth = INTS[fTreeView_poolret_pooledNode_depth];
+                const nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+
                 let name = STRINGS_MAP_BY_PATH_ID.get(key) ?? `unknown_${i}`;
                 let chevronRepresentation = ' ';
                 switch (nodeKind) {
@@ -696,7 +698,11 @@ function Debug_treeViewComponent_v2_renderLines(lineIndexLower, lineIndexUpper, 
                         chevronRepresentation = '';
                         break;
                 }
-                LINE_CACHE[ringBufferIndex] = chevronRepresentation + name;
+                if (previousDepthStringDepth !== depth) { // TODO: this is probably premature and unmeasured optimization that can thrash and provide no benefit when alternating back and forth between depth values.
+                    previousDepthString = ' '.repeat(depth * 4);
+                    previousDepthStringDepth = depth;
+                }
+                LINE_CACHE[ringBufferIndex] = previousDepthString + chevronRepresentation + name;
             }
             else {
                 LINE_CACHE[ringBufferIndex] = '~';
