@@ -105,6 +105,10 @@ class TreeViewComponent_v2_staticRunner {
     }
 }
 
+// TODO: an idea to consider:
+// Create a "single" "staticRunner" and use a size of 32 or maybe 64 and then use the same one for every component? instead of everyone having 32 slots and 99% of the time only 1 component is using its slots at a time.
+// because the array of "components" or something is just internally an array of object references so there's no deoptimization relative to what currently exists for you putting any object reference in it.
+
 
 /** TODO: Does JavaScript have static classes, I don't want to go down a rabbit hole right now. */
 const treeViewComponent_v2_staticRunner = new TreeViewComponent_v2_staticRunner();
@@ -214,6 +218,15 @@ class TreeViewComponent_v2 {
         this.capacityLiteral = tempCapacityLiteral;
 
         this.countAbstract = 0;
+
+        this.offsetWidth = 0;
+        this.offsetHeight = 0;
+    }
+
+    dispose() {
+        this.draw_removeEvents();
+        this.treeViewComponent_v2_staticRunner.remove(this);
+        this.rootElement.remove();
     }
 
     /**
@@ -880,8 +893,8 @@ class TreeViewComponent_v2 {
     }
 
     measureBaseElement() {
-        this.lastReadNumber_offsetWidth = Math.floor(this.rootElement.offsetWidth);
-        this.lastReadNumber_offsetHeight = Math.floor(this.rootElement.offsetHeight);
+        this.offsetWidth = Math.floor(this.rootElement.offsetWidth);
+        this.offsetHeight = Math.floor(this.rootElement.offsetHeight);
     }
 
     /*

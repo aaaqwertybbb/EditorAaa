@@ -3,10 +3,7 @@
  * @type {TreeViewComponent_v2}
  */
 let treeViewComponent_v2_debug = null;
-let treeViewComponent_v2_debug_heightTotal = 0;
 let treeViewComponent_v2_debug_characterWidth = 0;
-let treeViewComponent_v2_debug_offsetWidth = 0;
-let treeViewComponent_v2_debug_offsetHeight = 0;
 let treeViewComponent_v2_debug_stringsMapByPathId = new Map();
 
 class DIALOG_FindAll_TreeViewDirector {
@@ -589,36 +586,21 @@ function DIALOG_Debug_treeViewComponent_v2_Create() {
         return;
     }
 
-
-    //treeViewComponent_v2_debug = new TreeViewComponent_v2(16, treeViewComponent_v2_staticRunner);
     dialogBody.appendChild(treeViewComponent_v2_debug.rootElement);
 
     Debug_treeViewComponent_v2_resizeCanvases();
 
-    
-    
-    //const count_literal = EXPLORER_treeViewNodes.count_abstract * 4;
-    //for (let i = 0; i < count_literal; i += 4) {
-    //    treeViewComponent_v2_debug.insert(EXPLORER_treeViewNodes.data_literal[i + 0], EXPLORER_treeViewNodes.data_literal[i + 1], EXPLORER_treeViewNodes.data_literal[i + 2], EXPLORER_treeViewNodes.data_literal[i + 3]);
-    //}
+    treeViewComponent_v2_debug.itemHeightTotal = (treeViewComponent_v2_debug.countAbstract + 2) * treeViewComponent_v2_debug.itemHeightNumber;
+    treeViewComponent_v2_debug.scrollbarSpaceGenerator.style.height = treeViewComponent_v2_debug.itemHeightTotal + 'px';
 
-    
-
-    treeViewComponent_v2_debug_heightTotal = (treeViewComponent_v2_debug.countAbstract + 2) * treeViewComponent_v2_debug.itemHeightNumber;
-    treeViewComponent_v2_debug.scrollbarSpaceGenerator.style.height = treeViewComponent_v2_debug_heightTotal + 'px';
-
-    
     treeViewComponent_v2_debug.forceFullscreen_renderScroll();
-    //treeViewComponent_v2_debug.cacheLines(0 /*indexItem*/, 0 /*indexRingBuffer*/, treeViewComponent_v2_debug.virtualCount /*count*/);
-    //treeViewComponent_v2_debug.renderLines();
 
     treeViewComponent_v2_debug.draw_addEvents();
 }
 
 function DIALOG_Debug_treeViewComponent_v2_Delete() {
-    if (treeViewComponent_v2_debug !== null) {
-        treeViewComponent_v2_debug.draw_removeEvents();
-        treeViewComponent_v2_staticRunner.remove(treeViewComponent_v2_debug);
+    if (treeViewComponent_v2_debug) {
+        treeViewComponent_v2_debug.dispose();
         treeViewComponent_v2_debug = null;
     }
 }
@@ -626,12 +608,10 @@ function DIALOG_Debug_treeViewComponent_v2_Delete() {
 function Debug_treeViewComponent_v2_resizeCanvases() {
     const dpr = window.devicePixelRatio || 1;
 
-    // 1. Get the real bounding dimensions of your visible viewport frame
     const viewportRect = treeViewComponent_v2_debug.visualCanvas.getBoundingClientRect();
     const viewWidth = viewportRect.width;
     const viewHeight = viewportRect.height;
 
-    // --- 3. CONFIG DIGEST FOR TEXT CANVAS ---
     const textCanvas = treeViewComponent_v2_debug.canvas;
     const textLayoutWidth = viewWidth;
     textCanvas.style.width = textLayoutWidth + 'px';
@@ -639,74 +619,25 @@ function Debug_treeViewComponent_v2_resizeCanvases() {
     textCanvas.width = textLayoutWidth * dpr;
     textCanvas.height = viewHeight * dpr;
 
-    // --- 4. SCALE THE DRAWING CONTEXTS ---
-    // This step ensures your drawing coordinates (like fillText X/Y) 
-    // remain working in standard layout pixels, while the engine handles the high-DPI pixel math
-
     const ctxText = textCanvas.getContext('2d');
     ctxText.scale(dpr, dpr);
     ctxText.font = '14px monospace';
     ctxText.textBaseline = 'top';
     ctxText.fillStyle = '#ffffff';
-    
-
-
-    //const metrics = ctxGutter.measureText('M'); // 'M' or '1' are great standard height references
-    //const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
-
-    //console.log('The exact height of the text is:', textHeight);
 
     const metrics = ctxText.measureText('M');
 
     const fontHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
     const linePadding = 6; // Total padding between lines
     treeViewComponent_v2_debug.itemHeightNumber = fontHeight + linePadding;
-
-
-
-    // The exact pixel width of every single character in a monospace font
-    const charWidth = ctxText.measureText('M').width;
+    
+    const charWidth = ctxText.measureText('M').width; // The exact pixel width of every single character in a monospace font
     treeViewComponent_v2_debug_characterWidth = charWidth;
 
-    // Run once during setup / font configuration
-    ctxText.font = '14px monospace';
+    ctxText.font = '14px monospace'; // Run once during setup / font configuration
 
-    
-    const fontActualHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+    treeViewComponent_v2_debug.offsetWidth = Math.floor(viewportRect.width);
+    treeViewComponent_v2_debug.offsetHeight = Math.floor(viewportRect.height);
 
-    // If local_lineHeight is 24px and fontActualHeight is 14px, your vertical midpoint padding is 12px
-
-    treeViewComponent_v2_debug_offsetWidth = Math.floor(viewportRect.width);
-    treeViewComponent_v2_debug_offsetHeight = Math.floor(viewportRect.height);
-
-    treeViewComponent_v2_debug.virtualCount = Math.ceil(treeViewComponent_v2_debug_offsetHeight / treeViewComponent_v2_debug.itemHeightNumber);
-
-    //EDI_character_count_that_fits_view = Math.ceil(INTS[fEDI_lastReadNumber_offsetWidth] / EDI_characterWidth);
-
-
-
-    // --- CONFIG DIGEST FOR CURSOR CANVAS ---
-    //const cursorCanvas = document.getElementById('EDI_cursor_canvas');
-    //cursorCanvas.style.width = textLayoutWidth + 'px';
-    //cursorCanvas.style.height = viewHeight + 'px';
-    //cursorCanvas.width = textLayoutWidth * dpr;
-    //cursorCanvas.height = viewHeight * dpr;
-//
-    //const ctxCursor = cursorCanvas.getContext('2d');
-    //ctxCursor.scale(dpr, dpr);
-    //
-    //// Set your editor's cursor color profile
-    //ctxCursor.fillStyle = '#528bff'; // A nice modern blue cursor, or white (#ffffff)
-
-    //EDI_lineStringCache = new Array(INTS[fEDI_virtualCount]);
-    //EDI_line_NUMBER_StringCache = new Array(INTS[fEDI_virtualCount]);
-    //INTS[fEDI_ArrayFrom_textElement_children_length] = INTS[fEDI_virtualCount];
-//
-    //const aaa = INTS[fEDI_virtualCount];
-    //for (let i = 0; i < aaa; i++) {
-    //    EDI_lineStringCache[i] = [];
-    //    //EDI_line_NUMBER_StringCache[i] = 0;
-    //}
-    //
-    //EDI_render_force_fullscreen_redraw();
+    treeViewComponent_v2_debug.virtualCount = Math.ceil(treeViewComponent_v2_debug.offsetHeight / treeViewComponent_v2_debug.itemHeightNumber);
 }
