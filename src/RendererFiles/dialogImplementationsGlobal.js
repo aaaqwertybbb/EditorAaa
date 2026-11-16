@@ -647,8 +647,7 @@ function Debug_treeViewComponent_v2_renderLines(lineIndexLower, lineIndexUpper, 
 
     const ctx = treeViewComponent_v2_debug.canvasContext2d;
     ctx.clearRect(0, 0, treeViewComponent_v2_debug.canvas.width, treeViewComponent_v2_debug.canvas.height);
-    ctx.fillStyle = '#d4d4d4';
-
+    
     let vertical = 0;
 
     // TODO: All of the below 'Optimization heuristic goal' suck. Cause you have no idea whether they're actually effective you're just hearing rumors and then throwing them all at a dart board and hoping everything works out.
@@ -666,6 +665,16 @@ function Debug_treeViewComponent_v2_renderLines(lineIndexLower, lineIndexUpper, 
 
     /** Optimization heuristic goal: make the upper bound a constant, and do not modify 'i' within the loop, have not measured if this is truly impactful. It is rumored that this permits loop optimization. */
     const LINE_INDEX_UPPER = lineIndexUpper;
+
+    // --- STEP 2: RENDER ACTIVE SOLID CURSOR LINE ---
+    ctx.fillStyle = '#3f7581'; // Solid cursor accent color
+    const cursorLine = treeViewComponent_v2_debug.cursorIndex;
+    if (cursorLine >= lineIndexLower && cursorLine < lineIndexUpper) {
+        const cursorY = (cursorLine - lineIndexLower) * treeViewComponent_v2_debug.itemHeightNumber;
+        ctx.fillRect(0, cursorY, treeViewComponent_v2_debug.canvas.width, treeViewComponent_v2_debug.itemHeightNumber);
+    }
+
+    ctx.fillStyle = '#d4d4d4';
 
     let previousDepthString = '';
     let previousDepthStringDepth = 0;
