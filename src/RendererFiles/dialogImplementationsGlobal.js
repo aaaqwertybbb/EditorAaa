@@ -707,3 +707,37 @@ function Debug_treeViewComponent_v2_renderLines(lineIndexLower, lineIndexUpper, 
         vertical += ITEM_HEIGHT_NUMBER;
     }
 }
+
+async function Debug_treeViewComponent_v2_expandCollapseIconWasClicked(divItem, indexItem, ringBufferIndexItem) {
+    treeViewComponent_v2_debug.getElementAt(indexItem);
+    const key = INTS[fTreeView_poolret_pooledNode_key];
+    const depth = INTS[fTreeView_poolret_pooledNode_depth];
+    const nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+
+    if (nodeKind === TreeViewNodeKind_isExpandable_NOTisExpanded) {
+        treeViewComponent_v2_debug.setNodeKind(indexItem, TreeViewNodeKind_isExpandable_isExpanded);
+
+        const childFilesystemEntries = await window.myAPI.getFilesystemEntries_argumentIsId(key);
+        const insertionCount = childFilesystemEntries.length;
+        if (insertionCount === 0) { return; }
+
+        for (let i = 0; i < insertionCount; i++) {
+            const entry = childFilesystemEntries[i];
+            const nodeKind = entry.isDirectory
+                ? TreeViewNodeKind_isExpandable_NOTisExpanded
+                : TreeViewNodeKind_NOTisExpandable_NOTisExpanded;
+            // TODO: Insert range, or at the least 'pre-emptively' resize the list so that it fits each insertion without resizing per insertion.
+            treeViewComponent_v2_debug.insert(indexItem + 1 + i, nodeKind, entry.id, depth + 1);
+            treeViewComponent_v2_debug_stringsMapByPathId.set(entry.id, entry.basename);
+        }
+
+        treeViewComponent_v2_debug.itemHeightTotal = treeViewComponent_v2_debug.countAbstract * treeViewComponent_v2_debug.itemHeightNumber;
+        treeViewComponent_v2_debug.scrollbarSpaceGenerator.style.height = treeViewComponent_v2_debug.itemHeightTotal + 'px';
+
+        treeViewComponent_v2_debug.forceFullscreen_renderScroll();
+    }
+    else if (nodeKind === TreeViewNodeKind_isExpandable_isExpanded) {
+        treeViewComponent_v2_debug.setNodeKind(indexItem, TreeViewNodeKind_isExpandable_NOTisExpanded);
+        treeViewComponent_v2_debug.forceFullscreen_renderScroll();
+    }
+}
