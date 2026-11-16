@@ -641,15 +641,28 @@ class TreeViewComponent_v2 {
         const depth = this.getDepth(indexItem);
         const rX = (event_clientX - this.boundingClientRect.left + this.scrollLeft) - (depth * CONST_EXPLORER_offsetPerDepth);
         if (rX >= 0 && rX <= EDI_characterWidth) {
-            this.expandCollapseIconWasClicked(divItem, indexItem);
+            this.expandCollapseIconWasClicked(divItem, indexItem, ringBufferIndexItem);
         }
         else {
-            this.state_cursor_setIndex(indexItem);
+            //this.state_cursor_setIndex(indexItem);
         }
     }
 
-    expandCollapseIconWasClicked() {
-        console.log('expandCollapseIconWasClicked()');
+    expandCollapseIconWasClicked(divItem, indexItem, ringBufferIndexItem) {
+        // TODO: !!!! You might need to be careful with async and the TreeView_pooledNode; I'm not certain whether you do or don't have to be careful, and I don't feel like looking into it at the moment.
+        this.getElementAt(indexItem);
+        const key = INTS[fTreeView_poolret_pooledNode_key];
+        const depth = INTS[fTreeView_poolret_pooledNode_depth];
+        const nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+
+        if (nodeKind === TreeViewNodeKind_isExpandable_NOTisExpanded) {
+            this.setNodeKind(indexItem, TreeViewNodeKind_isExpandable_isExpanded);
+            this.forceFullscreen_renderScroll();
+        }
+        else if (nodeKind === TreeViewNodeKind_isExpandable_isExpanded) {
+            this.setNodeKind(indexItem, TreeViewNodeKind_isExpandable_NOTisExpanded);
+            this.forceFullscreen_renderScroll();
+        }
     }
 
     event_dblclick(event_clientY, event_target) {
