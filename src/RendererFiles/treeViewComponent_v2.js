@@ -123,7 +123,9 @@ class TreeViewComponent_v2 {
      * @param {number} initialCapacityAbstract 
      * @param {TreeViewComponent_v2_staticRunner} treeViewComponent_v2_staticRunner 
      */
-    constructor(initialCapacityAbstract, treeViewComponent_v2_staticRunner) {
+    constructor(initialCapacityAbstract, treeViewComponent_v2_staticRunner, renderLines) {
+
+        this.renderLines = renderLines;
 
         this.treeViewComponent_v2_staticRunner = treeViewComponent_v2_staticRunner;
         
@@ -149,7 +151,6 @@ class TreeViewComponent_v2 {
 
         this.itemHeightTotal = 0;
 
-        /** Consider the existence of such methods as 'state_cursor_setIndex' before mutating state directly */
         this.cursorIndex = 0;
 
         this.currentVirtualIndex = 0;
@@ -163,41 +164,21 @@ class TreeViewComponent_v2 {
 
         this.lineCache = [];
         
-        this.scrollTimer = null;
-        this.hasTrailingCall = false;
-
         this.ringBufferIndexZero = 0;
-
         this.ringBuffer = [];
-        this.ringBufferLength = 0;
-
-        this.TREEVIEW_draw_create_request_parentElement = null;
-        this.TREEVIEW_draw_create_request_insertBeforeThisChild = null;
-
-        this.start = 0;
-        this.length = 0;
-        this.onePositiveDiff_twoNegativeDiff_orThreeFullScreen = 0;
-        this.caseThreeOrigin = 0;
-
-        this.SET_ITEMS_director = null;
-        this.SET_ITEMS_itemHeightNumber = 0;
-        this.SET_ITEMS_itemHeightStyleAttributeValueString = '';
 
         this.WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING = 2;
 
         this.LARGEST_DEPTH_SEEN_NOT_THE_CSS_JUST_THE_DEPTH = 0;
+
+        this.offsetWidth = 0;
+        this.offsetHeight = 0;
 
         // Bind once in constructor so ... doesn't allocate a closure per ...
         this.eventScroll = this.event_scroll.bind(this);
         this.eventClick = this.event_click.bind(this);
 
         // tvnl_
-
-        this.dataLiteral = undefined;
-        this.capacityLiteral = undefined;
-
-        this.capacityAbstract = undefined;
-        this.countAbstract = 0;
 
         // Storing the nodeKind as an int32 isn't the most ideal thing in the world.
         // Previously the ints were being grouped via a class instance.
@@ -218,9 +199,6 @@ class TreeViewComponent_v2 {
         this.capacityLiteral = tempCapacityLiteral;
 
         this.countAbstract = 0;
-
-        this.offsetWidth = 0;
-        this.offsetHeight = 0;
     }
 
     dispose() {
@@ -229,109 +207,14 @@ class TreeViewComponent_v2 {
         this.rootElement.remove();
     }
 
-    /**
-     * TODO: Many of these suffer from two invocations sitting in the render queue with something between them so they didn't coallesce then the parameters
-     * of the second are used for the first.
-     */
-    TREEVIEW_render_do_SetItems() {
-        this.itemListElement.innerHTML = '';
-        this.scrollbarSpaceGenerator.style.height = 1 + 'px';
-        this.state_cursor_setIndex(0);
-        
-        this.director = this.SET_ITEMS_director;
-        this.itemHeightNumber = this.SET_ITEMS_itemHeightNumber;
-        this.itemHeightStyleAttributeValueString = this.SET_ITEMS_itemHeightStyleAttributeValueString;
-
-        this.cursorElement.style.height = this.itemHeightStyleAttributeValueString;
-        this.itemHeightTotal = this.director.tvd_getTotalCount() * this.itemHeightNumber;
-        this.scrollbarSpaceGenerator.style.height = this.itemHeightTotal + 'px';
-        this.boundingClientRect = null;
-    }
-
-    /**
-     * @param {*} director interface TreeViewDirectory { director.drawItem(divItem, indexItem), director.onkeydown(this.TREEVIEW_ArrayFrom_itemListElement_children[relativeIndex], this.cursorIndex, this.items[this.cursorIndex]); }
-     * @param {*} itemHeightNumber '50'; cursorTop = currentIndex * itemHeightNumber;
-     * @param {*} itemHeightStyleAttributeValueString '50px'; div.style.height = itemHeightStyleAttributeValueString;
-     */
-    setItems(director, itemHeightNumber, itemHeightStyleAttributeValueString) {
-        this.SET_ITEMS_director = director;
-        this.SET_ITEMS_itemHeightNumber = itemHeightNumber;
-        this.SET_ITEMS_itemHeightStyleAttributeValueString = itemHeightStyleAttributeValueString;
-        this.TREEVIEW_render_request(TREEVIEWrenderKind_SetItems);
-    }
-
-    TREEVIEW_render_do_Create() {
-        if (this.rootElement.parentElement) {
-            // It is the case that I invoke 'draw_create_request' when creating the tree view for the first time.
-            // But I also do this when I re-open the os input file dialog and pick either a separate or the same folder.
-            // In this scenario having this invoke a "fullReset" is necessary otherwise nothing appears in the treeview.
-            //
-            // TODO: but, perhaps this is best left to the consumer of the TreeViewComponent to invoke themselves...
-            // ...in such a scenario. Until further decision is made I'll have the invocation here.
-            this.TREEVIEW_render_do_FullReset();
-            // TODO: Should there be a return here?...
-            // ...more accurately the concern is 'TREEVIEW_draw_create_request_parentElement.insertBefore'
-            // and 'this.draw_addEvents()'
-            // |
-            // Should those be in an else?
-            // It reads as though you'd be inserting the element twice, which internally you cannot
-            // have an HTML node with two parents so this probably doesn't duplicate the UI, but instead just wastes CPU.
-            // |
-            // The 'this.draw_addEvents();'... can you subscribe twice?
-        }
-        this.TREEVIEW_draw_create_request_parentElement.insertBefore(this.rootElement, this.TREEVIEW_draw_create_request_insertBeforeThisChild);
-        this.draw_addEvents();
-
-        this.measureBaseElement();
-
-        this.TREEVIEW_render_do_Scroll();
-    }
-
-    /**
-     * if (this.rootElement.parentElement) { this.draw_render_fullReset_request(); return; }
-     * Because the "list" is already drawn somewhere and 'draw_delete()' needs to be invoked prior to drawing at a different location.
-     * 
-     * @param {HTMLElement} parentElement 
-     * @param {*} insertBeforeThisChild (if falsey, the list UI is appended to the parent element)
-     */
-    draw_create_request(parentElement, insertBeforeThisChild) {
-        this.TREEVIEW_draw_create_request_parentElement = parentElement;
-        this.TREEVIEW_draw_create_request_insertBeforeThisChild = insertBeforeThisChild;
-        this.TREEVIEW_render_request(TREEVIEWrenderKind_Create);
-    }
-
-    TREEVIEW_render_do_Batch() {
-        this.director.tvd_drawItem_BATCH(this.start, this.length, this.onePositiveDiff_twoNegativeDiff_orThreeFullScreen, this.caseThreeOrigin);
-    }
-
-    /**
-     * if (!this.rootElement.parentElement) return;
-     * Because the "list" is not drawn, no UI needs to be removed.
-     * (the purpose of this method is more-so related to unsubscribing of events and other such non-automatic actions that need to be performed)
-     * 
-     * @returns 
-     */
-    draw_delete() {
-        if (!this.rootElement.parentElement) return;
-        this.draw_removeEvents();
-        this.boundingClientRect = null;
-        this.rootElement.parentElement.removeChild(this.rootElement);
-    }
-
     draw_addEvents() {
         this.scrollViewport.addEventListener('scroll', this.eventScroll, { passive: true });
-        //this.scrollViewport.addEventListener.
-
         this.rootElement.addEventListener('click', this.eventClick);
-        //this.rootElement.addEventListener('keydown', this);
-        //this.scrollViewport.addEventListener('scroll', this, { passive: true });
-        //this.rootElement.addEventListener('dblclick', this);
-        //this.rootElement.addEventListener('contextmenu', this);
-        //window.addEventListener('resize', this);
     }
     
     draw_removeEvents() {
         this.scrollViewport.removeEventListener('scroll', this.eventScroll, { passive: true });
+        this.rootElement.removeEventListener('click', this.eventClick);
 
         //this.rootElement.removeEventListener('click', this);
         //this.rootElement.removeEventListener('keydown', this);
@@ -339,30 +222,6 @@ class TreeViewComponent_v2 {
         //this.rootElement.addEventListener('dblclick', this);
         //this.rootElement.addEventListener('contextmenu', this);
         //window.removeEventListener('resize', this);
-    }
-
-    // The browser automatically looks for this exact method name
-    handleEvent(event) {
-        switch (event.type) {
-            case 'click':
-                this.event_click(event.clientY, event.clientX);
-                break;
-            case 'keydown':
-                this.event_keydown(event);
-                break;
-            case 'scroll':
-                this.event_scroll();
-                break;
-            case 'dblclick':
-                this.event_dblclick(event.clientY, event.target);
-                break;
-            case 'contextmenu':
-                this.event_contextmenu(event.button, event.clientX, event.clientY);
-                break;
-            case 'resize':
-                this.event_windowResize();
-                break;
-        }
     }
 
     forceFullscreen_renderScroll() {
@@ -403,224 +262,14 @@ class TreeViewComponent_v2 {
             diff = 0;
         }
 
-        const ctx = treeViewComponent_v2_debug.canvas.getContext('2d');
-        ctx.clearRect(0, 0, treeViewComponent_v2_debug.canvas.width, treeViewComponent_v2_debug.canvas.height);
-        ctx.fillStyle = '#d4d4d4';
-
         const lower = this.currentVirtualIndex;
         const upper = this.currentVirtualIndex + this.virtualCount;
 
         const new_loopLimit = new_lowerBound + diff;
 
-        let vertical = 0;
         let ringBufferIndex = this.ringBufferIndexZero - 1;
-        for (let i = lower; i < upper; i++) {
-            ringBufferIndex++;
-            if (ringBufferIndex >= this.virtualCount) {
-                ringBufferIndex -= this.virtualCount;
-            }
 
-            if (i >= new_lowerBound && i < new_loopLimit) {
-                if (i < treeViewComponent_v2_debug.countAbstract) {
-                    const key = this.dataLiteral[i * this.fieldCount + this.keyOffset];
-                    const nodeKind = this.dataLiteral[i * this.fieldCount + this.nodeKindOffset];
-                    let name = treeViewComponent_v2_debug_stringsMapByPathId.get(key) ?? `unknown_${i}`;
-                    let chevronRepresentation = ' ';
-                    switch (nodeKind) {
-                        case TreeViewNodeKind_isExpandable_isExpanded:
-                            chevronRepresentation = '-';
-                            break;
-                        case TreeViewNodeKind_isExpandable_NOTisExpanded:
-                            chevronRepresentation = '+';
-                            break;
-                        case TreeViewNodeKind_NOTisExpandable_isExpanded:
-                            chevronRepresentation = '';
-                            break;
-                        case TreeViewNodeKind_NOTisExpandable_NOTisExpanded:
-                            chevronRepresentation = '';
-                            break;
-                    }
-                    this.lineCache[ringBufferIndex] = chevronRepresentation + name;
-                }
-                else {
-                    this.lineCache[ringBufferIndex] = '~';
-                }
-            }
-
-            ctx.fillText(this.lineCache[ringBufferIndex], 0, vertical); // There's a max width argument in the fillText?
-            vertical += this.itemHeightNumber;
-        }
-
-        //this.cacheLines(new_lowerBound, this.ringBufferIndexZero, diff);
-//
-        //this.renderLines();
-    }
-
-    //cacheLines(indexItem, indexRingBuffer, count) {
-    //    //const new_loopLimit = new_lowerBound + diff;
-//
-    //    for (let i = 0; i < count; i++) {
-    //        if (i < treeViewComponent_v2_debug.countAbstract) {
-    //            //treeViewComponent_v2_debug.dataLiteral[i * 4]ctx.fillText('apple', 0, vertical); // There's a max width argument in the fillText?
-//
-    //            this.lineCache[indexRingBuffer] = indexItem + i;
-    //            //ctx.fillText(i, 0, vertical); // There's a max width argument in the fillText?
-    //        }
-    //        else {
-    //            this.lineCache[indexRingBuffer] = '~';
-    //            //ctx.fillText('~', 0, vertical); // There's a max width argument in the fillText?
-    //        }
-    //        
-    //        indexRingBuffer++;
-    //        if (indexRingBuffer >= this.virtualCount) {
-    //            indexRingBuffer -= 0;
-    //        }
-    //    }
-    //}
-    
-    //renderLines() {
-    //    const ctx = treeViewComponent_v2_debug.canvas.getContext('2d');
-    //    ctx.clearRect(0, 0, treeViewComponent_v2_debug.canvas.width, treeViewComponent_v2_debug.canvas.height);
-    //    ctx.fillStyle = '#d4d4d4';
-//
-    //    const lower = this.currentVirtualIndex;
-    //    const upper = this.currentVirtualIndex + this.virtualCount;
-//
-    //    let vertical = 0;
-    //    let ringBufferIndex = this.ringBufferIndexZero;
-    //    for (let i = lower; i < upper; i++) {
-    //        ctx.fillText(this.lineCache[ringBufferIndex], 0, vertical); // There's a max width argument in the fillText?
-    //        ringBufferIndex++;
-    //        if (ringBufferIndex >= this.virtualCount) {
-    //            ringBufferIndex -= this.virtualCount;
-    //        }
-    //        vertical += this.itemHeightNumber;
-    //    }
-    //}
-
-    TREEVIEW_render_do_Scroll() {
-        if (this.ringBufferLength !== this.virtualCount) {
-            this.TREEVIEW_render_do_FullReset();
-        }
-        else {
-
-            this.text.style.transform = `translate3d(-${this.scrollLeft}px, -${this.scrollTop}px, 0)`;
-
-            this.currentVirtualIndex = Math.floor(this.scrollTop / this.itemHeightNumber);
-
-            if (this.previousVirtualIndex === this.currentVirtualIndex &&
-                this._ONSCROLLvirtualCount === this.virtualCount) {
-                    return;
-            }
-
-            // If I delay setting 'this.previousVirtualIndex' then I can just use that.
-            // I can't bear to do that right now though. I'm just gonna make this variable.
-            let prevVli = this.previousVirtualIndex;
-            let currVli = this.currentVirtualIndex;
-
-            this.previousVirtualIndex = this.currentVirtualIndex;
-
-            if (this._ONSCROLLvirtualCount === this.virtualCount &&
-                this.ringBufferLength === this.virtualCount) {
-
-                let diff = currVli - prevVli;
-
-                if (diff > 0 && diff < this.virtualCount) {
-                    this.director.tvd_drawItem_BATCH(prevVli + this._ONSCROLLvirtualCount, diff, 1, undefined);
-                }
-                else if (diff < 0 && (diff *= -1) < this.virtualCount) {
-                    this.director.tvd_drawItem_BATCH(currVli, diff, 2, undefined);
-                }
-                else {
-                    if (diff === 0) {
-                        this.director.tvd_drawItem_BATCH_CASE_DIFF_EQUALS_ZERO();
-                    }
-                    else {
-                        this.director.tvd_drawItem_BATCH(this.currentVirtualIndex, this.virtualCount, 3, undefined);
-                    }
-                }
-            }
-        }
-    }
-
-    TREEVIEW_render_do_Scroll_PullDataDrawResult() {
-        if (this.director.tvd_drawItem_BATCH_PullDataDrawResult) {
-            this.director.tvd_drawItem_BATCH_PullDataDrawResult();
-        }
-    }
-
-    draw_BATCH_request(start, length, onePositiveDiff_twoNegativeDiff_orThreeFullScreen, caseThreeOrigin) {
-        this.start = start;
-        this.length = length;
-        this.onePositiveDiff_twoNegativeDiff_orThreeFullScreen = onePositiveDiff_twoNegativeDiff_orThreeFullScreen;
-        this.caseThreeOrigin = caseThreeOrigin;
-        this.TREEVIEW_render_request(TREEVIEWrenderKind_Batch);
-    }
-
-    TREEVIEW_render_do_FullReset() {
-        this.ensure_boundingClientRect();
-
-        this._ONSCROLLvirtualCount = this.virtualCount;
-
-        this.currentVirtualIndex = Math.floor(this.scrollTop / this.itemHeightNumber);
-        this.ringBufferIndexZero = 0;
-
-        if (this.itemListElement.children.length !== this.virtualCount) {
-            this.itemListElement.innerHTML = '';
-
-            // padding of 2ch (the style attribute receives the width as a pixel by using 'INTS[fEXPLORER_firstSpanWidthValue]' as a baseline (not quite ch))
-            // TODO: this is all very inaccurate and prone to eventual rounding issues due to not monospace font.
-            //
-            this.WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING = 2;
-            let widthAttributeValueNumber = Math.ceil((this.WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING + 2/*padding*/) * INTS[fEXPLORER_firstSpanWidthValue]);
-            // This is actually more complicated you have to track whether you go above the minimum requirement lest you add 1 character over and over in width just to keep redrawing widths.
-            //if (widthAttributeValueNumber < this.lastReadNumber_offsetWidth) {
-            //    widthAttributeValueNumber = this.lastReadNumber_offsetWidth;
-            //}
-            //this.WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING
-            let widthAttributeValueString = widthAttributeValueNumber + 'px';
-            this.cursorElement.style.width = widthAttributeValueString;
-
-            // this is zero'd, could use change for clarity of algorithm and match patterns but focus elsewhere first
-            for (let i = 0; i < this.virtualCount; i++) {
-                
-                let divItem = document.createElement('div');
-                divItem.style.width = widthAttributeValueString;
-                divItem.style.height = this.itemHeightStyleAttributeValueString;
-                divItem.style.whiteSpace = 'nowrap';
-                divItem.style.position = 'absolute';
-                this.itemListElement.appendChild(divItem);
-                let iconSpan = document.createElement('span');
-                iconSpan.style.width = EXPLORER_firstSpanWidth;
-                iconSpan.style.display = 'inline-block';
-                // TODO: Consider what differences if any exist between the '' iconSpan having an empty height of 0 when left unset, versus if you were to set it to 1px, does this matter? It doesn't seem to impact the "horizontal" space being taken.
-                divItem.appendChild(iconSpan);
-                divItem.appendChild(document.createTextNode(i));
-            }
-            
-            // TODO: check the resize logic, that it works
-            if (this.director.pullData_array) {
-                this.director.pullData_array = new Uint32Array(this.virtualCount);
-                this.director.pullData_array_count = 0;
-            }
-
-            this.ringBuffer = Array.from(this.itemListElement.children);
-            this.ringBufferLength = this.ringBuffer.length;
-        }
-
-        // TODO: This if statement check is awkward because the previous if statement ought to have guaranteed this one to be true.
-        if (this.itemListElement.children.length === this.virtualCount) {
-            this.director.tvd_drawItem_BATCH(this.currentVirtualIndex, this.virtualCount, 3, undefined);
-        }
-    }
-
-    /**
-     * This actually only gets invoked if 'this.itemListElement.children.length !== this.virtualCount'...
-     * ...But it is a bit more complicated if you want to involve a change to totalCount, you'd need to force the final 'else' case
-     * so it is easier to just invoke this directly when you change totalCount?
-     */
-    draw_render_fullReset_request() {
-        this.TREEVIEW_render_request(TREEVIEWrenderKind_FullReset);
+        this.renderLines(lower, upper, ringBufferIndex, new_lowerBound, new_loopLimit);
     }
 
     /**
@@ -641,6 +290,11 @@ class TreeViewComponent_v2 {
         let indexItem = Math.floor(rY / this.itemHeightNumber);
         indexItem = this.state_cursor_validateIndex(indexItem);
 
+        // TODO: This "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" feels quite asinine in most scenarios...
+        // ...anywhere it matters a lot you'd actually be doing non-modulo invocations i.e.: any loops would actually be doing non-modulo arithmetic by just incrementing or decrementing and checking overflow/underflow
+        // ...this makes the code harder to read, more complex, and more verbose.
+        // ... As well you have a monolithic module so this code size may or may not be of a meaningful quanitity given how you have it all over the place you're adding like at least 5% of the code of the file right? these are are everywhere idk.
+        //
         // See comment "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" for more information.
         let ringBufferIndexItem = ((indexItem)) - this.currentVirtualIndex;
         if (ringBufferIndexItem >= this.virtualCount || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
@@ -659,6 +313,16 @@ class TreeViewComponent_v2 {
         else {
             //this.state_cursor_setIndex(indexItem);
         }
+    }
+
+    state_cursor_validateIndex(indexItem) {
+        if (indexItem >= this.countAbstract) {
+            indexItem = this.countAbstract - 1;
+        }
+        if (indexItem < 0) {
+            indexItem = 0;
+        }
+        return indexItem;
     }
 
     expandCollapseIconWasClicked(divItem, indexItem, ringBufferIndexItem) {
@@ -687,7 +351,7 @@ class TreeViewComponent_v2 {
 
         // See comment "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" for more information.
         let ringBufferIndexItem = ((indexItem)) - this.currentVirtualIndex;
-        if (ringBufferIndexItem >= this.ringBufferLength || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
+        if (ringBufferIndexItem >= this.ringBuffer.length || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
         else ringBufferIndexItem = (ringBufferIndexItem + this.ringBufferIndexZero) % this.virtualCount;
 
         if (ringBufferIndexItem < 0) return;
@@ -697,7 +361,7 @@ class TreeViewComponent_v2 {
         if (event_target !== divItem.children[0]) {
             // See comment "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" for more information.
             let ringBufferIndexItem = ((this.cursorIndex)) - this.currentVirtualIndex;
-            if (ringBufferIndexItem >= this.ringBufferLength || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
+            if (ringBufferIndexItem >= this.ringBuffer.length || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
             else ringBufferIndexItem = (ringBufferIndexItem + this.ringBufferIndexZero) % this.virtualCount;
 
             if (ringBufferIndexItem < 0) return;
@@ -718,7 +382,7 @@ class TreeViewComponent_v2 {
 
             // See comment "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" for more information.
             let ringBufferIndexItem = ((this.cursorIndex)) - this.currentVirtualIndex;
-            if (ringBufferIndexItem >= this.ringBufferLength || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
+            if (ringBufferIndexItem >= this.ringBuffer.length || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
             else ringBufferIndexItem = (ringBufferIndexItem + this.ringBufferIndexZero) % this.virtualCount;
 
             if (ringBufferIndexItem < 0) return;
@@ -734,7 +398,7 @@ class TreeViewComponent_v2 {
 
             // See comment "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" for more information.
             let ringBufferIndexItem = ((this.cursorIndex)) - this.currentVirtualIndex;
-            if (ringBufferIndexItem >= this.ringBufferLength || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
+            if (ringBufferIndexItem >= this.ringBuffer.length || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
             else ringBufferIndexItem = (ringBufferIndexItem + this.ringBufferIndexZero) % this.virtualCount;
 
             if (ringBufferIndexItem < 0) return;
@@ -776,7 +440,7 @@ class TreeViewComponent_v2 {
 
                     // See comment "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" for more information.
                     let ringBufferIndexItem = ((this.cursorIndex)) - this.currentVirtualIndex;
-                    if (ringBufferIndexItem >= this.ringBufferLength || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
+                    if (ringBufferIndexItem >= this.ringBuffer.length || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
                     else ringBufferIndexItem = (ringBufferIndexItem + this.ringBufferIndexZero) % this.virtualCount;
 
                     if (ringBufferIndexItem < 0) return;
@@ -791,7 +455,7 @@ class TreeViewComponent_v2 {
                     
                     // See comment "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" for more information.
                     let ringBufferIndexItem = ((this.cursorIndex)) - this.currentVirtualIndex;
-                    if (ringBufferIndexItem >= this.ringBufferLength || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
+                    if (ringBufferIndexItem >= this.ringBuffer.length || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
                     else ringBufferIndexItem = (ringBufferIndexItem + this.ringBufferIndexZero) % this.virtualCount;
 
                     if (ringBufferIndexItem < 0) return;
@@ -806,7 +470,7 @@ class TreeViewComponent_v2 {
                 
                 // See comment "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" for more information.
                 let ringBufferIndexItem = ((this.cursorIndex)) - this.currentVirtualIndex;
-                if (ringBufferIndexItem >= this.ringBufferLength || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
+                if (ringBufferIndexItem >= this.ringBuffer.length || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
                 else ringBufferIndexItem = (ringBufferIndexItem + this.ringBufferIndexZero) % this.virtualCount;
 
                 if (ringBufferIndexItem < 0) return;
@@ -841,69 +505,6 @@ class TreeViewComponent_v2 {
             this.virtualCount = Math.ceil(this.rootElement.offsetHeight / this.itemHeightNumber);
         }
     }
-
-    TREEVIEW_render_do_Cursor(index) {
-        // Determine the number without modifying styles so you can use this variable to determine the need to scroll into view without synchronous layout.
-        this.cursorTranslateYNumber = this.cursorIndex * this.itemHeightNumber;
-
-        // Preferably this hasn't changed thus the function immediately just returns.
-        this.ensure_boundingClientRect();
-        
-        // If no UI modifications were made prior that are still pending this might avoid a synchronous layout.
-        // TODO: If you touch the transform style first... I don't know what would happen it is a GPU related style... so I'm unsure.
-        //
-        if (this.cursorTranslateYNumber + (2 * this.itemHeightNumber) > this.scrollTop + this.boundingClientRect.height) {
-            let currentBottom = this.scrollTop + this.boundingClientRect.height;
-            let changeToMakeBottomTouch = this.cursorTranslateYNumber - currentBottom;
-            let entireValueToScrollBy = changeToMakeBottomTouch + (2 * this.itemHeightNumber);
-            this.scrollViewport.scrollBy(0, entireValueToScrollBy);
-        }
-        else if (this.cursorTranslateYNumber < this.scrollTop) {
-            this.scrollViewport.scrollBy(0, this.cursorTranslateYNumber - this.scrollTop);
-        }
-
-        // transform last for optimal state flagging of the modified DOM element
-        this.cursorElement.style.transform = `translateY(${this.cursorTranslateYNumber}px)`;
-    }
-
-    /**
-     * if (this.cursorIndex === index) return;
-     * 
-     * @param {*} index 
-     */
-    state_cursor_setIndex(index) {
-        if (this.cursorIndex === index) return;
-        this.cursorIndex = index;
-        this.TREEVIEW_render_request(TREEVIEWrenderKind_Cursor);
-    }
-
-    /**
-     * if (this.cursorIndex === index) return;
-     * 
-     * @param {*} indexItem 
-     */
-    state_cursor_validateIndex(indexItem) {
-        if (indexItem >= this.countAbstract) {
-            indexItem = this.countAbstract - 1;
-        }
-        if (indexItem < 0) {
-            indexItem = 0;
-        }
-        return indexItem;
-    }
-
-    measureBaseElement() {
-        this.offsetWidth = Math.floor(this.rootElement.offsetWidth);
-        this.offsetHeight = Math.floor(this.rootElement.offsetHeight);
-    }
-
-    /*
-    TODO: The TreeView after you resize it, you can continually scroll down and it keeps replacing more and more '~' lines
-          even if you've scrolled through everything already.
-          This is probably some kind of rounding error?
-          It porbably happens regardless of whether you resized
-          and more-so that you just happen to have hit the perfect height for it to happen?
-    */
 
     // tvnl_
 

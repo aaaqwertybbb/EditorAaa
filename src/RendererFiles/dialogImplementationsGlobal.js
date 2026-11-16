@@ -641,3 +641,49 @@ function Debug_treeViewComponent_v2_resizeCanvases() {
 
     treeViewComponent_v2_debug.virtualCount = Math.ceil(treeViewComponent_v2_debug.offsetHeight / treeViewComponent_v2_debug.itemHeightNumber);
 }
+
+function Debug_treeViewComponent_v2_renderLines(lower, upper, ringBufferIndex, new_lowerBound, new_loopLimit) {
+
+    const ctx = treeViewComponent_v2_debug.canvas.getContext('2d');
+    ctx.clearRect(0, 0, treeViewComponent_v2_debug.canvas.width, treeViewComponent_v2_debug.canvas.height);
+    ctx.fillStyle = '#d4d4d4';
+
+    let vertical = 0;
+
+    for (let i = lower; i < upper; i++) {
+        ringBufferIndex++;
+        if (ringBufferIndex >= treeViewComponent_v2_debug.virtualCount) {
+            ringBufferIndex -= treeViewComponent_v2_debug.virtualCount;
+        }
+
+        if (i >= new_lowerBound && i < new_loopLimit) {
+            if (i < treeViewComponent_v2_debug.countAbstract) {
+                const key = treeViewComponent_v2_debug.dataLiteral[i * treeViewComponent_v2_debug.fieldCount + treeViewComponent_v2_debug.keyOffset];
+                const nodeKind = treeViewComponent_v2_debug.dataLiteral[i * treeViewComponent_v2_debug.fieldCount + treeViewComponent_v2_debug.nodeKindOffset];
+                let name = treeViewComponent_v2_debug_stringsMapByPathId.get(key) ?? `unknown_${i}`;
+                let chevronRepresentation = ' ';
+                switch (nodeKind) {
+                    case TreeViewNodeKind_isExpandable_isExpanded:
+                        chevronRepresentation = '-';
+                        break;
+                    case TreeViewNodeKind_isExpandable_NOTisExpanded:
+                        chevronRepresentation = '+';
+                        break;
+                    case TreeViewNodeKind_NOTisExpandable_isExpanded:
+                        chevronRepresentation = '';
+                        break;
+                    case TreeViewNodeKind_NOTisExpandable_NOTisExpanded:
+                        chevronRepresentation = '';
+                        break;
+                }
+                treeViewComponent_v2_debug.lineCache[ringBufferIndex] = chevronRepresentation + name;
+            }
+            else {
+                treeViewComponent_v2_debug.lineCache[ringBufferIndex] = '~';
+            }
+        }
+
+        ctx.fillText(treeViewComponent_v2_debug.lineCache[ringBufferIndex], 0, vertical); // There's a max width argument in the fillText?
+        vertical += treeViewComponent_v2_debug.itemHeightNumber;
+    }
+}
