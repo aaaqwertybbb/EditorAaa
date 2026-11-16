@@ -923,11 +923,16 @@ The comments are hilarious, relatable, and honestly show good engineering intuit
 Here is what is actually happening under the hood in modern JS engines (like V8) regarding your specific heuristics, followed by how to clean up the code.
 
 1. What V8 Actually Does With Your Heuristics
-• Caching object properties (const VIRTUAL_COUNT = ...): Actually useful (sometimes), though V8 does it automatically. Modern JIT compilers use Loop-Invariant Code Motion (LICM) to hoist unchanging property lookups out of loops. However, because ctx.fillText() is a DOM/Canvas API call inside the loop, V8 might conservatively assume fillText has side effects that mutate treeViewComponent_v2_debug, preventing it from hoisting those lookups. Manually caching them guarantees they aren't re-read every iteration.
-• const vs. let for JIT & GC: Myth. Using const instead of let does not give V8 special optimization hints, nor does it affect how the Garbage Collector updates moved pointers during heap compaction. V8 tracks SSA (Static Single Assignment) form internally—if a let variable is never reassigned, V8 treats it identically to a const.
-• Hoisting globals to local scope (STRINGS_MAP_BY_PATH_ID): Slightly helpful. Reading a local variable on the stack/register is faster than traversing the scope chain to the global object. Again, JIT usually optimizes this away, so it's fine, just not magic.
+• Caching object properties (const VIRTUAL_COUNT = ...): Actually useful (sometimes), though V8 does it automatically. Modern JIT compilers use Loop-Invariant Code Motion (LICM) to
+  hoist unchanging property lookups out of loops. However, because ctx.fillText() is a DOM/Canvas API call inside the loop, V8 might conservatively assume fillText has side effects that
+  mutate treeViewComponent_v2_debug, preventing it from hoisting those lookups. Manually caching them guarantees they aren't re-read every iteration.
+• const vs. let for JIT & GC: Myth. Using const instead of let does not give V8 special optimization hints, nor does it affect how the Garbage Collector updates moved pointers during heap
+  compaction. V8 tracks SSA (Static Single Assignment) form internally—if a let variable is never reassigned, V8 treats it identically to a const.
+• Hoisting globals to local scope (STRINGS_MAP_BY_PATH_ID): Slightly helpful. Reading a local variable on the stack/register is faster than traversing the scope chain to the global object.
+  Again, JIT usually optimizes this away, so it's fine, just not magic.
 • Copying lineIndexUpper to const LINE_INDEX_UPPER: Completely redundant. lineIndexUpper is already a local parameter that is never mutated in the function. V8 already knows it is constant.
-• The real bottleneck: ctx.fillText(...) is a browser host call that rasterizes text onto a 2D canvas. Compared to the cost of fillText, every single JS micro-optimization above saves nanoseconds while fillText costs microseconds or milliseconds.
+• The real bottleneck: ctx.fillText(...) is a browser host call that rasterizes text onto a 2D canvas. Compared to the cost of fillText,
+  every single JS micro-optimization above saves nanoseconds while fillText costs microseconds or milliseconds.
 
 2. How to Clean Up the Comments
 Keeping rant-style TODO comments in personal or debug files is completely fine, especially when they remind you not to overcomplicate things.
@@ -950,8 +955,10 @@ const STRINGS_MAP_BY_PATH_ID = treeViewComponent_v2_debug_stringsMapByPathId;
 ```
 
 Bonus: Quick Answers to Your Other Notes
-• "There's a max width argument in the fillText?" Yes! ctx.fillText(text, x, y [, maxWidth]). If the rendered text exceeds maxWidth, the canvas will horizontally squish/scale the glyphs to fit rather than clipping them.
-• Canvas getContext('2d'): You are calling treeViewComponent_v2_debug.canvas.getContext('2d') on every frame. While browsers cache the context object internally, caching ctx once on your debug object when the canvas is created is cleaner than querying it every render.
+• "There's a max width argument in the fillText?" Yes! ctx.fillText(text, x, y [, maxWidth]). If the rendered text exceeds maxWidth,
+  the canvas will horizontally squish/scale the glyphs to fit rather than clipping them.
+• Canvas getContext('2d'): You are calling treeViewComponent_v2_debug.canvas.getContext('2d') on every frame. While browsers cache the context object internally,
+  caching ctx once on your debug object when the canvas is created is cleaner than querying it every render.
 
 Would you like to look at benchmarking this render loop with performance.now(), or discuss ways to optimize the ctx.fillText canvas rendering itself?
 
@@ -967,11 +974,14 @@ Would you like to look at benchmarking this render loop with performance.now(), 
 <
 No, the returned context object never changes for the lifetime of that <canvas> element.
 
-Per the HTML Canvas specification, canvas.getContext('2d') creates a CanvasRenderingContext2D instance the very first time it is called on a specific canvas element, and every subsequent call on that same element simply returns a reference to that exact same object.
+Per the HTML Canvas specification, canvas.getContext('2d') creates a CanvasRenderingContext2D instance the very first time it is called on a specific canvas element,
+and every subsequent call on that same element simply returns a reference to that exact same object.
 
 Why it matters (slightly)
-• Same reference: canvas.getContext('2d') === canvas.getContext('2d') is always true. Even if you resize the canvas (canvas.width = ...), the context object stays the same (though resizing resets its internal state like fillStyle and font).
-• Unnecessary C++ boundary crossing: Because canvas is a DOM element, calling .getContext('2d') crosses the bridge from JavaScript into the browser's C++ engine on every frame just to look up and return that cached pointer.
+• Same reference: canvas.getContext('2d') === canvas.getContext('2d') is always true. Even if you resize the canvas (canvas.width = ...),
+  the context object stays the same (though resizing resets its internal state like fillStyle and font).
+• Unnecessary C++ boundary crossing: Because canvas is a DOM element, calling .getContext('2d') crosses the bridge from
+  JavaScript into the browser's C++ engine on every frame just to look up and return that cached pointer.
 
 What to do instead
 
@@ -985,14 +995,26 @@ treeViewComponent_v2_debug.ctx = canvas.getContext('2d');
 const ctx = treeViewComponent_v2_debug.ctx;
 ```
 
-It saves a tiny bit of DOM overhead every frame and makes the render function cleaner. (If treeViewComponent_v2_debug.canvas ever gets swapped out for a completely new <canvas> DOM node, you'd just update .ctx at the same time.)
+It saves a tiny bit of DOM overhead every frame and makes the render function cleaner. (If treeViewComponent_v2_debug.canvas ever gets swapped out for a completely new <canvas> DOM node,
+you'd just update .ctx at the same time.)
 
 Would you like to look at other Canvas 2D state-caching tricks (like avoiding redundant fillStyle assignments or resizing resets)?
 
 
 
 
+========
 
+Pewdiepie has a video where he mentions that in the previous videos the comment section was obsessing over how his headset
+had an uneven amount of notches on the left and right side.
+
+He said something like "everything is so perfect in your life that you can't handle one little imperfection".
+He said it playfully and etc... but nevertheless I think about this a lot.
+
+Is neurotic behavior a result of what Pewdiepie said, or is it because so much is wrong with your life, that when given the chance to control
+that one little variable you feel this unsatiable desire and unbearable anxiety until you've remedied the scenario.
+
+Or is it something else? or is it?
 
 
 
