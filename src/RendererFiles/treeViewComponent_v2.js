@@ -290,15 +290,7 @@ class TreeViewComponent_v2 {
         let indexItem = Math.floor(rY / this.itemHeightNumber);
         indexItem = this.state_cursor_validateIndex(indexItem);
 
-        // TODO: This "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" feels quite asinine in most scenarios...
-        // ...anywhere it matters a lot you'd actually be doing non-modulo invocations i.e.: any loops would actually be doing non-modulo arithmetic by just incrementing or decrementing and checking overflow/underflow
-        // ...this makes the code harder to read, more complex, and more verbose.
-        // ... As well you have a monolithic module so this code size may or may not be of a meaningful quanitity given how you have it all over the place you're adding like at least 5% of the code of the file right? these are are everywhere idk.
-        //
-        // See comment "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" for more information.
-        let ringBufferIndexItem = ((indexItem)) - this.currentVirtualIndex;
-        if (ringBufferIndexItem >= this.virtualCount || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
-        else ringBufferIndexItem = (ringBufferIndexItem + this.ringBufferIndexZero) % this.virtualCount;
+        let ringBufferIndexItem = this.toRingBufferIndex(indexItem);
         if (ringBufferIndexItem < 0) return;
 
         let divItem = this.lineCache[ringBufferIndexItem];
@@ -349,23 +341,27 @@ class TreeViewComponent_v2 {
         let indexItem = Math.floor(rY / this.itemHeightNumber);
         indexItem = this.state_cursor_validateIndex(indexItem);
 
-        // See comment "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" for more information.
-        let ringBufferIndexItem = ((indexItem)) - this.currentVirtualIndex;
-        if (ringBufferIndexItem >= this.ringBuffer.length || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
-        else ringBufferIndexItem = (ringBufferIndexItem + this.ringBufferIndexZero) % this.virtualCount;
-
+        let ringBufferIndexItem = this.toRingBufferIndex(indexItem);
         if (ringBufferIndexItem < 0) return;
+
         let divItem = this.ringBuffer[ringBufferIndexItem];
 
         // if not clicked "chevron"
         if (event_target !== divItem.children[0]) {
-            // See comment "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" for more information.
-            let ringBufferIndexItem = ((this.cursorIndex)) - this.currentVirtualIndex;
-            if (ringBufferIndexItem >= this.ringBuffer.length || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
-            else ringBufferIndexItem = (ringBufferIndexItem + this.ringBufferIndexZero) % this.virtualCount;
+            
 
             if (ringBufferIndexItem < 0) return;
             return this.director.tvd_ondblclick_async(this.ringBuffer[ringBufferIndexItem], this.cursorIndex);
+        }
+    }
+
+    toRingBufferIndex(itemIndex) {
+        let virtualIndex = itemIndex - this.currentVirtualIndex;
+        if (virtualIndex >= this.ringBuffer.length || virtualIndex < 0) {
+            virtualIndex = -1;
+        }
+        else {
+            return (virtualIndex + this.ringBufferIndexZero) % this.virtualCount;
         }
     }
 
@@ -380,12 +376,9 @@ class TreeViewComponent_v2 {
 
             // TODO: you need to move this above the divItem assignment and do checks earlier... double check all other uses
 
-            // See comment "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" for more information.
-            let ringBufferIndexItem = ((this.cursorIndex)) - this.currentVirtualIndex;
-            if (ringBufferIndexItem >= this.ringBuffer.length || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
-            else ringBufferIndexItem = (ringBufferIndexItem + this.ringBufferIndexZero) % this.virtualCount;
-
+            let ringBufferIndexItem = this.toRingBufferIndex(this.cursorIndex);
             if (ringBufferIndexItem < 0) return;
+
             return this.director.tvd_oncontextmenu_async(this.ringBuffer[ringBufferIndexItem], this.cursorIndex, event_button, event_clientX, event_clientY, ringBufferIndexItem);
         }
         else {
@@ -396,11 +389,7 @@ class TreeViewComponent_v2 {
             this.state_cursor_setIndex(this.state_cursor_validateIndex(
                 this.cursorIndex));
 
-            // See comment "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" for more information.
-            let ringBufferIndexItem = ((this.cursorIndex)) - this.currentVirtualIndex;
-            if (ringBufferIndexItem >= this.ringBuffer.length || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
-            else ringBufferIndexItem = (ringBufferIndexItem + this.ringBufferIndexZero) % this.virtualCount;
-
+            let ringBufferIndexItem = this.toRingBufferIndex(this.cursorIndex);
             if (ringBufferIndexItem < 0) return;
 
             // TODO: Handle context menu with keyboard when active node is out of view
@@ -438,12 +427,9 @@ class TreeViewComponent_v2 {
 
                     // TODO: 'ArrowRight' when the cursor is on a valid item but isn't part of the virtualization result.
 
-                    // See comment "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" for more information.
-                    let ringBufferIndexItem = ((this.cursorIndex)) - this.currentVirtualIndex;
-                    if (ringBufferIndexItem >= this.ringBuffer.length || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
-                    else ringBufferIndexItem = (ringBufferIndexItem + this.ringBufferIndexZero) % this.virtualCount;
-
+                    let ringBufferIndexItem = this.toRingBufferIndex(this.cursorIndex);
                     if (ringBufferIndexItem < 0) return;
+
                     return this.director.tvd_arrowRight_async(this.ringBuffer[ringBufferIndexItem], this.cursorIndex);
                 }
                 return;
@@ -453,12 +439,9 @@ class TreeViewComponent_v2 {
                     this.state_cursor_setIndex(this.state_cursor_validateIndex(
                         this.cursorIndex));
                     
-                    // See comment "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" for more information.
-                    let ringBufferIndexItem = ((this.cursorIndex)) - this.currentVirtualIndex;
-                    if (ringBufferIndexItem >= this.ringBuffer.length || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
-                    else ringBufferIndexItem = (ringBufferIndexItem + this.ringBufferIndexZero) % this.virtualCount;
-
+                    let ringBufferIndexItem = this.toRingBufferIndex(this.cursorIndex);
                     if (ringBufferIndexItem < 0) return;
+
                     return this.director.tvd_arrowLeft_async(this.ringBuffer[ringBufferIndexItem], this.cursorIndex);
                 }
             	return;
@@ -468,12 +451,9 @@ class TreeViewComponent_v2 {
                 this.state_cursor_setIndex(this.state_cursor_validateIndex(
                     this.cursorIndex));
                 
-                // See comment "Awkward explicit inlining of 'this.indexItemTo_ringBufferIndexItem'" for more information.
-                let ringBufferIndexItem = ((this.cursorIndex)) - this.currentVirtualIndex;
-                if (ringBufferIndexItem >= this.ringBuffer.length || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
-                else ringBufferIndexItem = (ringBufferIndexItem + this.ringBufferIndexZero) % this.virtualCount;
-
+                let ringBufferIndexItem = this.toRingBufferIndex(this.cursorIndex);
                 if (ringBufferIndexItem < 0) return;
+
                 return this.director.tvd_onkeydown_async(this.ringBuffer[ringBufferIndexItem], this.cursorIndex, event.key);
         }
     }
