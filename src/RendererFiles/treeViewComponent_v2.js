@@ -268,14 +268,12 @@ class TreeViewComponent_v2 {
             diff = 0;
         }
 
-        const lower = this.currentVirtualIndex;
-        const upper = this.currentVirtualIndex + this.virtualCount;
-
-        const decodingBoundUpper = decodingBoundLower + diff;
-
-        let ringBufferIndex = this.ringBufferIndexZero - 1;
-
-        this.renderLines(lower, upper, ringBufferIndex, decodingBoundLower, decodingBoundUpper);
+        this.renderLines(
+            this.currentVirtualIndex /*lower*/,
+            this.currentVirtualIndex + this.virtualCount /*upper*/,
+            this.ringBufferIndexZero - 1 /*ringBufferIndex*/,
+            decodingBoundLower,
+            decodingBoundLower + diff /*decodingBoundUpper*/);
     }
 
     /**
