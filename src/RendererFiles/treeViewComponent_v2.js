@@ -146,6 +146,7 @@ class TreeViewComponent_v2 {
         this.visualCanvas = document.createElement('div');
         this.visualCanvas.className = 'TREEVIEW_visual_canvas';
         this.canvas = document.createElement('canvas');
+        this.canvasContext2d = this.canvas.getContext('2d');
         this.visualCanvas.appendChild(this.canvas);
         this.rootElement.appendChild(this.visualCanvas);
 

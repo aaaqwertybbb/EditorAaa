@@ -644,7 +644,7 @@ function Debug_treeViewComponent_v2_resizeCanvases() {
 
 function Debug_treeViewComponent_v2_renderLines(lineIndexLower, lineIndexUpper, ringBufferIndex, decodingBoundLower, decodingBoundUpper) {
 
-    const ctx = treeViewComponent_v2_debug.canvas.getContext('2d');
+    const ctx = treeViewComponent_v2_debug.canvasContext2d;
     ctx.clearRect(0, 0, treeViewComponent_v2_debug.canvas.width, treeViewComponent_v2_debug.canvas.height);
     ctx.fillStyle = '#d4d4d4';
 
