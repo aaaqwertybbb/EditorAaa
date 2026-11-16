@@ -958,6 +958,48 @@ Would you like to look at benchmarking this render loop with performance.now(), 
 
 
 
+>
+`You are calling treeViewComponent_v2_debug.canvas.getContext('2d')` what do you mean by this. Does the returned context ever change?
+
+
+
+
+<
+No, the returned context object never changes for the lifetime of that <canvas> element.
+
+Per the HTML Canvas specification, canvas.getContext('2d') creates a CanvasRenderingContext2D instance the very first time it is called on a specific canvas element, and every subsequent call on that same element simply returns a reference to that exact same object.
+
+Why it matters (slightly)
+• Same reference: canvas.getContext('2d') === canvas.getContext('2d') is always true. Even if you resize the canvas (canvas.width = ...), the context object stays the same (though resizing resets its internal state like fillStyle and font).
+• Unnecessary C++ boundary crossing: Because canvas is a DOM element, calling .getContext('2d') crosses the bridge from JavaScript into the browser's C++ engine on every frame just to look up and return that cached pointer.
+
+What to do instead
+
+Store ctx right next to canvas when you initialize treeViewComponent_v2_debug:
+```js
+// During setup:
+treeViewComponent_v2_debug.canvas = canvas;
+treeViewComponent_v2_debug.ctx = canvas.getContext('2d');
+
+// Inside your render function:
+const ctx = treeViewComponent_v2_debug.ctx;
+```
+
+It saves a tiny bit of DOM overhead every frame and makes the render function cleaner. (If treeViewComponent_v2_debug.canvas ever gets swapped out for a completely new <canvas> DOM node, you'd just update .ctx at the same time.)
+
+Would you like to look at other Canvas 2D state-caching tricks (like avoiding redundant fillStyle assignments or resizing resets)?
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
