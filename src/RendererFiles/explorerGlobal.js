@@ -309,48 +309,6 @@ function EXPLORER_addSpecificMenuOptionsForTarget(optionList, divItem, target) {
     }
 }
 
-function EXPLORER_event_contextmenu(event) {
-    const event_button = event.button;
-    const event_clientX = event.clientX;
-    const event_clientY = event.clientY;
-
-    EXPLORER_ensure_boundingClientRect();
-
-    if (event_button === 2) {
-        const rY = event_clientY - INTS[fEXPLORER_boundingClientRect_top] + INTS[fEXPLORER_lastReadNumber_scrollTop];
-
-        EXPLORER_state_cursor_setIndex(EXPLORER_state_cursor_validateIndex(
-            Math.floor(rY / INTS[fEXPLORER_itemHeightNumber])));
-
-        // TODO: you need to move this above the divItem assignment and do checks earlier... double check all other uses
-
-        // See comment "Awkward explicit inlining of 'EXPLORER_indexItemTo_ringBufferIndexItem'" for more information.
-        let ringBufferIndexItem = ((INTS[fEXPLORER_cursorIndex])) - INTS[fEXPLORER_virtualIndex_ofScrollTop];
-        if (ringBufferIndexItem >= INTS[fEXPLORER_ringBuffer_length] || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
-        else ringBufferIndexItem = (ringBufferIndexItem + INTS[fEXPLORER_ringBufferIndexZero]) % INTS[fEXPLORER_virtualCount];
-        if (ringBufferIndexItem < 0) return;
-
-        EXPLORER_oncontextmenu(EXPLORER_ringBuffer[ringBufferIndexItem], INTS[fEXPLORER_cursorIndex], event_button, event_clientX, event_clientY, ringBufferIndexItem);
-    }
-    else {
-        if (INTS[fEXPLORER_cursorIndex] >= EXPLORER_treeViewNodes.count_abstract) {
-            return;
-        }
-
-        EXPLORER_state_cursor_setIndex(EXPLORER_state_cursor_validateIndex(
-            INTS[fEXPLORER_cursorIndex]));
-
-        // See comment "Awkward explicit inlining of 'EXPLORER_indexItemTo_ringBufferIndexItem'" for more information.
-        let ringBufferIndexItem = ((INTS[fEXPLORER_cursorIndex])) - INTS[fEXPLORER_virtualIndex_ofScrollTop];
-        if (ringBufferIndexItem >= INTS[fEXPLORER_ringBuffer_length] || ringBufferIndexItem < 0) ringBufferIndexItem = -1;
-        else ringBufferIndexItem = (ringBufferIndexItem + INTS[fEXPLORER_ringBufferIndexZero]) % INTS[fEXPLORER_virtualCount];
-        if (ringBufferIndexItem < 0) return;
-
-        // TODO: Handle context menu with keyboard when active node is out of view
-        EXPLORER_oncontextmenu(EXPLORER_ringBuffer[ringBufferIndexItem], INTS[fEXPLORER_cursorIndex], event_button, event_clientX, event_clientY, ringBufferIndexItem);
-    }
-}
-
 /*
 TODO: The TreeView after you resize it, you can continually scroll down and it keeps replacing more and more '~' lines
         even if you've scrolled through everything already.
