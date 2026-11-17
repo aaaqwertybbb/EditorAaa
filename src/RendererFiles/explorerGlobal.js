@@ -16,25 +16,24 @@ NO ASYNC EVENTS
 - higher likelihood of memory leaking PerformanceEventTiming due to inability for browser to clear buffer on time requiring manual clearing of the long term buffer.
 */
 
-const treeViewComponent_v2_debug_stringsMapByPathId = new Map();
+const EXPLORER_pathIdToDisplayNameMap = new Map();
 
 /**
  * @type {TreeViewComponent_v2}
  */
-const treeViewComponent_v2_debug = new TreeViewComponent_v2(16, treeViewComponent_v2_staticRunner, EXPLORER_renderLines, EXPLORER_expandCollapseIconWasClicked, EXPLORER_dblClick_or_space_or_enter);
-treeViewComponent_v2_debug.initialize(document.getElementById('EXPLORER'), null);
-
+const EXPLORER_treeViewComponent = new TreeViewComponent_v2(16, treeViewComponent_v2_staticRunner, EXPLORER_renderLines, EXPLORER_expandCollapseIconWasClicked, EXPLORER_dblClick_or_space_or_enter);
+EXPLORER_treeViewComponent.initialize(document.getElementById('EXPLORER'), null);
 
 function EXPLORER_setChosenDirectory(chosenDirectoryAbsolutePath, chosenDirectoryBasename, chosenDirectoryAbsolutePathId) {
-    treeViewComponent_v2_debug_stringsMapByPathId.clear();
+    EXPLORER_pathIdToDisplayNameMap.clear();
     if (!chosenDirectoryAbsolutePath) return;
 
-    treeViewComponent_v2_debug.insert(treeViewComponent_v2_debug.countAbstract, TreeViewNodeKind_isExpandable_NOTisExpanded, chosenDirectoryAbsolutePathId, 0);
-    treeViewComponent_v2_debug_stringsMapByPathId.set(chosenDirectoryAbsolutePathId, chosenDirectoryBasename);
+    EXPLORER_treeViewComponent.insert(EXPLORER_treeViewComponent.countAbstract, TreeViewNodeKind_isExpandable_NOTisExpanded, chosenDirectoryAbsolutePathId, 0);
+    EXPLORER_pathIdToDisplayNameMap.set(chosenDirectoryAbsolutePathId, chosenDirectoryBasename);
 }
 
 function EXPLORER_setChosenWorkspace(chooseWorkspaceResult) {
-    treeViewComponent_v2_debug_stringsMapByPathId.clear();
+    EXPLORER_pathIdToDisplayNameMap.clear();
     if (!chooseWorkspaceResult.workspaceFileAbsolutePath) return;
 
     if (chooseWorkspaceResult.workspaceFileAbsolutePath === "C:\\Users\\hunte\\Repos\\New folder (7)\\Editor2.code-workspace") {
@@ -47,15 +46,15 @@ function EXPLORER_setChosenWorkspace(chooseWorkspaceResult) {
 
     for (let i = 0; i < chooseWorkspaceResult.directories.length; i++) {
         const directory = chooseWorkspaceResult.directories[i];
-        treeViewComponent_v2_debug.insert(treeViewComponent_v2_debug.countAbstract, TreeViewNodeKind_isExpandable_NOTisExpanded, directory.id, 0);
-        treeViewComponent_v2_debug_stringsMapByPathId.set(directory.id, directory.basename);
+        EXPLORER_treeViewComponent.insert(EXPLORER_treeViewComponent.countAbstract, TreeViewNodeKind_isExpandable_NOTisExpanded, directory.id, 0);
+        EXPLORER_pathIdToDisplayNameMap.set(directory.id, directory.basename);
     }
 }
 
 function EXPLORER_renderLines(lineIndexLower, lineIndexUpper, ringBufferIndex, decodingBoundLower, decodingBoundUpper) {
 
-    const ctx = treeViewComponent_v2_debug.canvasContext2d;
-    ctx.clearRect(0, 0, treeViewComponent_v2_debug.canvas.width, treeViewComponent_v2_debug.canvas.height);
+    const ctx = EXPLORER_treeViewComponent.canvasContext2d;
+    ctx.clearRect(0, 0, EXPLORER_treeViewComponent.canvas.width, EXPLORER_treeViewComponent.canvas.height);
     
     let vertical = 0;
 
@@ -65,22 +64,22 @@ function EXPLORER_renderLines(lineIndexLower, lineIndexUpper, ringBufferIndex, d
     //
     /** Optimization heuristic goal: assumedly reduce reference chasing by creating a const reference to fields that are frequently accessed via a member access on a reference variable. It is rumored that this permits loop optimization. */
     /** Optimization heuristic goal: similarly^ assumedly improve caching by explicitly telling the code generator that the reference which 'foo' points to "will not change". In garbage collection, when defragmenting the heap every reference to an object that was repositioned needs to have its reference updated to point to the new location of the object, so I'm not quite sure how this works out idk. It is rumored that this permits loop optimization. */
-    const VIRTUAL_COUNT = treeViewComponent_v2_debug.virtualCount;
-    const COUNT_ABSTRACT = treeViewComponent_v2_debug.countAbstract;
-    const LINE_CACHE = treeViewComponent_v2_debug.lineCache;
-    const ITEM_HEIGHT_NUMBER = treeViewComponent_v2_debug.itemHeightNumber;
+    const VIRTUAL_COUNT = EXPLORER_treeViewComponent.virtualCount;
+    const COUNT_ABSTRACT = EXPLORER_treeViewComponent.countAbstract;
+    const LINE_CACHE = EXPLORER_treeViewComponent.lineCache;
+    const ITEM_HEIGHT_NUMBER = EXPLORER_treeViewComponent.itemHeightNumber;
     /** Optimization heuristic goal: This one specifically is to bring this global scope variable into local scope rather than relying on caching alone this ought to signal further the importance of the variable being cached. It is rumored that this permits loop optimization. */
-    const STRINGS_MAP_BY_PATH_ID = treeViewComponent_v2_debug_stringsMapByPathId;
+    const STRINGS_MAP_BY_PATH_ID = EXPLORER_pathIdToDisplayNameMap;
 
     /** Optimization heuristic goal: make the upper bound a constant, and do not modify 'i' within the loop, have not measured if this is truly impactful. It is rumored that this permits loop optimization. */
     const LINE_INDEX_UPPER = lineIndexUpper;
 
     // --- STEP 2: RENDER ACTIVE SOLID CURSOR LINE ---
     ctx.fillStyle = '#3f7581'; // Solid cursor accent color
-    const cursorLine = treeViewComponent_v2_debug.cursorIndex;
+    const cursorLine = EXPLORER_treeViewComponent.cursorIndex;
     if (cursorLine >= lineIndexLower && cursorLine < lineIndexUpper) {
-        const cursorY = (cursorLine - lineIndexLower) * treeViewComponent_v2_debug.itemHeightNumber;
-        ctx.fillRect(0, cursorY, treeViewComponent_v2_debug.canvas.width, treeViewComponent_v2_debug.itemHeightNumber);
+        const cursorY = (cursorLine - lineIndexLower) * EXPLORER_treeViewComponent.itemHeightNumber;
+        ctx.fillRect(0, cursorY, EXPLORER_treeViewComponent.canvas.width, EXPLORER_treeViewComponent.itemHeightNumber);
     }
 
     ctx.fillStyle = '#d4d4d4';
@@ -96,7 +95,7 @@ function EXPLORER_renderLines(lineIndexLower, lineIndexUpper, ringBufferIndex, d
 
         if (i >= decodingBoundLower && i < decodingBoundUpper) {
             if (i < COUNT_ABSTRACT) {
-                treeViewComponent_v2_debug.getElementAt(i);
+                EXPLORER_treeViewComponent.getElementAt(i);
                 const key = INTS[fTreeView_poolret_pooledNode_key];
                 const depth = INTS[fTreeView_poolret_pooledNode_depth];
                 const nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
@@ -120,7 +119,7 @@ function EXPLORER_renderLines(lineIndexLower, lineIndexUpper, ringBufferIndex, d
                 // I see what I was doing here now. I don't want to query depth in order to render something that was already cached with respect to text...
                 // ...ummm TODO: decide on this, maybe you should just query depth in order to render something.
                 if (previousDepthStringDepth !== depth) { // TODO: this is probably premature and unmeasured optimization that can thrash and provide no benefit when alternating back and forth between depth values.
-                    previousDepthString = ' '.repeat(depth * treeViewComponent_v2_debug.offsetPerDepthInCharacterWidths);
+                    previousDepthString = ' '.repeat(depth * EXPLORER_treeViewComponent.offsetPerDepthInCharacterWidths);
                     previousDepthStringDepth = depth;
                 }
                 LINE_CACHE[ringBufferIndex] = previousDepthString + chevronRepresentation + name;
@@ -136,13 +135,13 @@ function EXPLORER_renderLines(lineIndexLower, lineIndexUpper, ringBufferIndex, d
 }
 
 async function EXPLORER_expandCollapseIconWasClicked(divItem, indexItem, ringBufferIndexItem) {
-    treeViewComponent_v2_debug.getElementAt(indexItem);
+    EXPLORER_treeViewComponent.getElementAt(indexItem);
     const key = INTS[fTreeView_poolret_pooledNode_key];
     const depth = INTS[fTreeView_poolret_pooledNode_depth];
     const nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
 
     if (nodeKind === TreeViewNodeKind_isExpandable_NOTisExpanded) {
-        treeViewComponent_v2_debug.setNodeKind(indexItem, TreeViewNodeKind_isExpandable_isExpanded);
+        EXPLORER_treeViewComponent.setNodeKind(indexItem, TreeViewNodeKind_isExpandable_isExpanded);
 
         const childFilesystemEntries = await window.myAPI.getFilesystemEntries_argumentIsId(key);
         const insertionCount = childFilesystemEntries.length;
@@ -154,23 +153,23 @@ async function EXPLORER_expandCollapseIconWasClicked(divItem, indexItem, ringBuf
                 ? TreeViewNodeKind_isExpandable_NOTisExpanded
                 : TreeViewNodeKind_NOTisExpandable_NOTisExpanded;
             // TODO: Insert range, or at the least 'pre-emptively' resize the list so that it fits each insertion without resizing per insertion.
-            treeViewComponent_v2_debug.insert(indexItem + 1 + i, nodeKind, entry.id, depth + 1);
-            treeViewComponent_v2_debug_stringsMapByPathId.set(entry.id, entry.basename);
+            EXPLORER_treeViewComponent.insert(indexItem + 1 + i, nodeKind, entry.id, depth + 1);
+            EXPLORER_pathIdToDisplayNameMap.set(entry.id, entry.basename);
         }
 
-        treeViewComponent_v2_debug.itemHeightTotal = treeViewComponent_v2_debug.countAbstract * treeViewComponent_v2_debug.itemHeightNumber;
-        treeViewComponent_v2_debug.scrollbarSpaceGenerator.style.height = treeViewComponent_v2_debug.itemHeightTotal + 'px';
+        EXPLORER_treeViewComponent.itemHeightTotal = EXPLORER_treeViewComponent.countAbstract * EXPLORER_treeViewComponent.itemHeightNumber;
+        EXPLORER_treeViewComponent.scrollbarSpaceGenerator.style.height = EXPLORER_treeViewComponent.itemHeightTotal + 'px';
 
-        treeViewComponent_v2_debug.forceFullscreen_renderScroll();
+        EXPLORER_treeViewComponent.forceFullscreen_renderScroll();
     }
     else if (nodeKind === TreeViewNodeKind_isExpandable_isExpanded) {
-        treeViewComponent_v2_debug.setNodeKind(indexItem, TreeViewNodeKind_isExpandable_NOTisExpanded);
-        treeViewComponent_v2_debug.forceFullscreen_renderScroll();
+        EXPLORER_treeViewComponent.setNodeKind(indexItem, TreeViewNodeKind_isExpandable_NOTisExpanded);
+        EXPLORER_treeViewComponent.forceFullscreen_renderScroll();
 
         let countChildren = 0;
-        for (let i = indexItem + 1; i < treeViewComponent_v2_debug.countAbstract; i++) {
+        for (let i = indexItem + 1; i < EXPLORER_treeViewComponent.countAbstract; i++) {
             // If currentDepth < ithElementDepth; // then current is a parent of ithElement.
-            if (depth < treeViewComponent_v2_debug.getDepth(i)) {
+            if (depth < EXPLORER_treeViewComponent.getDepth(i)) {
                 countChildren++;
             }
             else {
@@ -180,17 +179,17 @@ async function EXPLORER_expandCollapseIconWasClicked(divItem, indexItem, ringBuf
 
         if (countChildren === 0) { return; }
 
-        treeViewComponent_v2_debug.removeAt(indexItem + 1, countChildren);
+        EXPLORER_treeViewComponent.removeAt(indexItem + 1, countChildren);
         
-        treeViewComponent_v2_debug.itemHeightTotal = treeViewComponent_v2_debug.countAbstract * treeViewComponent_v2_debug.itemHeightNumber;
-        treeViewComponent_v2_debug.scrollbarSpaceGenerator.style.height = treeViewComponent_v2_debug.itemHeightTotal + 'px';
+        EXPLORER_treeViewComponent.itemHeightTotal = EXPLORER_treeViewComponent.countAbstract * EXPLORER_treeViewComponent.itemHeightNumber;
+        EXPLORER_treeViewComponent.scrollbarSpaceGenerator.style.height = EXPLORER_treeViewComponent.itemHeightTotal + 'px';
 
-        treeViewComponent_v2_debug.forceFullscreen_renderScroll();
+        EXPLORER_treeViewComponent.forceFullscreen_renderScroll();
     }
 }
 
 async function EXPLORER_dblClick_or_space_or_enter(eventKey, indexItem, ringBufferIndexItem) {
-    treeViewComponent_v2_debug.getElementAt(indexItem);
+    EXPLORER_treeViewComponent.getElementAt(indexItem);
     let key = INTS[fTreeView_poolret_pooledNode_key];
     let nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
 
@@ -494,7 +493,7 @@ async function EXPLORER_pickFolderOrWorkspaceButton_MenuOnClick(isCancelled, men
                 EXPLORER_PickFolder.title = chosenDirectoryAbsolutePath;
     
                 EXPLORER_setChosenDirectory(chosenDirectoryAbsolutePath, chooseDirectoryResult.basename, chooseDirectoryResult.id);
-                treeViewComponent_v2_debug.resetTheUi();
+                EXPLORER_treeViewComponent.resetTheUi();
             }
             break;
         case CommandKind_SelectWorkspace:
@@ -512,7 +511,7 @@ async function EXPLORER_pickFolderOrWorkspaceButton_MenuOnClick(isCancelled, men
                 pickWorkspaceButton.title = chooseWorkspaceResult.workspaceFileAbsolutePath;
     
                 EXPLORER_setChosenWorkspace(chooseWorkspaceResult);
-                treeViewComponent_v2_debug.resetTheUi();
+                EXPLORER_treeViewComponent.resetTheUi();
             }
             break;
     }
