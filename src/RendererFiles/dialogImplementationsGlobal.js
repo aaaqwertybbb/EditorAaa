@@ -575,12 +575,22 @@ function DIALOG_Debug_treeViewComponent_v2_Create() {
     let dialogBody = document.getElementById('DIALOG_body');
     if (!dialogBody) return;
 
-    if (EXPLORER_chosenWorkspace === -1) {
+    if (EXPLORER_chosenWorkspace === -1 || treeViewComponent_v2_debug === null || treeViewComponent_v2_debug === undefined) {
+        let errorMessage;
+        if (EXPLORER_chosenWorkspace === -1) {
+            errorMessage = 'EXPLORER_chosenWorkspace === -1';
+        }
+        else if (treeViewComponent_v2_debug === null) {
+            errorMessage = 'treeViewComponent_v2_debug === null';
+        }
+        else if (treeViewComponent_v2_debug === undefined) {
+            errorMessage = 'treeViewComponent_v2_debug === undefined';
+        }
         const div = document.createElement('div');
         div.id = 'Debug_treeViewComponent_v2_div';
         div.style.marginTop = APP_lineHeightStringWithPx; // Dialog looks jank at the moment I'm gonna just do this so I can read the text
         div.style.height = APP_lineHeightStringWithPx;
-        div.appendChild(document.createTextNode('EXPLORER_chosenWorkspace === -1'));
+        div.appendChild(document.createTextNode(errorMessage));
         dialogBody.appendChild(div);
         return;
     }

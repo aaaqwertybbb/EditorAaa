@@ -287,6 +287,16 @@ class TreeViewComponent_v2 {
             decodingBoundLower + diff /*decodingBoundUpper*/);
     }
 
+    /** TODO: Consider moving the cursor to its own canvas. */
+    renderCursor() {
+        this.renderLines(
+            this.currentVirtualIndex /*lower*/,
+            this.currentVirtualIndex + this.virtualCount /*upper*/,
+            this.ringBufferIndexZero - 1 /*ringBufferIndex*/,
+            0 /*decodingBoundLower*/,
+            0 /*decodingBoundUpper*/);
+    }
+
     /**
      * TODO: To detect whether the "expand/collapse icon" was clicked, the logic 'if(event.target === nodeElement.children[0])' is used...
      * ...this logic is flawed if one ever were to put an element within the span that became the target...
@@ -315,6 +325,7 @@ class TreeViewComponent_v2 {
         }
         else {
             this.cursorIndex = indexItem;
+            this.renderCursor();
         }
     }
 
