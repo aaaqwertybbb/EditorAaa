@@ -79,6 +79,9 @@ class TreeViewComponent_v2_staticRunner {
                 case TREEVIEWrenderKind_Cursor:
                     component.TreeViewComponent_v2_render_do_Cursor();
                     break;
+                case TREEVIEWrenderKind_Resize:
+                    component.renderResize();
+                    break;
                 // ... remaining cases
             }
         }
@@ -184,6 +187,7 @@ class TreeViewComponent_v2 {
         // Bind once in constructor so ... doesn't allocate a closure per ...
         this.eventScroll = this.event_scroll.bind(this);
         this.eventClick = this.event_click.bind(this);
+        this.eventResize = this.event_windowResize.bind(this);
 
         // tvnl_
 
@@ -216,19 +220,26 @@ class TreeViewComponent_v2 {
 
     draw_addEvents() {
         this.scrollViewport.addEventListener('scroll', this.eventScroll, { passive: true });
+        // TODO: put events on 'this.visualCanvas' maybe?...
+        // ...in 'measure' function you getBoundingClient rect of 'visualCanvas'.
+        // The old code in this class got the 'left' and 'top' from 'rootElement' via 'this.rootElement.getBoundingClientRect();'.
+        // This incosistency should be resolved so you don't redundantly 'getBoundingClientRect()' of both (which is likely redundant if not one being more correct than the other).
         this.rootElement.addEventListener('click', this.eventClick);
+
+        window.addEventListener('resize', this.eventResize);
     }
     
     draw_removeEvents() {
         this.scrollViewport.removeEventListener('scroll', this.eventScroll, { passive: true });
         this.rootElement.removeEventListener('click', this.eventClick);
 
+        window.removeEventListener('resize', this.eventClick);
+
         //this.rootElement.removeEventListener('click', this);
         //this.rootElement.removeEventListener('keydown', this);
         //this.scrollViewport.removeEventListener('scroll', this, { passive: true });
         //this.rootElement.addEventListener('dblclick', this);
         //this.rootElement.addEventListener('contextmenu', this);
-        //window.removeEventListener('resize', this);
     }
 
     forceFullscreen_renderScroll() {
@@ -283,12 +294,8 @@ class TreeViewComponent_v2 {
      * @param {*} event 
      */
     event_click(event) {
-
         const event_clientY = event.clientY;
         const event_clientX = event.clientX;
-
-        // TODO: Change order of the function parameters?
-        this.ensure_boundingClientRect();
 
         let rY = event_clientY - this.boundingClientRect.top + this.scrollTop;
         let indexItem = Math.floor(rY / this.itemHeightNumber);
@@ -307,7 +314,7 @@ class TreeViewComponent_v2 {
             this.expandCollapseIconWasClicked(divItem, indexItem, ringBufferIndexItem);
         }
         else {
-            //this.state_cursor_setIndex(indexItem);
+            this.cursorIndex = indexItem;
         }
     }
 
@@ -322,8 +329,6 @@ class TreeViewComponent_v2 {
     }
 
     event_dblclick(event_clientY, event_target) {
-        this.ensure_boundingClientRect();
-
         let rY = event_clientY - this.boundingClientRect.top + this.scrollTop;
         let indexItem = Math.floor(rY / this.itemHeightNumber);
         indexItem = this.state_cursor_validateIndex(indexItem);
@@ -353,8 +358,6 @@ class TreeViewComponent_v2 {
     }
 
     event_contextmenu(event_button, event_clientX, event_clientY) {
-        this.ensure_boundingClientRect();
-
         if (event_button === 2) {
             let rY = event_clientY - this.boundingClientRect.top + this.scrollTop;
 
@@ -453,8 +456,7 @@ class TreeViewComponent_v2 {
         parent.insertBefore(this.rootElement, beforeChild);
         this.measure();
         this.drawScrollbarHeight();
-        treeViewComponent_v2_debug.resize();
-        treeViewComponent_v2_debug.draw_addEvents();
+        this.draw_addEvents();
         this.forceFullscreen_renderScroll();
     }
 
@@ -469,6 +471,9 @@ class TreeViewComponent_v2 {
         const viewportRect = this.visualCanvas.getBoundingClientRect();
         const viewWidth = viewportRect.width;
         const viewHeight = viewportRect.height;
+
+        this.boundingClientRect = this.rootElement.getBoundingClientRect();
+        this.virtualCount = Math.ceil(this.rootElement.offsetHeight / this.itemHeightNumber);
 
         const textCanvas = this.canvas;
         const textLayoutWidth = viewWidth;
@@ -502,7 +507,7 @@ class TreeViewComponent_v2 {
         this.virtualCount = Math.ceil(this.offsetHeight / this.itemHeightNumber);
     }
 
-    resize() {
+    renderResize() {
         this.measure();
         this.forceFullscreen_renderScroll();
     }
@@ -511,20 +516,13 @@ class TreeViewComponent_v2 {
      * TODO: intra-app resizes or movements will also invoke this; i.e.: if a list is shown in a dialog and the dialog is resized or moved.
      */
     event_windowResize() {
-        this.TREEVIEW_render_request(TREEVIEWrenderKind_Resize);
+        this.treeViewComponent_v2_staticRunner.TreeViewComponent_v2_render_request(TREEVIEWrenderKind_Resize, this.runnerId);
     }
 
     event_scroll() {
         this.scrollLeft = this.scrollViewport.scrollLeft;
         this.scrollTop = this.scrollViewport.scrollTop;
         this.treeViewComponent_v2_staticRunner.TreeViewComponent_v2_render_request(TREEVIEWrenderKind_Scroll, this.runnerId);
-    }
-
-    ensure_boundingClientRect() {
-        if (!this.boundingClientRect) {
-            this.boundingClientRect = this.rootElement.getBoundingClientRect();
-            this.virtualCount = Math.ceil(this.rootElement.offsetHeight / this.itemHeightNumber);
-        }
     }
 
     // tvnl_
