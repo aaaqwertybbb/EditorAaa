@@ -679,6 +679,26 @@ async function Debug_treeViewComponent_v2_expandCollapseIconWasClicked(divItem, 
     else if (nodeKind === TreeViewNodeKind_isExpandable_isExpanded) {
         treeViewComponent_v2_debug.setNodeKind(indexItem, TreeViewNodeKind_isExpandable_NOTisExpanded);
         treeViewComponent_v2_debug.forceFullscreen_renderScroll();
+
+        let countChildren = 0;
+        for (let i = indexItem + 1; i < treeViewComponent_v2_debug.countAbstract; i++) {
+            // If currentDepth < ithElementDepth; // then current is a parent of ithElement.
+            if (depth < treeViewComponent_v2_debug.getDepth(i)) {
+                countChildren++;
+            }
+            else {
+                break;
+            }
+        }
+
+        if (countChildren === 0) { return; }
+
+        treeViewComponent_v2_debug.removeAt(indexItem + 1, countChildren);
+        
+        treeViewComponent_v2_debug.itemHeightTotal = treeViewComponent_v2_debug.countAbstract * treeViewComponent_v2_debug.itemHeightNumber;
+        treeViewComponent_v2_debug.scrollbarSpaceGenerator.style.height = treeViewComponent_v2_debug.itemHeightTotal + 'px';
+
+        treeViewComponent_v2_debug.forceFullscreen_renderScroll();
     }
 }
 
