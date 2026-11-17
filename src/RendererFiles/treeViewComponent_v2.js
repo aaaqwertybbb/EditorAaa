@@ -1,20 +1,18 @@
-/*
-const v2_TREEVIEWrenderKind_None = 0;
-const v2_TREEVIEWrenderKind_Cursor = 1;
-const v2_TREEVIEWrenderKind_Create = 2;
-const v2_TREEVIEWrenderKind_Batch = 3;
-const v2_TREEVIEWrenderKind_Scroll = 4;
-const v2_TREEVIEWrenderKind_SetItems = 5;
-const v2_TREEVIEWrenderKind_FullReset = 6;
-const v2_TREEVIEWrenderKind_Scroll_PullDataDrawResult = 7;
-const v2_TREEVIEWrenderKind_Resize = 8;
+const TREEVIEWrenderKind_None = 0;
+const TREEVIEWrenderKind_Cursor = 1;
+const TREEVIEWrenderKind_Create = 2;
+const TREEVIEWrenderKind_Batch = 3;
+const TREEVIEWrenderKind_Scroll = 4;
+const TREEVIEWrenderKind_SetItems = 5;
+const TREEVIEWrenderKind_FullReset = 6;
+const TREEVIEWrenderKind_Scroll_PullDataDrawResult = 7;
+const TREEVIEWrenderKind_Resize = 8;
 
-const v2_TreeViewNodeKind_None = 0;
-const v2_TreeViewNodeKind_isExpandable_isExpanded = 1;
-const v2_TreeViewNodeKind_isExpandable_NOTisExpanded = 2;
-const v2_TreeViewNodeKind_NOTisExpandable_isExpanded = 3;
-const v2_TreeViewNodeKind_NOTisExpandable_NOTisExpanded = 4;
-*/
+const TreeViewNodeKind_None = 0;
+const TreeViewNodeKind_isExpandable_isExpanded = 1;
+const TreeViewNodeKind_isExpandable_NOTisExpanded = 2;
+const TreeViewNodeKind_NOTisExpandable_isExpanded = 3;
+const TreeViewNodeKind_NOTisExpandable_NOTisExpanded = 4;
 
 class TreeViewComponent_v2_staticRunner {
     constructor() {
