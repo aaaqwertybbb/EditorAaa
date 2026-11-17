@@ -21,7 +21,7 @@ const EXPLORER_pathIdToDisplayNameMap = new Map();
 /**
  * @type {TreeViewComponent}
  */
-const EXPLORER_treeViewComponent = new TreeViewComponent(16, treeViewComponent_staticRunner, EXPLORER_renderLines, EXPLORER_expandCollapseIconWasClicked, EXPLORER_dblClick_or_space_or_enter);
+const EXPLORER_treeViewComponent = new TreeViewComponent(16, treeViewComponent_staticRunner, EXPLORER_renderLines, EXPLORER_expandCollapseIconWasClicked, EXPLORER_dblClick_or_space_or_enter, EXPLORER_oncontextmenu);
 EXPLORER_treeViewComponent.initialize(document.getElementById('EXPLORER'), null);
 
 function EXPLORER_setChosenDirectory(chosenDirectoryAbsolutePath, chosenDirectoryBasename, chosenDirectoryAbsolutePathId) {
@@ -66,7 +66,7 @@ function EXPLORER_renderLines(lineIndexLower, lineIndexUpper, ringBufferIndex, d
     /** Optimization heuristic goal: similarly^ assumedly improve caching by explicitly telling the code generator that the reference which 'foo' points to "will not change". In garbage collection, when defragmenting the heap every reference to an object that was repositioned needs to have its reference updated to point to the new location of the object, so I'm not quite sure how this works out idk. It is rumored that this permits loop optimization. */
     const VIRTUAL_COUNT = EXPLORER_treeViewComponent.virtualCount;
     const COUNT_ABSTRACT = EXPLORER_treeViewComponent.countAbstract;
-    const LINE_CACHE = EXPLORER_treeViewComponent.lineCache;
+    const LINE_CACHE = EXPLORER_treeViewComponent.lineCacheRingBuffer;
     const ITEM_HEIGHT_NUMBER = EXPLORER_treeViewComponent.itemHeightNumber;
     /** Optimization heuristic goal: This one specifically is to bring this global scope variable into local scope rather than relying on caching alone this ought to signal further the importance of the variable being cached. It is rumored that this permits loop optimization. */
     const STRINGS_MAP_BY_PATH_ID = EXPLORER_pathIdToDisplayNameMap;
@@ -211,10 +211,8 @@ function EXPLORER_oncontextmenu(divItem, indexItem, event_button, event_clientX,
         MENU_MenuOption_factory(CommandKind_CopyAbsolutePath, 'Copy Absolute Path'),
     ];
 
-    EXPLORER_ensure_boundingClientRect();
-
     // TODO: !!!! You might need to be careful with async and the TreeView_pooledNode; I'm not certain whether you do or don't have to be careful, and I don't feel like looking into it at the moment.
-    EXPLORER_treeViewNodes.getElementAt(indexItem);
+    EXPLORER_treeViewComponent.getElementAt(indexItem);
     let key = INTS[fTreeView_poolret_pooledNode_key];
     let depth = INTS[fTreeView_poolret_pooledNode_depth];
     let nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];

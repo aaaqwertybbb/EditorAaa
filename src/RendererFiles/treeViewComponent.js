@@ -124,11 +124,12 @@ class TreeViewComponent {
      * @param {number} initialCapacityAbstract 
      * @param {TreeViewComponent_staticRunner} treeViewComponent_staticRunner 
      */
-    constructor(initialCapacityAbstract, treeViewComponent_staticRunner, renderLines, expandCollapseIconWasClicked, dblClick_or_space_or_enter) {
+    constructor(initialCapacityAbstract, treeViewComponent_staticRunner, renderLines, expandCollapseIconWasClicked, dblClick_or_space_or_enter, oncontextmenu) {
 
         this.renderLines = renderLines;
         this.expandCollapseIconWasClicked = expandCollapseIconWasClicked;
         this.dblClick_or_space_or_enter = dblClick_or_space_or_enter;
+        this.oncontextmenu = oncontextmenu;
 
         this.treeViewComponent_staticRunner = treeViewComponent_staticRunner;
         
@@ -171,10 +172,9 @@ class TreeViewComponent {
         this.scrollLeft = 0;
         this.scrollTop = 0;
 
-        this.lineCache = [];
+        this.lineCacheRingBuffer = [];
         
         this.ringBufferIndexZero = 0;
-        this.ringBuffer = [];
 
         this.WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING = 2;
 
@@ -188,6 +188,7 @@ class TreeViewComponent {
         this.eventClick = this.event_click.bind(this);
         this.eventDblClick = this.event_dblclick.bind(this);
         this.eventKeydown = this.event_keydown.bind(this);
+        this.eventContextmenu = this.event_contextmenu.bind(this);
         this.eventResize = this.event_windowResize.bind(this);
 
         // tvnl_
@@ -225,6 +226,7 @@ class TreeViewComponent {
         this.rootElement.addEventListener('click', this.eventClick);
         this.rootElement.addEventListener('dblclick', this.eventDblClick);
         this.rootElement.addEventListener('keydown', this.eventKeydown);
+        this.rootElement.addEventListener('contextmenu', this.eventContextmenu);
 
         window.addEventListener('resize', this.eventResize);
 
@@ -240,11 +242,9 @@ class TreeViewComponent {
         this.rootElement.removeEventListener('click', this.eventClick);
         this.rootElement.removeEventListener('dblclick', this.eventDblClick);
         this.rootElement.removeEventListener('keydown', this.eventKeydown);
+        this.rootElement.removeEventListener('contextmenu', this.eventContextmenu);
 
         window.removeEventListener('resize', this.eventClick);
-
-        //this.rootElement.addEventListener('dblclick', this);
-        //this.rootElement.addEventListener('contextmenu', this);
     }
 
     forceFullscreen_renderScroll() {
@@ -323,7 +323,7 @@ class TreeViewComponent {
 
     toRingBufferIndex(itemIndex) {
         let virtualIndex = itemIndex - this.currentVirtualIndex;
-        if (virtualIndex >= this.ringBuffer.length || virtualIndex < 0) {
+        if (virtualIndex >= this.lineCacheRingBuffer.length || virtualIndex < 0) {
             virtualIndex = -1;
         }
         else {
@@ -348,7 +348,7 @@ class TreeViewComponent {
         let ringBufferIndexItem = this.toRingBufferIndex(indexItem);
         if (ringBufferIndexItem < 0) return;
 
-        let divItem = this.lineCache[ringBufferIndexItem];
+        let divItem = this.lineCacheRingBuffer[ringBufferIndexItem];
 
         // TODO: 'event_dblclick' with this depth logic?
         // TODO: this component throws an exception when scrolling it just straight up doesn't work (well it does until it crashes the app)
@@ -372,7 +372,7 @@ class TreeViewComponent {
         let ringBufferIndexItem = this.toRingBufferIndex(indexItem);
         if (ringBufferIndexItem < 0) return;
 
-        let divItem = this.ringBuffer[ringBufferIndexItem];
+        let divItem = this.lineCacheRingBuffer[ringBufferIndexItem];
 
         // TODO: if not clicked "chevron"
         //this.renderCursor_ScrollIntoView_Or_RenderCursor();
@@ -388,20 +388,17 @@ class TreeViewComponent {
             let ringBufferIndexItem = this.toRingBufferIndex(this.cursorIndex);
             if (ringBufferIndexItem < 0) return;
 
-            return this.director.tvd_oncontextmenu_async(this.ringBuffer[ringBufferIndexItem], this.cursorIndex, event_button, event_clientX, event_clientY, ringBufferIndexItem);
+            //EXPLORER_oncontextmenu(EXPLORER_ringBuffer[ringBufferIndexItem], INTS[fEXPLORER_cursorIndex], event_button, event_clientX, event_clientY, ringBufferIndexItem);
+            this.oncontextmenu(this.lineCacheRingBuffer[ringBufferIndexItem], this.cursorIndex, event_button, event_clientX, event_clientY, ringBufferIndexItem);
         }
         else {
-            if (this.cursorIndex >= this.director.tvd_getTotalCount()) {
-                return;
-            }
-
             this.cursorIndex = this.state_cursor_validateIndex(this.cursorIndex);
 
             let ringBufferIndexItem = this.toRingBufferIndex(this.cursorIndex);
             if (ringBufferIndexItem < 0) return;
 
             // TODO: Handle context menu with keyboard when active node is out of view
-            return this.director.tvd_oncontextmenu_async(this.ringBuffer[ringBufferIndexItem], this.cursorIndex, event_button, event_clientX, event_clientY, ringBufferIndexItem);
+            this.oncontextmenu(this.lineCacheRingBuffer[ringBufferIndexItem], this.cursorIndex, event_button, event_clientX, event_clientY, ringBufferIndexItem);
         }
     }
 
