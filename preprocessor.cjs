@@ -773,7 +773,6 @@ function readyFileState() {
         "dialogGlobal.js",
         "trackedSyntaxTypes.js",
         "treeViewComponent.js",
-        "treeViewComponent_v2.js",
         "dialogImplementationsGlobal.js",
         "listComponent.js",
         "listTypes.js",
