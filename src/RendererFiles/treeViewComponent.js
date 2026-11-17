@@ -416,9 +416,8 @@ class TreeViewComponent {
     event_keydown(event) {
         const eventKey = event.key;
         const eventCtrlKey = event.ctrlKey;
-        event = null;
 
-        switch (event.key) {
+        switch (eventKey) {
             case 'ArrowDown':
                 event.preventDefault();
                 event.stopPropagation();
@@ -432,17 +431,20 @@ class TreeViewComponent {
             case 'ArrowRight':
                 event.preventDefault();
                 event.stopPropagation();
+                event = null; // these ones have async code that runs downstream and I need to do this for my own sanity for now TODO: is this true?
                 this.arrowRight(eventCtrlKey);
                 return;
             case 'ArrowLeft':
                 event.preventDefault();
                 event.stopPropagation();
+                event = null; // these ones have async code that runs downstream and I need to do this for my own sanity for now TODO: is this true?
             	this.arrowLeft(eventCtrlKey);
             	return;
             case ' ':
             case 'Enter':
                 event.preventDefault();
                 event.stopPropagation();
+                event = null; // these ones have async code that runs downstream and I need to do this for my own sanity for now TODO: is this true?
                 this.space_or_enter(eventKey);
                 return;
         }
