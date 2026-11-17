@@ -585,16 +585,7 @@ function DIALOG_Debug_treeViewComponent_v2_Create() {
         return;
     }
 
-    dialogBody.appendChild(treeViewComponent_v2_debug.rootElement);
-
-    Debug_treeViewComponent_v2_resizeCanvases();
-
-    treeViewComponent_v2_debug.itemHeightTotal = (treeViewComponent_v2_debug.countAbstract + 2) * treeViewComponent_v2_debug.itemHeightNumber;
-    treeViewComponent_v2_debug.scrollbarSpaceGenerator.style.height = treeViewComponent_v2_debug.itemHeightTotal + 'px';
-
-    treeViewComponent_v2_debug.forceFullscreen_renderScroll();
-
-    treeViewComponent_v2_debug.draw_addEvents();
+    treeViewComponent_v2_debug.initialize(dialogBody, null /*beforeChild*/);
 }
 
 function DIALOG_Debug_treeViewComponent_v2_Delete() {
@@ -602,45 +593,6 @@ function DIALOG_Debug_treeViewComponent_v2_Delete() {
         treeViewComponent_v2_debug.dispose();
         treeViewComponent_v2_debug = null;
     }
-}
-
-function Debug_treeViewComponent_v2_resizeCanvases() {
-    const dpr = window.devicePixelRatio || 1;
-
-    const viewportRect = treeViewComponent_v2_debug.visualCanvas.getBoundingClientRect();
-    const viewWidth = viewportRect.width;
-    const viewHeight = viewportRect.height;
-
-    const textCanvas = treeViewComponent_v2_debug.canvas;
-    const textLayoutWidth = viewWidth;
-    textCanvas.style.width = textLayoutWidth + 'px';
-    textCanvas.style.height = viewHeight + 'px';
-    textCanvas.width = textLayoutWidth * dpr;
-    textCanvas.height = viewHeight * dpr;
-
-    const ctxText = textCanvas.getContext('2d');
-    ctxText.scale(dpr, dpr);
-    ctxText.font = '14px monospace';
-    ctxText.textBaseline = 'top';
-    ctxText.fillStyle = '#ffffff';
-
-    const metrics = ctxText.measureText('M');
-
-    const fontHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
-    const linePadding = 6; // Total padding between lines
-    treeViewComponent_v2_debug.itemHeightNumber = fontHeight + linePadding;
-    
-    const charWidth = ctxText.measureText('M').width; // The exact pixel width of every single character in a monospace font
-    treeViewComponent_v2_debug.characterWidth = charWidth;
-    treeViewComponent_v2_debug.offsetPerDepthInPixels = charWidth;
-    treeViewComponent_v2_debug.offsetPerDepthInCharacterWidths = 1;
-
-    ctxText.font = '14px monospace'; // Run once during setup / font configuration
-
-    treeViewComponent_v2_debug.offsetWidth = Math.floor(viewportRect.width);
-    treeViewComponent_v2_debug.offsetHeight = Math.floor(viewportRect.height);
-
-    treeViewComponent_v2_debug.virtualCount = Math.ceil(treeViewComponent_v2_debug.offsetHeight / treeViewComponent_v2_debug.itemHeightNumber);
 }
 
 function Debug_treeViewComponent_v2_renderLines(lineIndexLower, lineIndexUpper, ringBufferIndex, decodingBoundLower, decodingBoundUpper) {

@@ -445,12 +445,66 @@ class TreeViewComponent_v2 {
         }
     }
 
-    TREEVIEW_render_do_Resize() {
-        this.measureBaseElement();
+    /**
+     * @param {HTMLElement} parent 
+     * @param {HTMLElement?} beforeChild for the `insertBefore` invocation, `null` will result in an append.
+     */
+    initialize(parent, beforeChild) {
+        parent.insertBefore(this.rootElement, beforeChild);
+        this.measure();
+        this.drawScrollbarHeight();
+        treeViewComponent_v2_debug.resize();
+        treeViewComponent_v2_debug.draw_addEvents();
+        this.forceFullscreen_renderScroll();
+    }
 
-        this.boundingClientRect = null;
-        this.ensure_boundingClientRect();
-        this.TREEVIEW_render_do_FullReset();
+    drawScrollbarHeight() {
+        this.itemHeightTotal = (this.countAbstract + 2) * this.itemHeightNumber;
+        this.scrollbarSpaceGenerator.style.height = this.itemHeightTotal + 'px';
+    }
+
+    measure() {
+        const dpr = window.devicePixelRatio || 1;
+
+        const viewportRect = this.visualCanvas.getBoundingClientRect();
+        const viewWidth = viewportRect.width;
+        const viewHeight = viewportRect.height;
+
+        const textCanvas = this.canvas;
+        const textLayoutWidth = viewWidth;
+        textCanvas.style.width = textLayoutWidth + 'px';
+        textCanvas.style.height = viewHeight + 'px';
+        textCanvas.width = textLayoutWidth * dpr;
+        textCanvas.height = viewHeight * dpr;
+
+        const ctxText = textCanvas.getContext('2d');
+        ctxText.scale(dpr, dpr);
+        ctxText.font = '14px monospace';
+        ctxText.textBaseline = 'top';
+        ctxText.fillStyle = '#ffffff';
+
+        const metrics = ctxText.measureText('M');
+
+        const fontHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+        const linePadding = 6; // Total padding between lines
+        this.itemHeightNumber = fontHeight + linePadding;
+        
+        const charWidth = ctxText.measureText('M').width; // The exact pixel width of every single character in a monospace font
+        this.characterWidth = charWidth;
+        this.offsetPerDepthInPixels = charWidth;
+        this.offsetPerDepthInCharacterWidths = 1;
+
+        ctxText.font = '14px monospace'; // Run once during setup / font configuration
+
+        this.offsetWidth = Math.floor(viewportRect.width);
+        this.offsetHeight = Math.floor(viewportRect.height);
+
+        this.virtualCount = Math.ceil(this.offsetHeight / this.itemHeightNumber);
+    }
+
+    resize() {
+        this.measure();
+        this.forceFullscreen_renderScroll();
     }
 
     /**
