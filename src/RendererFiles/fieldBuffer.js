@@ -375,7 +375,7 @@ const CONST_EDI_cursor_htmlId = "EDI_cursor-1";
  * because ES6 modules are expected (and thus module scopes remove the usefulness of making a local variable):
  *     index.html the script tag: 'type="module" src="..."'
  */
-const INTS = new Uint32Array(148); /// RECOUNT THIS!!!!!! I MOVED 2 TO 51 or something; then remove this comment after
+const INTS = new Uint32Array(129);
 
 const fEDI_lineHeight = 0;
 INTS[fEDI_lineHeight] = 20;
@@ -578,8 +578,6 @@ const fEDI_EDI_mouseOver_event_clientX = 63;
 
 const fEDI_cursor_edit_eventCount_occurred = 64;
 
-const fEXPLORER_render_do_ScrollTrailingEdgeCheckTimeoutId = 65;
-
 const fEDI_onResize_timer = 66;
 
 const fEDI_hoverTimeout = 67;
@@ -744,69 +742,29 @@ const fEXPLORER_menuOptionX = 117;
 const fEXPLORER_menuOptionY = 118;
 
 /** TODO: obsolete */
-const fEXPLORER_lastReadNumber_offsetWidth = 119;
-
-/** 
- * TODO: obsolete
- * TODO: this is not being used, only set, but it is surprising shouldn't this be used to get the virtual count?
- */
-const fEXPLORER_lastReadNumber_offsetHeight = 120;
-
-const fEXPLORER_cursorTranslateYNumber = 121;
-
-/** TODO: obsolete */
-const fEXPLORER_itemHeightTotal = 122;
+const fEXPLORER_itemHeightTotal = 119;
 
 /** Consider the existence of such methods as 'state_cursor_setIndex' before mutating state directly */
-const fEXPLORER_cursorIndex = 123;
+const fEXPLORER_cursorIndex = 120;
 
-const fEXPLORER_virtualIndex_ofScrollTop = 124;
+const fEXPLORER_virtualIndex_ofScrollTop = 121;
 
 /** Hacky: Must initialize to a number other than 0 or else nothing renders. */
-const fEXPLORER_virtualCount = 125;
+const fEXPLORER_virtualCount = 122;
 INTS[fEXPLORER_virtualCount] = 1;
 
-const fEXPLORER_ONSCROLLvirtualIndex = 126;
-const fEXPLORER_ONSCROLLvirtualCount = 127;
+const fEXPLORER_lastReadNumber_scrollTop = 123;
 
-const fEXPLORER_lastReadNumber_scrollLeft = 128;
-const fEXPLORER_lastReadNumber_scrollTop = 129;
+const fEXPLORER_ringBufferIndexZero = 124;
 
-const fEXPLORER_ringBufferIndexZero = 130;
-
-const fEXPLORER_ringBuffer_length = 131;
-
-const fEXPLORER_start = 132;
-
-const fEXPLORER_length = 133;
-
-const fEXPLORER_onePositiveDiff_twoNegativeDiff_orThreeFullScreen = 134;
-
-const fEXPLORER_caseThreeOrigin = 135;
+const fEXPLORER_ringBuffer_length = 125;
 
 /** TODO: what height should this start at? applicationRendererRoot.ts will eventually run initialization logic that actually does the measuring. */
-const fEXPLORER_itemHeightNumber = 136;
+const fEXPLORER_itemHeightNumber = 126;
 INTS[fEXPLORER_itemHeightNumber] = 20;
 
-const fEXPLORER_SET_ITEMS_itemHeightNumber = 137;
-
-const fEXPLORER_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING = 138;
-
-const fEXPLORER_LARGEST_DEPTH_SEEN_NOT_THE_CSS_JUST_THE_DEPTH = 139;
-
-const fEXPLORER_scrollFetchData_virtualIndex = 140;
-
-const fEXPLORER_scrollFetchData_virtualCount = 141;
-
-const fEXPLORER_scrollFetchData_ringBufferIndexZero = 142;
-
-const fEXPLORER_pullData_array_count = 143;
-
-const fEXPLORER_pullData_result_count = 144;
-
-const fEXPLORER_boundingClientRect_height = 145;
-const fEXPLORER_boundingClientRect_left = 146;
-const fEXPLORER_boundingClientRect_top = 147;
+const fEXPLORER_boundingClientRect_left = 127;
+const fEXPLORER_boundingClientRect_top = 128;
 
 
 

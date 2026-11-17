@@ -137,8 +137,6 @@ module.exports = function (babel) {
     "fEDI_cursorBlinkingTrailingEdgeTimeoutId",
     "fEDI_render_do_ScrollTrailingEdgeCheckTimeoutId",
 
-    "fEXPLORER_render_do_ScrollTrailingEdgeCheckTimeoutId",
-
     "byteEDI_editorHasFocus",
 
     "byteEDI_duplication_may_have_changed",
@@ -401,32 +399,14 @@ module.exports = function (babel) {
     "fEXPLORER_menuOptionY",
     "byteEXPLORER_show",
 
-    "fEXPLORER_lastReadNumber_offsetWidth",
-    "fEXPLORER_lastReadNumber_offsetHeight",
-    "fEXPLORER_cursorTranslateYNumber",
     "fEXPLORER_itemHeightTotal",
     "fEXPLORER_cursorIndex",
     "fEXPLORER_virtualIndex_ofScrollTop",
     "fEXPLORER_virtualCount",
-    "fEXPLORER_ONSCROLLvirtualIndex",
-    "fEXPLORER_ONSCROLLvirtualCount",
-    "fEXPLORER_lastReadNumber_scrollLeft",
     "fEXPLORER_lastReadNumber_scrollTop",
     "fEXPLORER_ringBufferIndexZero",
     "fEXPLORER_ringBuffer_length",
-    "fEXPLORER_start",
-    "fEXPLORER_length",
-    "fEXPLORER_onePositiveDiff_twoNegativeDiff_orThreeFullScreen",
-    "fEXPLORER_caseThreeOrigin",
     "fEXPLORER_itemHeightNumber",
-    "fEXPLORER_SET_ITEMS_itemHeightNumber",
-    "fEXPLORER_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING",
-    "fEXPLORER_LARGEST_DEPTH_SEEN_NOT_THE_CSS_JUST_THE_DEPTH",
-    "fEXPLORER_scrollFetchData_virtualIndex",
-    "fEXPLORER_scrollFetchData_virtualCount",
-    "fEXPLORER_scrollFetchData_ringBufferIndexZero",
-    "fEXPLORER_pullData_array_count",
-    "fEXPLORER_pullData_result_count",
     
     "CONST_EXPLORER_KEY_BITS",
 
@@ -434,7 +414,6 @@ module.exports = function (babel) {
     "byteEXPLORER_isCheckingTrailingEdge",
     "byteEXPLORER_scrollIsFetchingData",
 
-    "fEXPLORER_boundingClientRect_height",
     "fEXPLORER_boundingClientRect_left",
     "fEXPLORER_boundingClientRect_top",
 
