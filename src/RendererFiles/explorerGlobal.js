@@ -34,26 +34,23 @@ let EXPLORER_SET_ITEMS_itemHeightStyleAttributeValueString = '';
 /////
 
 /** @type {string} */
-let EXPLORER_chosenDirectory = null;
+let EXPLORER_chosenDirectoryAbsolutePath = null;
 let EXPLORER_chosenDirectoryAbsolutePathId = -1;
 let EXPLORER_chosenWorkspace = -1;
 
 /** // Invoke this?: 'this.draw_render_fullReset_request();' */
-function EXPLORER_setChosenDirectory(chosenDirectory, chosenDirectoryAbsolutePathId) {
-    EXPLORER_chosenDirectory = chosenDirectory;
+function EXPLORER_setChosenDirectory(chosenDirectoryAbsolutePath, chosenDirectoryBasename, chosenDirectoryAbsolutePathId) {
+    EXPLORER_chosenDirectoryAbsolutePath = chosenDirectoryAbsolutePath;
     EXPLORER_chosenDirectoryAbsolutePathId = chosenDirectoryAbsolutePathId;
 
     treeViewComponent_v2_debug_stringsMapByPathId.clear();
 
-    if (!EXPLORER_chosenDirectory) return;
+    if (!EXPLORER_chosenDirectoryAbsolutePath) return;
 
     let nodeKind = TreeViewNodeKind_isExpandable_NOTisExpanded;
 
     treeViewComponent_v2_debug.insert(treeViewComponent_v2_debug.countAbstract, nodeKind, EXPLORER_chosenDirectoryAbsolutePathId, 0);
-    treeViewComponent_v2_debug_stringsMapByPathId.set(EXPLORER_chosenDirectoryAbsolutePathId, EXPLORER_chosenDirectory);
-
-    //INTS[fEXPLORER_itemHeightTotal] = EXPLORER_treeViewNodes.count_abstract * INTS[fEXPLORER_itemHeightNumber];
-    //EXPLORER_scrollbar_space_generator.style.height = INTS[fEXPLORER_itemHeightTotal] + 'px';
+    treeViewComponent_v2_debug_stringsMapByPathId.set(EXPLORER_chosenDirectoryAbsolutePathId, chosenDirectoryBasename);
 }
 
 /** // Invoke this?: 'this.draw_render_fullReset_request();' */
@@ -78,9 +75,6 @@ function EXPLORER_setChosenWorkspace(chooseWorkspaceResult) {
         treeViewComponent_v2_debug.insert(treeViewComponent_v2_debug.countAbstract, nodeKind, directory.id, 0);
         treeViewComponent_v2_debug_stringsMapByPathId.set(directory.id, directory.basename);
     }
-
-    //INTS[fEXPLORER_itemHeightTotal] = EXPLORER_treeViewNodes.count_abstract * INTS[fEXPLORER_itemHeightNumber];
-    //EXPLORER_scrollbar_space_generator.style.height = INTS[fEXPLORER_itemHeightTotal] + 'px';
 }
 
 function EXPLORER_oncontextmenu(divItem, indexItem, event_button, event_clientX, event_clientY, relativeIndex) {
@@ -670,11 +664,11 @@ async function EXPLORER_pickFolderOrWorkspaceButton_MenuOnClick(isCancelled, men
                 if (chooseDirectoryResult.canceled) return;
     
                 EXPLORER_setShow(true);
-                let chosenDirectory = chooseDirectoryResult.openedDirectory;
+                let chosenDirectoryAbsolutePath = chooseDirectoryResult.openedDirectory;
                 EXPLORER_PickFolder.textContent = chooseDirectoryResult.basename;
-                EXPLORER_PickFolder.title = chosenDirectory;
+                EXPLORER_PickFolder.title = chosenDirectoryAbsolutePath;
     
-                EXPLORER_setChosenDirectory(chosenDirectory, chooseDirectoryResult.id);
+                EXPLORER_setChosenDirectory(chosenDirectoryAbsolutePath, chooseDirectoryResult.basename, chooseDirectoryResult.id);
                 treeViewComponent_v2_debug.resetTheUi();
             }
             break;
