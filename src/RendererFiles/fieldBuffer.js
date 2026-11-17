@@ -102,7 +102,7 @@ it is as if I typed the expression body everywhere I typed the fat arrow functio
  *         - 'true' with '!0'
  *     - i.e.: such an expression is known to be rather performant.
  */
-const BYTES = new Uint8Array(50);
+const BYTES = new Uint8Array(48);
 
 /** returns a number, beware '===' */
 const get_EDI_detailRank = () => BYTES[0];
@@ -217,27 +217,24 @@ const byteAUTOCOMPLETE_queueTail = 39;
 const byteDIALOG_queueHead = 40;
 const byteDIALOG_queueTail = 41;
 
-const byteEXPLORER_queueHead = 42;
-const byteEXPLORER_queueTail = 43;
+const byteMENU_queueHead = 42;
+const byteMENU_queueTail = 43;
 
-const byteMENU_queueHead = 44;
-const byteMENU_queueTail = 45;
-
-const byteWIDGET_queueHead = 46;
-const byteWIDGET_queueTail = 47;
+const byteWIDGET_queueHead = 44;
+const byteWIDGET_queueTail = 45;
 
 /**
  * 'await window.myAPI.editorSetClipboard(...);' needs to be followed up with 'BYTES[byteEDI_clipboard_may_have_changed] = 0'
  * When reading the clipboard use 'await EDI_read_clipboard();'
  */
-const byteEDI_duplication_may_have_changed = 48;
+const byteEDI_duplication_may_have_changed = 46;
 BYTES[byteEDI_duplication_may_have_changed] = 1;
 
 /**
  * 'await window.myAPI.editorSetClipboard(...);' needs to be followed up with 'BYTES[byteEDI_clipboard_may_have_changed] = 0'
  * When reading the clipboard use 'await EDI_read_clipboard();'
  */
-const byteEDI_clipboard_may_have_changed = 49;
+const byteEDI_clipboard_may_have_changed = 47;
 BYTES[byteEDI_clipboard_may_have_changed] = 1;
 
 // BYTES[byteEXPLORER_boundingClientRect_isValid]
