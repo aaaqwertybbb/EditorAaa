@@ -884,9 +884,9 @@ const MASTER_RENDER_BUFFER = new Uint8Array(128 /* const MASTER_BUFFER_SIZE = 12
 
 // Define the unique byte offset where each UI's memory space begins
 const OFFSET_DIALOG      = 0;  // Slots 0 to 31
-const OFFSET_AUTOCOMPLETE = 64; // Slots 32 to 63
-const OFFSET_WIDGET = 96; // Slots 64 to 95
-const OFFSET_MENU = 128; // Slots 96 to 127
+const OFFSET_AUTOCOMPLETE = 32; // Slots 32 to 63
+const OFFSET_WIDGET = 64; // Slots 64 to 95
+const OFFSET_MENU = 96; // Slots 96 to 127
 
 
 // TODO: '..._EDI_indent_ORIGINAL_indentBy()' is no longer in use
