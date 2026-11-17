@@ -16,13 +16,14 @@ NO ASYNC EVENTS
 - higher likelihood of memory leaking PerformanceEventTiming due to inability for browser to clear buffer on time requiring manual clearing of the long term buffer.
 */
 
+const treeViewComponent_v2_debug_stringsMapByPathId = new Map();
+
 /**
  * @type {TreeViewComponent_v2}
  */
 const treeViewComponent_v2_debug = new TreeViewComponent_v2(16, treeViewComponent_v2_staticRunner, Debug_treeViewComponent_v2_renderLines, Debug_treeViewComponent_v2_expandCollapseIconWasClicked, Debug_treeViewComponent_v2_dblClick_or_space_or_enter);
 treeViewComponent_v2_debug.initialize(document.getElementById('EXPLORER'), null);
 
-const treeViewComponent_v2_debug_stringsMapByPathId = new Map();
 
 function EXPLORER_setChosenDirectory(chosenDirectoryAbsolutePath, chosenDirectoryBasename, chosenDirectoryAbsolutePathId) {
     treeViewComponent_v2_debug_stringsMapByPathId.clear();
