@@ -743,9 +743,13 @@ INTS[fEXPLORER_firstSpanWidthValue] = 8;
 const fEXPLORER_menuOptionX = 117;
 const fEXPLORER_menuOptionY = 118;
 
+/** TODO: obsolete */
 const fEXPLORER_lastReadNumber_offsetWidth = 119;
 
-/** TODO: this is not being used, only set, but it is surprising shouldn't this be used to get the virtual count? */
+/** 
+ * TODO: obsolete
+ * TODO: this is not being used, only set, but it is surprising shouldn't this be used to get the virtual count?
+ */
 const fEXPLORER_lastReadNumber_offsetHeight = 120;
 
 const fEXPLORER_cursorTranslateYNumber = 121;
