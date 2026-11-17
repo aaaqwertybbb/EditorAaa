@@ -462,7 +462,6 @@ class TreeViewComponent_v2 {
         let ringBufferIndexItem = this.toRingBufferIndex(this.cursorIndex);
         if (ringBufferIndexItem < 0) return;
 
-        // TODO: !!!! You might need to be careful with async and the TreeView_pooledNode; I'm not certain whether you do or don't have to be careful, and I don't feel like looking into it at the moment.
         this.getElementAt(this.cursorIndex);
         let depth = INTS[fTreeView_poolret_pooledNode_depth];
         let nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
@@ -481,13 +480,37 @@ class TreeViewComponent_v2 {
     }
 
     arrowLeft(ctrlKey) {
-        if (!ctrlKey) { // If holding ctrl, don't preventDefault so the user can scroll horizontally?
-            this.cursorIndex = this.state_cursor_validateIndex(this.cursorIndex);
-            
-            let ringBufferIndexItem = this.toRingBufferIndex(this.cursorIndex);
-            if (ringBufferIndexItem < 0) return;
+        // TODO: consider: If holding ctrl, don't preventDefault so the user can scroll horizontally?
 
-            return this.director.tvd_arrowLeft_async(this.ringBuffer[ringBufferIndexItem], this.cursorIndex);
+        this.cursorIndex = this.state_cursor_validateIndex(this.cursorIndex);
+
+        // TODO: 'ArrowLeft' when the cursor is on a valid item but isn't part of the virtualization result.
+        let ringBufferIndexItem = this.toRingBufferIndex(this.cursorIndex);
+        if (ringBufferIndexItem < 0) return;
+
+        this.getElementAt(this.cursorIndex);
+        let depth = INTS[fTreeView_poolret_pooledNode_depth];
+        let nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+        
+        if (nodeKind === TreeViewNodeKind_isExpandable_isExpanded) {
+            this.expandCollapseIconWasClicked(undefined /*divItem*/, this.cursorIndex, ringBufferIndexItem);
+        }
+        else {
+            let distanceToParent = 0;
+            for (let i = this.cursorIndex - 1; i >= 0; i--) {
+                // If ithElementDepth < currentDepth; // then ithElement is the parent of current.
+                if (this.getDepth(i) < depth) {
+                    distanceToParent++;
+                    break;
+                }
+                else {
+                    distanceToParent++;
+                }
+            }
+            if (distanceToParent > 0) {
+                this.cursorIndex = this.state_cursor_validateIndex(this.cursorIndex - distanceToParent);
+                this.renderCursor_ScrollIntoView_Or_RenderCursor();
+            }
         }
     }
 
