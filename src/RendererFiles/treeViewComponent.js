@@ -183,6 +183,9 @@ class TreeViewComponent {
         this.offsetWidth = 0;
         this.offsetHeight = 0;
 
+        this.boundingClientRectLeft = 0;
+        this.boundingClientRectTop = 0;
+
         // Bind once in constructor so ... doesn't allocate a closure per ...
         this.eventScroll = this.event_scroll.bind(this);
         this.eventClick = this.event_click.bind(this);
@@ -205,7 +208,7 @@ class TreeViewComponent {
         this.keyOffset = 1;
         this.depthOffset = 2;
 
-        let tempCapacityLiteral = initialCapacityAbstract * this.fieldCount;
+        const tempCapacityLiteral = initialCapacityAbstract * this.fieldCount;
 
         this.dataLiteral = new Uint32Array(tempCapacityLiteral);
         this.capacityAbstract = initialCapacityAbstract;
@@ -379,20 +382,27 @@ class TreeViewComponent {
         this.dblClick_or_space_or_enter(undefined /*key*/, this.cursorIndex, ringBufferIndexItem);
     }
 
-    event_contextmenu(event_button, event_clientX, event_clientY) {
+    event_contextmenu(event) {
+
+        const event_button = event.button;
+        const event_clientX = event.clientX;
+        const event_clientY = event.clientY;
+        event = null;
+
         if (event_button === 2) {
             let rY = event_clientY - this.boundingClientRect.top + this.scrollTop;
 
             this.cursorIndex = this.state_cursor_validateIndex(Math.floor(rY / this.itemHeightNumber));
+            this.renderCursor_ScrollIntoView_Or_RenderCursor();
 
             let ringBufferIndexItem = this.toRingBufferIndex(this.cursorIndex);
             if (ringBufferIndexItem < 0) return;
 
-            //EXPLORER_oncontextmenu(EXPLORER_ringBuffer[ringBufferIndexItem], INTS[fEXPLORER_cursorIndex], event_button, event_clientX, event_clientY, ringBufferIndexItem);
             this.oncontextmenu(this.lineCacheRingBuffer[ringBufferIndexItem], this.cursorIndex, event_button, event_clientX, event_clientY, ringBufferIndexItem);
         }
         else {
             this.cursorIndex = this.state_cursor_validateIndex(this.cursorIndex);
+            this.renderCursor_ScrollIntoView_Or_RenderCursor();
 
             let ringBufferIndexItem = this.toRingBufferIndex(this.cursorIndex);
             if (ringBufferIndexItem < 0) return;
