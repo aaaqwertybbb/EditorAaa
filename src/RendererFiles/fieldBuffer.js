@@ -880,14 +880,13 @@ const UI_SLOT_MASK = 31; // UI_SLOT_SIZE - 1 // 31 (binary: 00011111)
  * 
  * TODO: If you queue more than 32 renderKinds in a single frame you're gonna lose information. (remedy this?) see 'UI_SLOT_MASK = 31'
  */
-const MASTER_RENDER_BUFFER = new Uint8Array(160 /* const MASTER_BUFFER_SIZE = 160; */);
+const MASTER_RENDER_BUFFER = new Uint8Array(128 /* const MASTER_BUFFER_SIZE = 128; */);
 
 // Define the unique byte offset where each UI's memory space begins
 const OFFSET_DIALOG      = 0;  // Slots 0 to 31
-const OFFSET_EXPLORER = 32; // Slots 32 to 63
-const OFFSET_AUTOCOMPLETE = 64; // Slots 64 to 95
-const OFFSET_WIDGET = 96; // Slots 96 to 127
-const OFFSET_MENU = 128; // Slots 128 to 159
+const OFFSET_AUTOCOMPLETE = 64; // Slots 32 to 63
+const OFFSET_WIDGET = 96; // Slots 64 to 95
+const OFFSET_MENU = 128; // Slots 96 to 127
 
 
 // TODO: '..._EDI_indent_ORIGINAL_indentBy()' is no longer in use
