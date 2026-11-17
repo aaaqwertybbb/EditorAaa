@@ -8,14 +8,6 @@ const DialogKind_FindAll = 1;
 const DialogKind_Settings = 2;
 const DialogKind_DocumentSymbol = 3;
 const DialogKind_Debug = 4;
-/**
- * TODO: I'm not going to add this to my-custom-babel-plugin.cjs as a ceremonious acknowledgement of my foolishness.
- * 
- * That being said, while I can see the Smi being overkill.
- * The enums do genuinely feel wasteful without 'my-custom-babel-plugin.cjs' (or you know... typescript doing it for me).
- * But then again the compiled code is harder to read so... give and take.
- */
-const DialogKind_Debug_treeViewComponent_v2 = 5;
 
 const DIALOGrenderKind_None = 0;
 const DIALOGrenderKind_Show = 1;
@@ -147,9 +139,6 @@ function DIALOG_render_do_Show() {
         case DialogKind_Debug:
             DIALOG_Debug_Create();
             break;
-        case DialogKind_Debug_treeViewComponent_v2:
-            DIALOG_Debug_treeViewComponent_v2_Create();
-            break;
     }
 
     BYTES[byteDIALOG_currentDialogKind] = DIALOG_request.dialogKind;
@@ -201,9 +190,6 @@ function DIALOG_render_do_Hide() {
             break;
         case DialogKind_Debug:
             DIALOG_Debug_Delete();
-            break;
-        case DialogKind_Debug_treeViewComponent_v2:
-            DIALOG_Debug_treeViewComponent_v2_Delete();
             break;
     }
 

@@ -35,42 +35,14 @@ well I guess I'd need to add an if to verify that the modulo math went correctly
 thus the same thing happens but now I can't just re-use that I'm virtual index first then you're safe thus the if else part...
 */
 
-// start CONSTRUCTOR
-/////
-///// start treeViewComponent.js
-/////
-const EXPLORER_rootElement = document.createElement('div');
-EXPLORER_rootElement.classList.add('TREEVIEWexplorer', 'unselectable');
-EXPLORER_rootElement.tabIndex = 0;
-EXPLORER_rootElement.style.height = '100%';
+/**
+ * @type {TreeViewComponent_v2}
+ */
+const treeViewComponent_v2_debug = new TreeViewComponent_v2(16, treeViewComponent_v2_staticRunner, Debug_treeViewComponent_v2_renderLines, Debug_treeViewComponent_v2_expandCollapseIconWasClicked, Debug_treeViewComponent_v2_dblClick_or_space_or_enter);
+// treeViewComponent_v2_debug.initialize(dialogBody, null /*beforeChild*/);
+let treeViewComponent_v2_debug_stringsMapByPathId = new Map();
 
-const EXPLORER_scroll_viewport = document.createElement('div');
-EXPLORER_scroll_viewport.id = 'EXPLORER_scroll_viewport';
-const EXPLORER_scrollbar_space_generator = document.createElement('div');
-EXPLORER_scrollbar_space_generator.id = 'EXPLORER_scrollbar_space_generator';
-EXPLORER_scroll_viewport.appendChild(EXPLORER_scrollbar_space_generator);
-EXPLORER_rootElement.appendChild(EXPLORER_scroll_viewport);
-
-const EXPLORER_visual_canvas = document.createElement('div');
-EXPLORER_visual_canvas.id = 'EXPLORER_visual_canvas';
-const EXPLORER_text = document.createElement('div');
-EXPLORER_text.id = 'EXPLORER_text';
-EXPLORER_visual_canvas.appendChild(EXPLORER_text);
-EXPLORER_rootElement.appendChild(EXPLORER_visual_canvas);
-
-/** Consider the existence of such methods as 'state_cursor_setIndex' before mutating state directly */
-const EXPLORER_cursorElement = document.createElement('div');
-EXPLORER_cursorElement.className = 'TREEVIEW_cursor';
-EXPLORER_text.appendChild(EXPLORER_cursorElement);
-
-const EXPLORER_itemListElement = document.createElement('div');
-EXPLORER_itemListElement.className = 'TREEVIEW_itemList';
-EXPLORER_text.appendChild(EXPLORER_itemListElement);
-
-let EXPLORER_ringBuffer = [];
-
-let EXPLORER_draw_create_request_parentElement = null;
-let EXPLORER_draw_create_request_insertBeforeThisChild = null;
+treeViewComponent_v2_debug.initialize(document.getElementById('EXPLORER'), null);
 
 let EXPLORER_itemHeightStyleAttributeValueString = '20px';
 
@@ -84,11 +56,6 @@ let EXPLORER_SET_ITEMS_itemHeightStyleAttributeValueString = '';
 let EXPLORER_chosenDirectory = null;
 let EXPLORER_chosenDirectoryAbsolutePathId = -1;
 let EXPLORER_chosenWorkspace = -1;
-
-/**
- * @type {TreeViewNodeList}
- * */
-const EXPLORER_treeViewNodes = new TreeViewNodeList(32);
 
 /** Starting with an empty array so I can have undefined/null signify that the "TreeViewDirector" is "opting out" of this feature, thus the component should not allocate this on the "TreeViewDirector"'s behalf. */
 let EXPLORER_pullData_array = new Uint32Array(0);
@@ -106,12 +73,15 @@ function EXPLORER_setChosenDirectory(chosenDirectory, chosenDirectoryAbsolutePat
     EXPLORER_chosenDirectory = chosenDirectory;
     EXPLORER_chosenDirectoryAbsolutePathId = chosenDirectoryAbsolutePathId;
 
-    EXPLORER_treeViewNodes.clear();
+    treeViewComponent_v2_debug_stringsMapByPathId.clear();
 
     if (!EXPLORER_chosenDirectory) return;
 
     let nodeKind = TreeViewNodeKind_isExpandable_NOTisExpanded;
-    EXPLORER_treeViewNodes.insert(EXPLORER_treeViewNodes.count_abstract, nodeKind, EXPLORER_chosenDirectoryAbsolutePathId, 0);
+
+    treeViewComponent_v2_debug.insert(treeViewComponent_v2_debug.countAbstract, nodeKind, EXPLORER_chosenDirectoryAbsolutePathId, 0);
+    treeViewComponent_v2_debug_stringsMapByPathId.set(chosenDirectory, directory.basename);
+
     INTS[fEXPLORER_itemHeightTotal] = EXPLORER_treeViewNodes.count_abstract * INTS[fEXPLORER_itemHeightNumber];
     EXPLORER_scrollbar_space_generator.style.height = INTS[fEXPLORER_itemHeightTotal] + 'px';
 }
@@ -128,25 +98,19 @@ function EXPLORER_setChosenWorkspace(chooseWorkspaceResult) {
         shouldUseCSharpToSaveFileWhenPossible = true;
     }
 
-    EXPLORER_treeViewNodes.clear();
-
     treeViewComponent_v2_debug_stringsMapByPathId.clear();
-    treeViewComponent_v2_debug = new TreeViewComponent_v2(16, treeViewComponent_v2_staticRunner, Debug_treeViewComponent_v2_renderLines, Debug_treeViewComponent_v2_expandCollapseIconWasClicked, Debug_treeViewComponent_v2_dblClick_or_space_or_enter);
 
     if (!EXPLORER_chosenWorkspace) return;
 
     for (let i = 0; i < chooseWorkspaceResult.directories.length; i++) {
         let directory = chooseWorkspaceResult.directories[i];
         let nodeKind = TreeViewNodeKind_isExpandable_NOTisExpanded;
-        EXPLORER_treeViewNodes.insert(EXPLORER_treeViewNodes.count_abstract, nodeKind, directory.id, 0);
-
         treeViewComponent_v2_debug.insert(treeViewComponent_v2_debug.countAbstract, nodeKind, directory.id, 0);
-
         treeViewComponent_v2_debug_stringsMapByPathId.set(directory.id, directory.basename);
     }
 
-    INTS[fEXPLORER_itemHeightTotal] = EXPLORER_treeViewNodes.count_abstract * INTS[fEXPLORER_itemHeightNumber];
-    EXPLORER_scrollbar_space_generator.style.height = INTS[fEXPLORER_itemHeightTotal] + 'px';
+    //INTS[fEXPLORER_itemHeightTotal] = EXPLORER_treeViewNodes.count_abstract * INTS[fEXPLORER_itemHeightNumber];
+    //EXPLORER_scrollbar_space_generator.style.height = INTS[fEXPLORER_itemHeightTotal] + 'px';
 }
 
 function EXPLORER_drawItem_BATCH_trailingEdge() {
@@ -1555,8 +1519,7 @@ async function EXPLORER_pickFolderOrWorkspaceButton_MenuOnClick(isCancelled, men
                 EXPLORER_PickFolder.title = chosenDirectory;
     
                 EXPLORER_setChosenDirectory(chosenDirectory, chooseDirectoryResult.id);
-                EXPLORER_setItems(INTS[fEDI_lineHeight], INTS[fEDI_lineHeight] + 'px');
-                EXPLORER_draw_create_request(EXPLORER_Element, null);
+                treeViewComponent_v2_debug.resetTheUi();
             }
             break;
         case CommandKind_SelectWorkspace:
@@ -1574,8 +1537,7 @@ async function EXPLORER_pickFolderOrWorkspaceButton_MenuOnClick(isCancelled, men
                 pickWorkspaceButton.title = chooseWorkspaceResult.workspaceFileAbsolutePath;
     
                 EXPLORER_setChosenWorkspace(chooseWorkspaceResult);
-                EXPLORER_setItems(INTS[fEDI_lineHeight], INTS[fEDI_lineHeight] + 'px');
-                EXPLORER_draw_create_request(EXPLORER_Element, null);
+                treeViewComponent_v2_debug.resetTheUi();
             }
             break;
     }

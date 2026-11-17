@@ -536,6 +536,12 @@ class TreeViewComponent_v2 {
         this.forceFullscreen_renderScroll();
     }
 
+    /** TODO: name this function. */
+    resetTheUi() {
+        this.drawScrollbarHeight();
+        this.forceFullscreen_renderScroll();
+    }
+
     drawScrollbarHeight() {
         this.itemHeightTotal = (this.countAbstract + 2) * this.itemHeightNumber;
         this.scrollbarSpaceGenerator.style.height = this.itemHeightTotal + 'px';

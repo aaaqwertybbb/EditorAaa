@@ -750,6 +750,7 @@ const fEXPLORER_lastReadNumber_offsetHeight = 120;
 
 const fEXPLORER_cursorTranslateYNumber = 121;
 
+/** TODO: obsolete */
 const fEXPLORER_itemHeightTotal = 122;
 
 /** Consider the existence of such methods as 'state_cursor_setIndex' before mutating state directly */
