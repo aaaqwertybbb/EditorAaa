@@ -343,6 +343,7 @@ class TreeViewComponent {
     event_click(event) {
         const event_clientY = event.clientY;
         const event_clientX = event.clientX;
+        event = null;
 
         let rY = event_clientY - this.boundingClientRect.top + this.scrollTop;
         let indexItem = Math.floor(rY / this.itemHeightNumber);
@@ -368,6 +369,8 @@ class TreeViewComponent {
 
     event_dblclick(event) {
         const event_clientY = event.clientY;
+        event = null;
+
         let rY = event_clientY - this.boundingClientRect.top + this.scrollTop;
         let indexItem = Math.floor(rY / this.itemHeightNumber);
         indexItem = this.state_cursor_validateIndex(indexItem);
@@ -375,15 +378,13 @@ class TreeViewComponent {
         let ringBufferIndexItem = this.toRingBufferIndex(indexItem);
         if (ringBufferIndexItem < 0) return;
 
-        let divItem = this.lineCacheRingBuffer[ringBufferIndexItem];
-
         // TODO: if not clicked "chevron"
-        //this.renderCursor_ScrollIntoView_Or_RenderCursor();
+        this.cursorIndex = indexItem;
+        this.renderCursor_ScrollIntoView_Or_RenderCursor();
         this.dblClick_or_space_or_enter(undefined /*key*/, this.cursorIndex, ringBufferIndexItem);
     }
 
     event_contextmenu(event) {
-
         const event_button = event.button;
         const event_clientX = event.clientX;
         const event_clientY = event.clientY;
@@ -413,32 +414,36 @@ class TreeViewComponent {
     }
 
     event_keydown(event) {
+        const eventKey = event.key;
+        const eventCtrlKey = event.ctrlKey;
+        event = null;
+
         switch (event.key) {
             case 'ArrowDown':
                 event.preventDefault();
                 event.stopPropagation();
-                this.arrowDown(event.ctrlKey);
+                this.arrowDown(eventCtrlKey);
                 return;
             case 'ArrowUp':
                 event.preventDefault();
                 event.stopPropagation();
-                this.arrowUp(event.ctrlKey);
+                this.arrowUp(eventCtrlKey);
                 return;
             case 'ArrowRight':
                 event.preventDefault();
                 event.stopPropagation();
-                this.arrowRight(event.ctrlKey);
+                this.arrowRight(eventCtrlKey);
                 return;
             case 'ArrowLeft':
                 event.preventDefault();
                 event.stopPropagation();
-            	this.arrowLeft(event.ctrlKey);
+            	this.arrowLeft(eventCtrlKey);
             	return;
             case ' ':
             case 'Enter':
                 event.preventDefault();
                 event.stopPropagation();
-                this.space_or_enter(event.key);
+                this.space_or_enter(eventKey);
                 return;
         }
     }
