@@ -131,7 +131,7 @@ function EXPLORER_setChosenWorkspace(chooseWorkspaceResult) {
     EXPLORER_treeViewNodes.clear();
 
     treeViewComponent_v2_debug_stringsMapByPathId.clear();
-    treeViewComponent_v2_debug = new TreeViewComponent_v2(16, treeViewComponent_v2_staticRunner, Debug_treeViewComponent_v2_renderLines, Debug_treeViewComponent_v2_expandCollapseIconWasClicked);
+    treeViewComponent_v2_debug = new TreeViewComponent_v2(16, treeViewComponent_v2_staticRunner, Debug_treeViewComponent_v2_renderLines, Debug_treeViewComponent_v2_expandCollapseIconWasClicked, Debug_treeViewComponent_v2_dblClick_or_space_or_enter);
 
     if (!EXPLORER_chosenWorkspace) return;
 

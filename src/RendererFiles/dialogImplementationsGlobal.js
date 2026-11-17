@@ -721,3 +721,20 @@ async function Debug_treeViewComponent_v2_expandCollapseIconWasClicked(divItem, 
         treeViewComponent_v2_debug.forceFullscreen_renderScroll();
     }
 }
+
+async function Debug_treeViewComponent_v2_dblClick_or_space_or_enter(eventKey, indexItem, ringBufferIndexItem) {
+    treeViewComponent_v2_debug.getElementAt(indexItem);
+    let key = INTS[fTreeView_poolret_pooledNode_key];
+    let nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+
+    if (nodeKind === TreeViewNodeKind_NOTisExpandable_NOTisExpanded) {
+        // TODO: open the file by id in one ipc call
+        const entry = await window.myAPI.getFilesystemEntryById(key);
+        if (!entry) return;
+
+        if (!entry.isDirectory) {
+            // TODO: eventKey!==' ' feels a bit awkward. (I don't think dblClick has a eventKey is the issue but if you check !space...?)
+            await EXPLORER_openInEditor(entry.absolutePath, /*shouldFocus*/ eventKey!==' ');
+        }
+    }
+}

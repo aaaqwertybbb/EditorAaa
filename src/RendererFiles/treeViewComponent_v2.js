@@ -126,10 +126,11 @@ class TreeViewComponent_v2 {
      * @param {number} initialCapacityAbstract 
      * @param {TreeViewComponent_v2_staticRunner} treeViewComponent_v2_staticRunner 
      */
-    constructor(initialCapacityAbstract, treeViewComponent_v2_staticRunner, renderLines, expandCollapseIconWasClicked) {
+    constructor(initialCapacityAbstract, treeViewComponent_v2_staticRunner, renderLines, expandCollapseIconWasClicked, dblClick_or_space_or_enter) {
 
         this.renderLines = renderLines;
         this.expandCollapseIconWasClicked = expandCollapseIconWasClicked;
+        this.dblClick_or_space_or_enter = dblClick_or_space_or_enter;
 
         this.treeViewComponent_v2_staticRunner = treeViewComponent_v2_staticRunner;
         
@@ -428,7 +429,7 @@ class TreeViewComponent_v2 {
             case 'Enter':
                 event.preventDefault();
                 event.stopPropagation();
-                this.space_or_enter();
+                this.space_or_enter(event.key);
                 return;
         }
     }
@@ -514,13 +515,13 @@ class TreeViewComponent_v2 {
         }
     }
 
-    space_or_enter() {
+    space_or_enter(key) {
         this.cursorIndex = this.state_cursor_validateIndex(this.cursorIndex);
                 
         let ringBufferIndexItem = this.toRingBufferIndex(this.cursorIndex);
         if (ringBufferIndexItem < 0) return;
 
-        return this.director.tvd_onkeydown_async(this.ringBuffer[ringBufferIndexItem], this.cursorIndex, event.key);
+        this.dblClick_or_space_or_enter(key, this.cursorIndex, ringBufferIndexItem);
     }
 
     /**
