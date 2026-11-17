@@ -188,6 +188,7 @@ class TreeViewComponent_v2 {
         // Bind once in constructor so ... doesn't allocate a closure per ...
         this.eventScroll = this.event_scroll.bind(this);
         this.eventClick = this.event_click.bind(this);
+        this.eventDblClick = this.event_dblclick.bind(this);
         this.eventKeydown = this.event_keydown.bind(this);
         this.eventResize = this.event_windowResize.bind(this);
 
@@ -224,6 +225,7 @@ class TreeViewComponent_v2 {
         this.scrollViewport.addEventListener('scroll', this.eventScroll, { passive: true });
         
         this.rootElement.addEventListener('click', this.eventClick);
+        this.rootElement.addEventListener('dblclick', this.eventDblClick);
         this.rootElement.addEventListener('keydown', this.eventKeydown);
 
         window.addEventListener('resize', this.eventResize);
@@ -238,6 +240,7 @@ class TreeViewComponent_v2 {
         this.scrollViewport.removeEventListener('scroll', this.eventScroll, { passive: true }); // TODO: You don't pass '{ passive: true }' when removing an event that was added with it but this doesn't error and it makes me feel less anxious.
 
         this.rootElement.removeEventListener('click', this.eventClick);
+        this.rootElement.removeEventListener('dblclick', this.eventDblClick);
         this.rootElement.removeEventListener('keydown', this.eventKeydown);
 
         window.removeEventListener('resize', this.eventClick);
@@ -362,7 +365,8 @@ class TreeViewComponent_v2 {
         }
     }
 
-    event_dblclick(event_clientY, event_target) {
+    event_dblclick(event) {
+        const event_clientY = event.clientY;
         let rY = event_clientY - this.boundingClientRect.top + this.scrollTop;
         let indexItem = Math.floor(rY / this.itemHeightNumber);
         indexItem = this.state_cursor_validateIndex(indexItem);
@@ -374,7 +378,7 @@ class TreeViewComponent_v2 {
 
         // TODO: if not clicked "chevron"
         //this.renderCursor_ScrollIntoView_Or_RenderCursor();
-        return this.director.tvd_ondblclick_async(this.ringBuffer[ringBufferIndexItem], this.cursorIndex);
+        this.dblClick_or_space_or_enter(undefined /*key*/, this.cursorIndex, ringBufferIndexItem);
     }
 
     event_contextmenu(event_button, event_clientX, event_clientY) {
