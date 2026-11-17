@@ -33,31 +33,21 @@ let EXPLORER_SET_ITEMS_itemHeightStyleAttributeValueString = '';
 ///// end treeViewComponent.js
 /////
 
-/** @type {string} */
-let EXPLORER_chosenDirectoryAbsolutePath = null;
-let EXPLORER_chosenDirectoryAbsolutePathId = -1;
-let EXPLORER_chosenWorkspace = -1;
-
 /** // Invoke this?: 'this.draw_render_fullReset_request();' */
 function EXPLORER_setChosenDirectory(chosenDirectoryAbsolutePath, chosenDirectoryBasename, chosenDirectoryAbsolutePathId) {
-    EXPLORER_chosenDirectoryAbsolutePath = chosenDirectoryAbsolutePath;
-    EXPLORER_chosenDirectoryAbsolutePathId = chosenDirectoryAbsolutePathId;
-
     treeViewComponent_v2_debug_stringsMapByPathId.clear();
+    if (!chosenDirectoryAbsolutePath) return;
 
-    if (!EXPLORER_chosenDirectoryAbsolutePath) return;
-
-    let nodeKind = TreeViewNodeKind_isExpandable_NOTisExpanded;
-
-    treeViewComponent_v2_debug.insert(treeViewComponent_v2_debug.countAbstract, nodeKind, EXPLORER_chosenDirectoryAbsolutePathId, 0);
-    treeViewComponent_v2_debug_stringsMapByPathId.set(EXPLORER_chosenDirectoryAbsolutePathId, chosenDirectoryBasename);
+    treeViewComponent_v2_debug.insert(treeViewComponent_v2_debug.countAbstract, TreeViewNodeKind_isExpandable_NOTisExpanded, chosenDirectoryAbsolutePathId, 0);
+    treeViewComponent_v2_debug_stringsMapByPathId.set(chosenDirectoryAbsolutePathId, chosenDirectoryBasename);
 }
 
 /** // Invoke this?: 'this.draw_render_fullReset_request();' */
 function EXPLORER_setChosenWorkspace(chooseWorkspaceResult) {
-    EXPLORER_chosenWorkspace = chooseWorkspaceResult.workspaceFileAbsolutePath;
+    treeViewComponent_v2_debug_stringsMapByPathId.clear();
+    if (!chooseWorkspaceResult.workspaceFileAbsolutePath) return;
 
-    if (EXPLORER_chosenWorkspace === "C:\\Users\\hunte\\Repos\\New folder (7)\\Editor2.code-workspace") {
+    if (chooseWorkspaceResult.workspaceFileAbsolutePath === "C:\\Users\\hunte\\Repos\\New folder (7)\\Editor2.code-workspace") {
         // enable experimental behavior only if the path matches my own.
         // This is not 100% fool proof but for my temporary use case it is likely 100% secure
         // given the extremely small amount of people running the code i.e.: maybe I'm the only one that even runs this code I don't know.
@@ -65,14 +55,9 @@ function EXPLORER_setChosenWorkspace(chooseWorkspaceResult) {
         shouldUseCSharpToSaveFileWhenPossible = true;
     }
 
-    treeViewComponent_v2_debug_stringsMapByPathId.clear();
-
-    if (!EXPLORER_chosenWorkspace) return;
-
     for (let i = 0; i < chooseWorkspaceResult.directories.length; i++) {
-        let directory = chooseWorkspaceResult.directories[i];
-        let nodeKind = TreeViewNodeKind_isExpandable_NOTisExpanded;
-        treeViewComponent_v2_debug.insert(treeViewComponent_v2_debug.countAbstract, nodeKind, directory.id, 0);
+        const directory = chooseWorkspaceResult.directories[i];
+        treeViewComponent_v2_debug.insert(treeViewComponent_v2_debug.countAbstract, TreeViewNodeKind_isExpandable_NOTisExpanded, directory.id, 0);
         treeViewComponent_v2_debug_stringsMapByPathId.set(directory.id, directory.basename);
     }
 }
