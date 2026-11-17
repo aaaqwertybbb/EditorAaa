@@ -14,7 +14,7 @@ const TreeViewNodeKind_isExpandable_NOTisExpanded = 2;
 const TreeViewNodeKind_NOTisExpandable_isExpanded = 3;
 const TreeViewNodeKind_NOTisExpandable_NOTisExpanded = 4;
 
-class TreeViewComponent_v2_staticRunner {
+class TreeViewComponent_staticRunner {
     constructor() {
         this.queueHead = 0;
         this.queueTail = 0;
@@ -112,7 +112,7 @@ class TreeViewComponent_v2_staticRunner {
 
 
 /** TODO: Does JavaScript have static classes, I don't want to go down a rabbit hole right now. */
-const treeViewComponent_v2_staticRunner = new TreeViewComponent_v2_staticRunner();
+const treeViewComponent_staticRunner = new TreeViewComponent_staticRunner();
 
 /**
  * You could probably calculate the ringBuffer diff in the scroll event then pass that information to a non-TreeViewComponent_v2 defined function.
@@ -122,17 +122,17 @@ const treeViewComponent_v2_staticRunner = new TreeViewComponent_v2_staticRunner(
 class TreeViewComponent_v2 {
     /**
      * @param {number} initialCapacityAbstract 
-     * @param {TreeViewComponent_v2_staticRunner} treeViewComponent_v2_staticRunner 
+     * @param {TreeViewComponent_staticRunner} treeViewComponent_staticRunner 
      */
-    constructor(initialCapacityAbstract, treeViewComponent_v2_staticRunner, renderLines, expandCollapseIconWasClicked, dblClick_or_space_or_enter) {
+    constructor(initialCapacityAbstract, treeViewComponent_staticRunner, renderLines, expandCollapseIconWasClicked, dblClick_or_space_or_enter) {
 
         this.renderLines = renderLines;
         this.expandCollapseIconWasClicked = expandCollapseIconWasClicked;
         this.dblClick_or_space_or_enter = dblClick_or_space_or_enter;
 
-        this.treeViewComponent_v2_staticRunner = treeViewComponent_v2_staticRunner;
+        this.treeViewComponent_staticRunner = treeViewComponent_staticRunner;
         
-        this.runnerId = treeViewComponent_v2_staticRunner.add(this);
+        this.runnerId = treeViewComponent_staticRunner.add(this);
 
         this.rootElement = document.createElement('div');
         this.rootElement.classList.add('TREEVIEW', 'unselectable');
@@ -215,7 +215,7 @@ class TreeViewComponent_v2 {
 
     dispose() {
         this.draw_removeEvents();
-        this.treeViewComponent_v2_staticRunner.remove(this);
+        this.treeViewComponent_staticRunner.remove(this);
         this.rootElement.remove();
     }
 
@@ -600,13 +600,13 @@ class TreeViewComponent_v2 {
      * TODO: intra-app resizes or movements will also invoke this; i.e.: if a list is shown in a dialog and the dialog is resized or moved.
      */
     event_windowResize() {
-        this.treeViewComponent_v2_staticRunner.TreeViewComponent_v2_render_request(TREEVIEWrenderKind_Resize, this.runnerId);
+        this.treeViewComponent_staticRunner.TreeViewComponent_v2_render_request(TREEVIEWrenderKind_Resize, this.runnerId);
     }
 
     event_scroll() {
         this.scrollLeft = this.scrollViewport.scrollLeft;
         this.scrollTop = this.scrollViewport.scrollTop;
-        this.treeViewComponent_v2_staticRunner.TreeViewComponent_v2_render_request(TREEVIEWrenderKind_Scroll, this.runnerId);
+        this.treeViewComponent_staticRunner.TreeViewComponent_v2_render_request(TREEVIEWrenderKind_Scroll, this.runnerId);
     }
 
     // tvnl_
