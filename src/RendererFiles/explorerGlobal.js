@@ -16,25 +16,6 @@ NO ASYNC EVENTS
 - higher likelihood of memory leaking PerformanceEventTiming due to inability for browser to clear buffer on time requiring manual clearing of the long term buffer.
 */
 
-/*
-############################################################################
-# Awkward explicit inlining of 'EXPLORER_indexItemTo_ringBufferIndexItem': #
-############################################################################
-
-// TODO: This is an awkward explicit inlining of 'EXPLORER_indexItemTo_ringBufferIndexItem'...
-// ...the initial declaration of 'let ringBufferIndex' is assigned what I refer to as the "virtualIndex"
-// but 'ringBufferIndex' is the output of the function, and a 'virtualIndex' variable is only needed temporarily
-// for the calculation. So by storing the 'virtualIndex' in 'ringBufferIndex' at the start I skip a variable declaration.
-|
-(retrospective comment): I see what I was doing.
-It isn't just the single variable declaration.
-You can't do the modulo logic UNLESS the virtual index is valid (that the line of text is actually being drawn in the UI).
-BUT I think this was an assumption on my end.
-I wonder if the modulo math would work out such that I could...
-well I guess I'd need to add an if to verify that the modulo math went correctly
-thus the same thing happens but now I can't just re-use that I'm virtual index first then you're safe thus the if else part...
-*/
-
 /**
  * @type {TreeViewComponent_v2}
  */
@@ -57,17 +38,6 @@ let EXPLORER_chosenDirectory = null;
 let EXPLORER_chosenDirectoryAbsolutePathId = -1;
 let EXPLORER_chosenWorkspace = -1;
 
-/** Starting with an empty array so I can have undefined/null signify that the "TreeViewDirector" is "opting out" of this feature, thus the component should not allocate this on the "TreeViewDirector"'s behalf. */
-let EXPLORER_pullData_array = new Uint32Array(0);
-let EXPLORER_pullData_result = EXPLORER_pullData_array; // immediately allocated avoiding a null
-
-let EXPLORER_arrayEntries = null;
-
-// Google AI'd the bit logic
-// Configuration matching our table above
-//let EXPLORER_KEY_MASK = (1 << CONST_EXPLORER_KEY_BITS) - 1; // Binary: 00000000000000000000111111111111 (0xFFF)
-// end CONSTRUCTOR
-
 /** // Invoke this?: 'this.draw_render_fullReset_request();' */
 function EXPLORER_setChosenDirectory(chosenDirectory, chosenDirectoryAbsolutePathId) {
     EXPLORER_chosenDirectory = chosenDirectory;
@@ -80,10 +50,10 @@ function EXPLORER_setChosenDirectory(chosenDirectory, chosenDirectoryAbsolutePat
     let nodeKind = TreeViewNodeKind_isExpandable_NOTisExpanded;
 
     treeViewComponent_v2_debug.insert(treeViewComponent_v2_debug.countAbstract, nodeKind, EXPLORER_chosenDirectoryAbsolutePathId, 0);
-    treeViewComponent_v2_debug_stringsMapByPathId.set(chosenDirectory, directory.basename);
+    treeViewComponent_v2_debug_stringsMapByPathId.set(EXPLORER_chosenDirectoryAbsolutePathId, EXPLORER_chosenDirectory);
 
-    INTS[fEXPLORER_itemHeightTotal] = EXPLORER_treeViewNodes.count_abstract * INTS[fEXPLORER_itemHeightNumber];
-    EXPLORER_scrollbar_space_generator.style.height = INTS[fEXPLORER_itemHeightTotal] + 'px';
+    //INTS[fEXPLORER_itemHeightTotal] = EXPLORER_treeViewNodes.count_abstract * INTS[fEXPLORER_itemHeightNumber];
+    //EXPLORER_scrollbar_space_generator.style.height = INTS[fEXPLORER_itemHeightTotal] + 'px';
 }
 
 /** // Invoke this?: 'this.draw_render_fullReset_request();' */
