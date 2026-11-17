@@ -187,6 +187,7 @@ class TreeViewComponent_v2 {
         // Bind once in constructor so ... doesn't allocate a closure per ...
         this.eventScroll = this.event_scroll.bind(this);
         this.eventClick = this.event_click.bind(this);
+        this.eventKeydown = this.event_keydown.bind(this);
         this.eventResize = this.event_windowResize.bind(this);
 
         // tvnl_
@@ -220,24 +221,26 @@ class TreeViewComponent_v2 {
 
     draw_addEvents() {
         this.scrollViewport.addEventListener('scroll', this.eventScroll, { passive: true });
-        // TODO: put events on 'this.visualCanvas' maybe?...
+        
+        this.rootElement.addEventListener('click', this.eventClick);
+        this.rootElement.addEventListener('keydown', this.eventKeydown);
+
+        window.addEventListener('resize', this.eventResize);
+
+        // TODO: put events on 'this.visualCanvas' instead of 'this.rootElement' maybe?...
         // ...in 'measure' function you getBoundingClient rect of 'visualCanvas'.
         // The old code in this class got the 'left' and 'top' from 'rootElement' via 'this.rootElement.getBoundingClientRect();'.
         // This incosistency should be resolved so you don't redundantly 'getBoundingClientRect()' of both (which is likely redundant if not one being more correct than the other).
-        this.rootElement.addEventListener('click', this.eventClick);
-
-        window.addEventListener('resize', this.eventResize);
     }
     
     draw_removeEvents() {
-        this.scrollViewport.removeEventListener('scroll', this.eventScroll, { passive: true });
+        this.scrollViewport.removeEventListener('scroll', this.eventScroll, { passive: true }); // TODO: You don't pass '{ passive: true }' when removing an event that was added with it but this doesn't error and it makes me feel less anxious.
+
         this.rootElement.removeEventListener('click', this.eventClick);
+        this.rootElement.removeEventListener('keydown', this.eventKeydown);
 
         window.removeEventListener('resize', this.eventClick);
 
-        //this.rootElement.removeEventListener('click', this);
-        //this.rootElement.removeEventListener('keydown', this);
-        //this.scrollViewport.removeEventListener('scroll', this, { passive: true });
         //this.rootElement.addEventListener('dblclick', this);
         //this.rootElement.addEventListener('contextmenu', this);
     }
@@ -287,8 +290,17 @@ class TreeViewComponent_v2 {
             decodingBoundLower + diff /*decodingBoundUpper*/);
     }
 
-    /** TODO: Consider moving the cursor to its own canvas. */
-    renderCursor() {
+    /**
+     * TODO: Consider moving the cursor to its own canvas.
+     * 
+     * If you check whether the cursor needs to be scrolled into view, you'll trigger a downstream 'renderCursor' due to the scroll event.
+     * Otherwise, assume you still need to ensure the 'renderCursor' is invoked so force it.
+     * 
+     * (the ScrollIntoView is relative to `this.cursorIndex` NOT the position you last rendered the cursor)
+     * 
+     * TODO: 'this.cursorIndex = this.state_cursor_validateIndex(this.cursorIndex);' is vestigial-ish logic. Originally there was a function that set 'this.cursorIndex' and as a side effect would scroll it into view. These statements need to be modified to have that side effect occur.
+     */
+    renderCursor_ScrollIntoView_Or_RenderCursor() {
         this.renderLines(
             this.currentVirtualIndex /*lower*/,
             this.currentVirtualIndex + this.virtualCount /*upper*/,
@@ -325,7 +337,7 @@ class TreeViewComponent_v2 {
         }
         else {
             this.cursorIndex = indexItem;
-            this.renderCursor();
+            this.renderCursor_ScrollIntoView_Or_RenderCursor();
         }
     }
 
@@ -349,13 +361,9 @@ class TreeViewComponent_v2 {
 
         let divItem = this.ringBuffer[ringBufferIndexItem];
 
-        // if not clicked "chevron"
-        if (event_target !== divItem.children[0]) {
-            
-
-            if (ringBufferIndexItem < 0) return;
-            return this.director.tvd_ondblclick_async(this.ringBuffer[ringBufferIndexItem], this.cursorIndex);
-        }
+        // TODO: if not clicked "chevron"
+        //this.renderCursor_ScrollIntoView_Or_RenderCursor();
+        return this.director.tvd_ondblclick_async(this.ringBuffer[ringBufferIndexItem], this.cursorIndex);
     }
 
     toRingBufferIndex(itemIndex) {
@@ -372,8 +380,7 @@ class TreeViewComponent_v2 {
         if (event_button === 2) {
             let rY = event_clientY - this.boundingClientRect.top + this.scrollTop;
 
-            this.state_cursor_setIndex(this.state_cursor_validateIndex(
-                Math.floor(rY / this.itemHeightNumber)));
+            this.cursorIndex = this.state_cursor_validateIndex(Math.floor(rY / this.itemHeightNumber));
 
             // TODO: you need to move this above the divItem assignment and do checks earlier... double check all other uses
 
@@ -402,29 +409,30 @@ class TreeViewComponent_v2 {
         switch (event.key) {
             case 'ArrowDown':
                 event.preventDefault();
+                event.stopPropagation();
                 if (event.ctrlKey) {
                     this.scrollViewport.scrollBy(0, this.itemHeightNumber);
                 }
                 else {
-                    this.state_cursor_setIndex(this.state_cursor_validateIndex(
-                        this.cursorIndex + 1));
+                    this.cursorIndex = this.state_cursor_validateIndex(this.cursorIndex + 1);
+                    this.renderCursor_ScrollIntoView_Or_RenderCursor();
                 }
                 return;
             case 'ArrowUp':
                 event.preventDefault();
+                event.stopPropagation();
                 if (event.ctrlKey) {
                     this.scrollViewport.scrollBy(0, -1 * this.itemHeightNumber);
                 }
                 else {
-                    this.state_cursor_setIndex(this.state_cursor_validateIndex(
-                        this.cursorIndex - 1));
+                    this.cursorIndex = this.state_cursor_validateIndex(this.cursorIndex - 1);
                 }
                 return;
             case 'ArrowRight':
                 if (!event.ctrlKey) { // If holding ctrl, don't preventDefault so the user can scroll horizontally?
                     event.preventDefault();
-                    this.state_cursor_setIndex(this.state_cursor_validateIndex(
-                        this.cursorIndex));
+                    event.stopPropagation();
+                    this.cursorIndex = this.state_cursor_validateIndex(this.cursorIndex);
 
                     // TODO: 'ArrowRight' when the cursor is on a valid item but isn't part of the virtualization result.
 
@@ -437,8 +445,8 @@ class TreeViewComponent_v2 {
             case 'ArrowLeft':
             	if (!event.ctrlKey) { // If holding ctrl, don't preventDefault so the user can scroll horizontally?
                     event.preventDefault();
-                    this.state_cursor_setIndex(this.state_cursor_validateIndex(
-                        this.cursorIndex));
+                    event.stopPropagation();
+                    this.cursorIndex = this.state_cursor_validateIndex(this.cursorIndex);
                     
                     let ringBufferIndexItem = this.toRingBufferIndex(this.cursorIndex);
                     if (ringBufferIndexItem < 0) return;
@@ -449,8 +457,8 @@ class TreeViewComponent_v2 {
             case ' ':
             case 'Enter':
                 event.preventDefault();
-                this.state_cursor_setIndex(this.state_cursor_validateIndex(
-                    this.cursorIndex));
+                event.stopPropagation();
+                this.cursorIndex = this.state_cursor_validateIndex(this.cursorIndex);
                 
                 let ringBufferIndexItem = this.toRingBufferIndex(this.cursorIndex);
                 if (ringBufferIndexItem < 0) return;
