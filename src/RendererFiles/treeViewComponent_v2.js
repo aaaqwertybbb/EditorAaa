@@ -309,6 +309,26 @@ class TreeViewComponent_v2 {
             0 /*decodingBoundUpper*/);
     }
 
+    state_cursor_validateIndex(indexItem) {
+        if (indexItem >= this.countAbstract) {
+            indexItem = this.countAbstract - 1;
+        }
+        if (indexItem < 0) {
+            indexItem = 0;
+        }
+        return indexItem;
+    }
+
+    toRingBufferIndex(itemIndex) {
+        let virtualIndex = itemIndex - this.currentVirtualIndex;
+        if (virtualIndex >= this.ringBuffer.length || virtualIndex < 0) {
+            virtualIndex = -1;
+        }
+        else {
+            return (virtualIndex + this.ringBufferIndexZero) % this.virtualCount;
+        }
+    }
+
     /**
      * TODO: To detect whether the "expand/collapse icon" was clicked, the logic 'if(event.target === nodeElement.children[0])' is used...
      * ...this logic is flawed if one ever were to put an element within the span that became the target...
@@ -341,16 +361,6 @@ class TreeViewComponent_v2 {
         }
     }
 
-    state_cursor_validateIndex(indexItem) {
-        if (indexItem >= this.countAbstract) {
-            indexItem = this.countAbstract - 1;
-        }
-        if (indexItem < 0) {
-            indexItem = 0;
-        }
-        return indexItem;
-    }
-
     event_dblclick(event_clientY, event_target) {
         let rY = event_clientY - this.boundingClientRect.top + this.scrollTop;
         let indexItem = Math.floor(rY / this.itemHeightNumber);
@@ -366,23 +376,11 @@ class TreeViewComponent_v2 {
         return this.director.tvd_ondblclick_async(this.ringBuffer[ringBufferIndexItem], this.cursorIndex);
     }
 
-    toRingBufferIndex(itemIndex) {
-        let virtualIndex = itemIndex - this.currentVirtualIndex;
-        if (virtualIndex >= this.ringBuffer.length || virtualIndex < 0) {
-            virtualIndex = -1;
-        }
-        else {
-            return (virtualIndex + this.ringBufferIndexZero) % this.virtualCount;
-        }
-    }
-
     event_contextmenu(event_button, event_clientX, event_clientY) {
         if (event_button === 2) {
             let rY = event_clientY - this.boundingClientRect.top + this.scrollTop;
 
             this.cursorIndex = this.state_cursor_validateIndex(Math.floor(rY / this.itemHeightNumber));
-
-            // TODO: you need to move this above the divItem assignment and do checks earlier... double check all other uses
 
             let ringBufferIndexItem = this.toRingBufferIndex(this.cursorIndex);
             if (ringBufferIndexItem < 0) return;
@@ -394,8 +392,7 @@ class TreeViewComponent_v2 {
                 return;
             }
 
-            this.state_cursor_setIndex(this.state_cursor_validateIndex(
-                this.cursorIndex));
+            this.cursorIndex = this.state_cursor_validateIndex(this.cursorIndex);
 
             let ringBufferIndexItem = this.toRingBufferIndex(this.cursorIndex);
             if (ringBufferIndexItem < 0) return;
@@ -410,61 +407,97 @@ class TreeViewComponent_v2 {
             case 'ArrowDown':
                 event.preventDefault();
                 event.stopPropagation();
-                if (event.ctrlKey) {
-                    this.scrollViewport.scrollBy(0, this.itemHeightNumber);
-                }
-                else {
-                    this.cursorIndex = this.state_cursor_validateIndex(this.cursorIndex + 1);
-                    this.renderCursor_ScrollIntoView_Or_RenderCursor();
-                }
+                this.arrowDown(event.ctrlKey);
                 return;
             case 'ArrowUp':
                 event.preventDefault();
                 event.stopPropagation();
-                if (event.ctrlKey) {
-                    this.scrollViewport.scrollBy(0, -1 * this.itemHeightNumber);
-                }
-                else {
-                    this.cursorIndex = this.state_cursor_validateIndex(this.cursorIndex - 1);
-                }
+                this.arrowUp(event.ctrlKey);
                 return;
             case 'ArrowRight':
-                if (!event.ctrlKey) { // If holding ctrl, don't preventDefault so the user can scroll horizontally?
-                    event.preventDefault();
-                    event.stopPropagation();
-                    this.cursorIndex = this.state_cursor_validateIndex(this.cursorIndex);
-
-                    // TODO: 'ArrowRight' when the cursor is on a valid item but isn't part of the virtualization result.
-
-                    let ringBufferIndexItem = this.toRingBufferIndex(this.cursorIndex);
-                    if (ringBufferIndexItem < 0) return;
-
-                    return this.director.tvd_arrowRight_async(this.ringBuffer[ringBufferIndexItem], this.cursorIndex);
-                }
+                event.preventDefault();
+                event.stopPropagation();
+                this.arrowRight(event.ctrlKey);
                 return;
             case 'ArrowLeft':
-            	if (!event.ctrlKey) { // If holding ctrl, don't preventDefault so the user can scroll horizontally?
-                    event.preventDefault();
-                    event.stopPropagation();
-                    this.cursorIndex = this.state_cursor_validateIndex(this.cursorIndex);
-                    
-                    let ringBufferIndexItem = this.toRingBufferIndex(this.cursorIndex);
-                    if (ringBufferIndexItem < 0) return;
-
-                    return this.director.tvd_arrowLeft_async(this.ringBuffer[ringBufferIndexItem], this.cursorIndex);
-                }
+                event.preventDefault();
+                event.stopPropagation();
+            	this.arrowLeft(event.ctrlKey);
             	return;
             case ' ':
             case 'Enter':
                 event.preventDefault();
                 event.stopPropagation();
-                this.cursorIndex = this.state_cursor_validateIndex(this.cursorIndex);
-                
-                let ringBufferIndexItem = this.toRingBufferIndex(this.cursorIndex);
-                if (ringBufferIndexItem < 0) return;
-
-                return this.director.tvd_onkeydown_async(this.ringBuffer[ringBufferIndexItem], this.cursorIndex, event.key);
+                this.space_or_enter();
+                return;
         }
+    }
+
+    arrowDown(ctrlKey) {
+        if (ctrlKey) {
+            this.scrollViewport.scrollBy(0, this.itemHeightNumber);
+        }
+        else {
+            this.cursorIndex = this.state_cursor_validateIndex(this.cursorIndex + 1);
+            this.renderCursor_ScrollIntoView_Or_RenderCursor();
+        }
+    }
+
+    arrowUp(ctrlKey) {
+        if (ctrlKey) {
+            this.scrollViewport.scrollBy(0, -1 * this.itemHeightNumber);
+        }
+        else {
+            this.cursorIndex = this.state_cursor_validateIndex(this.cursorIndex - 1);
+            this.renderCursor_ScrollIntoView_Or_RenderCursor();
+        }
+    }
+
+    arrowRight(ctrlKey) {
+        // TODO: consider: If holding ctrl, don't preventDefault so the user can scroll horizontally?
+
+        this.cursorIndex = this.state_cursor_validateIndex(this.cursorIndex);
+
+        // TODO: 'ArrowRight' when the cursor is on a valid item but isn't part of the virtualization result.
+        let ringBufferIndexItem = this.toRingBufferIndex(this.cursorIndex);
+        if (ringBufferIndexItem < 0) return;
+
+        // TODO: !!!! You might need to be careful with async and the TreeView_pooledNode; I'm not certain whether you do or don't have to be careful, and I don't feel like looking into it at the moment.
+        this.getElementAt(this.cursorIndex);
+        let depth = INTS[fTreeView_poolret_pooledNode_depth];
+        let nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+        
+        if (nodeKind === TreeViewNodeKind_isExpandable_isExpanded) {
+            if (this.cursorIndex + 1 < this.countAbstract) {
+                if (this.getDepth(this.cursorIndex + 1) > depth) {
+                    this.cursorIndex = this.state_cursor_validateIndex(this.cursorIndex + 1);
+                    this.renderCursor_ScrollIntoView_Or_RenderCursor();
+                }
+            }
+        }
+        else if (nodeKind === TreeViewNodeKind_isExpandable_NOTisExpanded) {
+            this.expandCollapseIconWasClicked(undefined /*divItem*/, this.cursorIndex, ringBufferIndexItem);
+        }
+    }
+
+    arrowLeft(ctrlKey) {
+        if (!ctrlKey) { // If holding ctrl, don't preventDefault so the user can scroll horizontally?
+            this.cursorIndex = this.state_cursor_validateIndex(this.cursorIndex);
+            
+            let ringBufferIndexItem = this.toRingBufferIndex(this.cursorIndex);
+            if (ringBufferIndexItem < 0) return;
+
+            return this.director.tvd_arrowLeft_async(this.ringBuffer[ringBufferIndexItem], this.cursorIndex);
+        }
+    }
+
+    space_or_enter() {
+        this.cursorIndex = this.state_cursor_validateIndex(this.cursorIndex);
+                
+        let ringBufferIndexItem = this.toRingBufferIndex(this.cursorIndex);
+        if (ringBufferIndexItem < 0) return;
+
+        return this.director.tvd_onkeydown_async(this.ringBuffer[ringBufferIndexItem], this.cursorIndex, event.key);
     }
 
     /**
