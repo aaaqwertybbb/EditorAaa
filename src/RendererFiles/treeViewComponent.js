@@ -28,10 +28,10 @@ class TreeViewComponent_staticRunner {
         this.freeRunnerIds = [];
 
         // Bind once in constructor so rAF doesn't allocate a closure per frame
-        this.renderLoop = this.TreeViewComponent_v2_render_do.bind(this);
+        this.renderLoop = this.TreeViewComponent_render_do.bind(this);
     }
 
-    TreeViewComponent_v2_render_request(renderKind, runnerId) {
+    TreeViewComponent_render_request(renderKind, runnerId) {
         const count = this.queueTail - this.queueHead;
         
         if (count > 0) {
@@ -46,7 +46,7 @@ class TreeViewComponent_staticRunner {
 
         // Guard against buffer overflow within a single frame
         if (count >= this.CAPACITY) {
-            this.TreeViewComponent_v2_render_do();
+            this.TreeViewComponent_render_do();
         }
 
         const byteOffset = (this.queueTail & this.UI_SLOT_MASK) << 1;
@@ -60,7 +60,7 @@ class TreeViewComponent_staticRunner {
         }
     }
 
-    TreeViewComponent_v2_render_do() {
+    TreeViewComponent_render_do() {
         while (this.queueHead !== this.queueTail) {
             const byteOffset = (this.queueHead & this.UI_SLOT_MASK) << 1;
             const renderKind = this.MASTER_RENDER_BUFFER[byteOffset];
@@ -75,7 +75,7 @@ class TreeViewComponent_staticRunner {
                     component.renderScroll();
                     break;
                 case TREEVIEWrenderKind_Cursor:
-                    component.TreeViewComponent_v2_render_do_Cursor();
+                    component.TreeViewComponent_render_do_Cursor();
                     break;
                 case TREEVIEWrenderKind_Resize:
                     component.renderResize();
@@ -86,19 +86,19 @@ class TreeViewComponent_staticRunner {
         this.renderIsPending = false;
     }
 
-    add(treeViewComponent_v2) {
+    add(treeViewComponent) {
         if (this.freeRunnerIds.length > 0) {
             const reusedId = this.freeRunnerIds.pop();
-            this.runnerContexts[reusedId] = treeViewComponent_v2;
+            this.runnerContexts[reusedId] = treeViewComponent;
             return reusedId;
         }
-        this.runnerContexts.push(treeViewComponent_v2);
+        this.runnerContexts.push(treeViewComponent);
         return this.runnerContexts.length - 1;
     }
 
-    remove(treeViewComponent_v2) {
-        const id = treeViewComponent_v2.runnerId;
-        if (id == null || this.runnerContexts[id] !== treeViewComponent_v2) {
+    remove(treeViewComponent) {
+        const id = treeViewComponent.runnerId;
+        if (id == null || this.runnerContexts[id] !== treeViewComponent) {
             throw new Error("Invalid or unregistered runnerId");
         }
         this.runnerContexts[id] = null;
@@ -115,11 +115,11 @@ class TreeViewComponent_staticRunner {
 const treeViewComponent_staticRunner = new TreeViewComponent_staticRunner();
 
 /**
- * You could probably calculate the ringBuffer diff in the scroll event then pass that information to a non-TreeViewComponent_v2 defined function.
- * The consumer of the 'TreeViewComponent_v2' would provide a function that knows how to draw everything?
+ * You could probably calculate the ringBuffer diff in the scroll event then pass that information to a non-TreeViewComponent defined function.
+ * The consumer of the 'TreeViewComponent' would provide a function that knows how to draw everything?
  * The main thing to avoid is probably invoking "per line being drawn" some function that knows how to draw a line.
  */
-class TreeViewComponent_v2 {
+class TreeViewComponent {
     /**
      * @param {number} initialCapacityAbstract 
      * @param {TreeViewComponent_staticRunner} treeViewComponent_staticRunner 
@@ -600,13 +600,13 @@ class TreeViewComponent_v2 {
      * TODO: intra-app resizes or movements will also invoke this; i.e.: if a list is shown in a dialog and the dialog is resized or moved.
      */
     event_windowResize() {
-        this.treeViewComponent_staticRunner.TreeViewComponent_v2_render_request(TREEVIEWrenderKind_Resize, this.runnerId);
+        this.treeViewComponent_staticRunner.TreeViewComponent_render_request(TREEVIEWrenderKind_Resize, this.runnerId);
     }
 
     event_scroll() {
         this.scrollLeft = this.scrollViewport.scrollLeft;
         this.scrollTop = this.scrollViewport.scrollTop;
-        this.treeViewComponent_staticRunner.TreeViewComponent_v2_render_request(TREEVIEWrenderKind_Scroll, this.runnerId);
+        this.treeViewComponent_staticRunner.TreeViewComponent_render_request(TREEVIEWrenderKind_Scroll, this.runnerId);
     }
 
     // tvnl_

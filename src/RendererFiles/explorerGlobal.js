@@ -19,9 +19,9 @@ NO ASYNC EVENTS
 const EXPLORER_pathIdToDisplayNameMap = new Map();
 
 /**
- * @type {TreeViewComponent_v2}
+ * @type {TreeViewComponent}
  */
-const EXPLORER_treeViewComponent = new TreeViewComponent_v2(16, treeViewComponent_staticRunner, EXPLORER_renderLines, EXPLORER_expandCollapseIconWasClicked, EXPLORER_dblClick_or_space_or_enter);
+const EXPLORER_treeViewComponent = new TreeViewComponent(16, treeViewComponent_staticRunner, EXPLORER_renderLines, EXPLORER_expandCollapseIconWasClicked, EXPLORER_dblClick_or_space_or_enter);
 EXPLORER_treeViewComponent.initialize(document.getElementById('EXPLORER'), null);
 
 function EXPLORER_setChosenDirectory(chosenDirectoryAbsolutePath, chosenDirectoryBasename, chosenDirectoryAbsolutePathId) {
