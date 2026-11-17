@@ -26,6 +26,7 @@ EXPLORER_treeViewComponent.initialize(document.getElementById('EXPLORER'), null)
 
 function EXPLORER_setChosenDirectory(chosenDirectoryAbsolutePath, chosenDirectoryBasename, chosenDirectoryAbsolutePathId) {
     EXPLORER_pathIdToDisplayNameMap.clear();
+    EXPLORER_treeViewComponent.clear();
     if (!chosenDirectoryAbsolutePath) return;
 
     EXPLORER_treeViewComponent.insert(EXPLORER_treeViewComponent.countAbstract, TreeViewNodeKind_isExpandable_NOTisExpanded, chosenDirectoryAbsolutePathId, 0);
@@ -34,6 +35,7 @@ function EXPLORER_setChosenDirectory(chosenDirectoryAbsolutePath, chosenDirector
 
 function EXPLORER_setChosenWorkspace(chooseWorkspaceResult) {
     EXPLORER_pathIdToDisplayNameMap.clear();
+    EXPLORER_treeViewComponent.clear();
     if (!chooseWorkspaceResult.workspaceFileAbsolutePath) return;
 
     if (chooseWorkspaceResult.workspaceFileAbsolutePath === "C:\\Users\\hunte\\Repos\\New folder (7)\\Editor2.code-workspace") {
