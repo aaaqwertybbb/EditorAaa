@@ -1130,12 +1130,62 @@ I can delete package-lock.json and run npm install?
 Yes, deleting package-lock.json and running npm install will cleanly regenerate a valid lockfile. It reads your package.json and builds a fresh dependency tree from scratch.
 
 What to Keep in Mind
-
-• Version Updates: Without the old lockfile, npm will pull the newest minor or patch versions allowed by the version ranges (like ^ or ~) in your package.json. If you are working on a solo project, this is usually harmless or even helpful.
-• Cleanest Reset: If node_modules got out of sync while you were testing changes, you can also delete node_modules alongside package-lock.json before running npm install for a completely fresh start.
-• Git Alternative: If your project is tracked with Git and you had any strict version pins you don't want to lose, running git checkout package-lock.json will restore your last committed version instead of regenerating everything.
+• Version Updates: Without the old lockfile, npm will pull the newest minor or patch versions allowed by the version ranges (like ^ or ~) in your package.json.
+  If you are working on a solo project, this is usually harmless or even helpful.
+• Cleanest Reset: If node_modules got out of sync while you were testing changes, you can also delete node_modules alongside package-lock.json before running npm install
+  for a completely fresh start.
+• Git Alternative: If your project is tracked with Git and you had any strict version pins you don't want to lose, running git checkout package-lock.json
+  will restore your last committed version instead of regenerating everything.
 
 Did regenerating package-lock.json clear up the error, or are you trying to pin or override a specific dependency version?
+
+
+
+
+>
+I used to transpile my javascript into a single file es6 module.
+
+Can I make script tags per file?
+
+<script type="module" src="../build/__COMPILEDbundle__.js"></script>
+
+
+
+
+<
+Yes, you can replace the single bundled script tag with individual <script type="module"> tags, or load just your main entry point and let ES6 import statements load the rest.
+Since your Electron project uses Chromium under the hood, native ES modules work directly without a bundler as long as your files do not rely on bare npm package imports or
+non-standard syntax like TypeScript or JSX.
+
+
+Two Ways to Structure Your Scripts
+• Load only the entry file (Recommended): Because ES modules support import and export natively, you usually only need one <script type="module"
+  src="./RendererFiles/applicationRendererRo....js"></script> tag in index.html.
+  As long as that entry file imports your other modules (like listComponent.js or fieldBuffer.js), the browser automatically resolves and loads the entire dependency graph in the right order.
+• Include separate <script type="module"> tags per file: You can list multiple <script type="module"> tags in index.html, and they will all defer execution until the HTML is parsed
+  while maintaining the exact order you listed them. However, keep in mind that every type="module" script has its own isolated scope, meaning variables declared in menuGlobal.js
+  will not automatically be global in editorGlobal_ui.js unless you explicitly attach them to window or use export/import.
+
+Important Caveats for Electron & Unbundled Modules
+• Use explicit file extensions: Native browser/Electron ES modules require exact relative paths with the .js extension (for example, import { foo } from './listTypes.js').
+  Omitting .js works in bundlers like Webpack, but throws a ERR_FILE_NOT_FOUND error in native modules.
+• No bare npm module specifiers: If any file in RendererFiles imports a package from node_modules by name (e.g., import x from 'some-package'),
+  native ES modules will fail unless you configure an <script type="importmap"> in index.html or point directly to the file inside ../node_modules/.
+• Electron Forge packaging: Looking at your file tree, you are using Electron Forge (forge.config.cjs). If you stop compiling into a build folder, make sure src/RendererFiles is
+  included in your Forge build/packaging configuration and isn't excluded by an old build script.
+
+Are your files in RendererFiles already using import/export statements, or are they relying on shared global variables across scripts?
+
+
+
+
+
+
+
+
+
+
+
 
 
 
