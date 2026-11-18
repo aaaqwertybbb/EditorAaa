@@ -6,7 +6,6 @@ import {CommandKind} from './menuGlobal.js'
 import {sendTransaction_MessageKind_custom_edit_InsertLtr} from './applicationRendererRoot.js'
 import {tooltip} from './tooltipGlobal.js'
 
-
 /**
  * If you have an extension listed here, it is expected that the "function to invoke" exists.
  * As of right now any patterns to naming the function that gets invoked are tentative.
@@ -1511,10 +1510,10 @@ function EDI_state_do_Delete(event) {
                 originalCharacterKind = EDI_getCharacterKind(String.fromCharCode(EDI_textByteList_bytes[tempPosition]));
             }
             else {
-                originalCharacterKind = CharacterKind_None;
+                originalCharacterKind = CharacterKind.None;
             }
 
-            let thisCharacterKind = CharacterKind_None;
+            let thisCharacterKind = CharacterKind.None;
 
             tempIndexColumn++;
             tempPosition++;
@@ -1525,7 +1524,7 @@ function EDI_state_do_Delete(event) {
                     thisCharacterKind = EDI_getCharacterKind(String.fromCharCode(EDI_textByteList_bytes[tempPosition]));
                 }
                 else {
-                    thisCharacterKind = CharacterKind_None;
+                    thisCharacterKind = CharacterKind.None;
                 }
                 if (thisCharacterKind !== originalCharacterKind) {
                     break;
@@ -2938,7 +2937,7 @@ function EDI_getCharacterPrevious_KIND(indexColumn, positionIndex) {
         return EDI_getCharacterKind(String.fromCharCode(EDI_textByteList_bytes[positionIndex - 1]));
     }
     else {
-        return CharacterKind_None;
+        return CharacterKind.None;
     }
 }
 
@@ -2947,7 +2946,7 @@ function EDI_getCharacterCurrent_KIND(indexColumn, positionIndex, lineEnd) {
         return EDI_getCharacterKind(String.fromCharCode(EDI_textByteList_bytes[positionIndex]));
     }
     else {
-        return CharacterKind_None;
+        return CharacterKind.None;
     }
 }
 
@@ -3511,14 +3510,14 @@ function EDI_getCharacterKind(character) {
         case '7':
         case '8':
         case '9':
-            return CharacterKind_LetterOrDigit;
+            return CharacterKind.LetterOrDigit;
         case ' ':
         case '\t':
         case '\r':
         case '\n':
-            return CharacterKind_Whitespace;
+            return CharacterKind.Whitespace;
         default:
-            return CharacterKind_Punctuation;
+            return CharacterKind.Punctuation;
     }
 }
 
@@ -3580,13 +3579,13 @@ function EDI_autocomplete_get_filter() {
         if (columnNoEdit > 0) {
             let position = EDI_getPositionIndex_cursor_raw() - editor.cursor_editLength_characters;
             let typeOfLeftCharacter = EDI_getCharacterPrevious_KIND(columnNoEdit, position);
-            if (typeOfLeftCharacter === CharacterKind_LetterOrDigit) {
+            if (typeOfLeftCharacter === CharacterKind.LetterOrDigit) {
                 let another_column = columnNoEdit - 1;
                 let another_position = position - 1;
                 // TODO: checks it twice...
                 while (another_column > 0) {
                     let another_charKind = EDI_getCharacterPrevious_KIND(another_column, another_position);
-                    if (another_charKind !== CharacterKind_LetterOrDigit) {
+                    if (another_charKind !== CharacterKind.LetterOrDigit) {
                         //another_column++;
                         //another_position++;
                         break;
@@ -9079,14 +9078,14 @@ function EDI_onKeyDown_ArrowLeft(event) {
             editor.cursor_indexColumn--;
             editor.cursorVisualColumnIndex--;
             let visualCorruption = false;
-            visualCorruption = visualCorruption || (originalCharacterKind === CharacterKind_Whitespace && String.fromCharCode(EDI_textByteList_bytes[indexPosition]) === '\t');
+            visualCorruption = visualCorruption || (originalCharacterKind === CharacterKind.Whitespace && String.fromCharCode(EDI_textByteList_bytes[indexPosition]) === '\t');
             
             while (editor.cursor_indexColumn > 0) {
                 if (EDI_getCharacterPrevious_KIND(editor.cursor_indexColumn, indexPosition) === originalCharacterKind) {
                     indexPosition--;
                     editor.cursor_indexColumn--;
                     editor.cursorVisualColumnIndex--;
-                    visualCorruption = visualCorruption || (originalCharacterKind === CharacterKind_Whitespace && String.fromCharCode(EDI_textByteList_bytes[indexPosition]) === '\t');
+                    visualCorruption = visualCorruption || (originalCharacterKind === CharacterKind.Whitespace && String.fromCharCode(EDI_textByteList_bytes[indexPosition]) === '\t');
                 }
                 else {
                     break;
@@ -9210,7 +9209,7 @@ function EDI_onKeyDown_ArrowRight(event) {
             const line_end = editor.ret_getLineBoundaryPositions_end;
             let indexPosition = editor.ret_getLineBoundaryPositions_start + editor.cursor_indexColumn;
             let originalCharacterKind = EDI_getCharacterCurrent_KIND(editor.cursor_indexColumn, indexPosition, line_end);
-            if (originalCharacterKind === CharacterKind_Whitespace && String.fromCharCode(EDI_textByteList_bytes[EDI_getPositionIndex_cursor_raw()]) === '\t') {
+            if (originalCharacterKind === CharacterKind.Whitespace && String.fromCharCode(EDI_textByteList_bytes[EDI_getPositionIndex_cursor_raw()]) === '\t') {
                 editor.cursorVisualColumnIndex += (4 - (editor.cursorVisualColumnIndex % 4)); // (tabLength)
             }
             else {
@@ -9221,7 +9220,7 @@ function EDI_onKeyDown_ArrowRight(event) {
 
             while (editor.cursor_indexColumn < lastValidIndexColumn) {
                 if (EDI_getCharacterCurrent_KIND(editor.cursor_indexColumn, indexPosition, line_end) === originalCharacterKind) {
-                    if (originalCharacterKind === CharacterKind_Whitespace && String.fromCharCode(EDI_textByteList_bytes[EDI_getPositionIndex_cursor_raw()]) === '\t') {
+                    if (originalCharacterKind === CharacterKind.Whitespace && String.fromCharCode(EDI_textByteList_bytes[EDI_getPositionIndex_cursor_raw()]) === '\t') {
                         editor.cursorVisualColumnIndex += (4 - (editor.cursorVisualColumnIndex % 4)); // (tabLength)
                     }
                     else {
