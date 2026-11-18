@@ -250,84 +250,84 @@ export const byteEXPLORER_boundingClientRect_isValid = 37;
 
 class TextEditor {
     constructor() {
-        let detailRank = 0;
-        let recentBoundingClientRect_isNull = true;
-        let editorHasFocus = false;
-        let fileStartsWithBom = false;
+        this.detailRank = 0;
+        this.recentBoundingClientRect_isNull = true;
+        this.editorHasFocus = false;
+        this.fileStartsWithBom = false;
 
-        let findOverlay_show = false;
-        let findOverlay_wasSearched = false;
-        let findOverlay_options_matchWord = false;
+        this.findOverlay_show = false;
+        this.findOverlay_wasSearched = false;
+        this.findOverlay_options_matchWord = false;
 
-        let FindAll_options_matchWord = false;
+        this.FindAll_options_matchWord = false;
 
-        let settings_trueTabs_falseSpaces = true;
-        let settings_editorDebugShowAdjacentCharacters = false;
+        this.settings_trueTabs_falseSpaces = true;
+        this.settings_editorDebugShowAdjacentCharacters = false;
 
-        let cursor_enterKeyEventKind = 0;
+        this.cursor_enterKeyEventKind = 0;
 
-        let extensionKind = 0;
+        this.extensionKind = 0;
 
-        let isChecking_cursorBlinkTrailingEdge = false;
+        this.isChecking_cursorBlinkTrailingEdge = false;
 
-        let cursor_selectionDivExists = false;
-        let onResize_hasTrailingCall = false;
+        this.cursor_selectionDivExists = false;
+        this.onResize_hasTrailingCall = false;
 
-        let mousemove_eventListener_isActive = false;
-
-        /**
-         * 'await window.myAPI.editorSetClipboard(...);' needs to be followed up with 'BYTES[byteEDI_clipboard_may_have_changed] = 0'
-         * When reading the clipboard use 'await EDI_read_clipboard();'
-         */
-        let duplication_may_have_changed = true;
+        this.mousemove_eventListener_isActive = false;
 
         /**
          * 'await window.myAPI.editorSetClipboard(...);' needs to be followed up with 'BYTES[byteEDI_clipboard_may_have_changed] = 0'
          * When reading the clipboard use 'await EDI_read_clipboard();'
          */
-        let clipboard_may_have_changed = true;
+        this.duplication_may_have_changed = true;
 
-        let lineHeight = 20;
+        /**
+         * 'await window.myAPI.editorSetClipboard(...);' needs to be followed up with 'BYTES[byteEDI_clipboard_may_have_changed] = 0'
+         * When reading the clipboard use 'await EDI_read_clipboard();'
+         */
+        this.clipboard_may_have_changed = true;
+
+        this.lineHeight = 20;
 
         /** The first line of text that you should see shown in the UI given the current scrollTop */
-        let virtualIndexLine = 0;
-        let virtualCount = 0;
+        this.virtualIndexLine = 0;
+        this.virtualCount = 0;
 
         //throw new Error('-1');
         // This set used to be -1 to indicate a non existent value, 500 "seems to work" but a proof of it being an equivalent solution has not thoroughly been thought out, only a sort of "yeah that probably works" kinda vibe.
-        let ONSCROLLvirtualIndexLine = 500;
+        this.ONSCROLLvirtualIndexLine = 500;
 
         /** TODO: obsolete? just use 'INTS[fEDI_ArrayFrom_textElement_children_length]' */
-        let ONSCROLLvirtualCount = 0;
+        this.ONSCROLLvirtualCount = 0;
 
         /**
          * I'm gonna store this in the int32 array so that the editor scroll render function can access it from the already existing local reference of INTS.
          */
-        let cursor_editKind = 0;
+        this.cursor_editKind = 0;
 
         /** TODO: Rename to 'fEDI_ringBuffer_length' */
-        let ArrayFrom_textElement_children_length = 0;
+        this.ArrayFrom_textElement_children_length = 0;
 
         // And this -1
-        let ringBuffer_indexZero = 0;
+        this.ringBuffer_indexZero = 0;
 
-        let lineEndPositionList_count = 0;
+        this.lineEndPositionList_count = 0;
 
-        let styleBuffer_count = 0;
+        this.styleBuffer_count = 0;
 
-        let queueHead = 0;
-        let queueTail = 0;
-        let isRenderPending = 0;
+        this.queueHead = 0;
+        this.queueTail = 0;
+        this.isRenderPending = 0;
 
-        let cursorBlinkingTrailingEdgeTimeoutId = 0;
+        this.cursorBlinkingTrailingEdgeTimeoutId = 0;
 
-        drawn_count_of_digits_longest_line_number = 0;
+        this.drawn_count_of_digits_longest_line_number = 0;
 
-        let detail_smallPosition = 0;
+        this.detail_smallPosition = 0;
 
-        let detail_largePosition = 0;
+        this.detail_largePosition = 0;
 
-        let detailRank3OriginLine = 0;
+        this.detailRank3OriginLine = 0;
 
         /**
          * Pixels.
@@ -337,81 +337,81 @@ class TextEditor {
          * 
          * Whereas the line height is a css variable (and thus could cause layout for the entire application whenever it changes).
          */
-        let gutterWidthStyleValue = 32;
+        this.gutterWidthStyleValue = 32;
 
         /**
          * This is the sum of the 'EDI_gutterWidthStyleValue()' in addition to paddig
          * consider 'gutterWidthTotal_withPxUnits'
          */
-        let gutterWidthTotal = 32;
+        this.gutterWidthTotal = 32;
 
-        let longestLine_indexLine = 0;
+        this.longestLine_indexLine = 0;
 
-        let longestLine_length = 0;
+        this.longestLine_length = 0;
 
         /**
          * The fEDI_contentWidth() is calculated via Math.ceil(someVar * otherVar) so this is faster to check whether content width will change rather than the multiplication and ceil.
          */
-        let longestLine_length_PreviousValueWhenLastDrewHorizontalScrollbar = 0;
+        this.longestLine_length_PreviousValueWhenLastDrewHorizontalScrollbar = 0;
 
-        let contentWidth = 0;
+        this.contentWidth = 0;
 
-        let indent_SMALL_lineAndColumnIndices_indexLine = 0;
+        this.indent_SMALL_lineAndColumnIndices_indexLine = 0;
 
-        let indent_startingIndex = 0;
+        this.indent_startingIndex = 0;
 
-        let recentBoundingClientRect_left = 0;
+        this.recentBoundingClientRect_left = 0;
 
-        let recentBoundingClientRect_top = 0;
+        this.recentBoundingClientRect_top = 0;
 
         // ====
         /** TODO: obsolete */
-        let poolret_pooledTrackedSyntax_start = 0;
+        this.poolret_pooledTrackedSyntax_start = 0;
 
         /** TODO: obsolete */
-        let poolret_pooledTrackedSyntax_length = 0;
+        this.poolret_pooledTrackedSyntax_length = 0;
         // ====
 
-        let cursor_indexLine = 0;
-        let cursor_indexColumn = 0;
+        this.cursor_indexLine = 0;
+        this.cursor_indexColumn = 0;
 
         /**
          * When moving cursor vertically, if the current column index cannot be matched due to the upcoming line being too short,
          * then this will allow a later vertical movement to a line that is long enough to match the original column rather than the minimized one.
          */
-        let cursor_STORED_visualWidth = 0;
+        this.cursor_STORED_visualWidth = 0;
 
-        let cursor_cursorTranslateYValue = 0;
+        this.cursor_cursorTranslateYValue = 0;
 
-        let render_do_ScrollTrailingEdgeCheckTimeoutId = 0;
+        this.render_do_ScrollTrailingEdgeCheckTimeoutId = 0;
 
-        let cursor_selectionAnchor = 0;
-        let cursor_selectionEnd = 0;
+        this.cursor_selectionAnchor = 0;
+        this.cursor_selectionEnd = 0;
 
-        let cursor_selectionIndexAnchorLine = 0;
-        let cursor_selectionIndexAnchorColumn = 0;
+        this.cursor_selectionIndexAnchorLine = 0;
+        this.cursor_selectionIndexAnchorColumn = 0;
 
-        let cursor_selectionIndexEndLine = 0;
-        let cursor_selectionIndexEndColumn = 0;
+        this.cursor_selectionIndexEndLine = 0;
+        this.cursor_selectionIndexEndColumn = 0;
 
-        let cursor_DRAWN_selectionAnchor = 0;
-        let cursor_DRAWN_selectionEnd = 0;
+        this.cursor_DRAWN_selectionAnchor = 0;
+        this.cursor_DRAWN_selectionEnd = 0;
 
-        let cursor_DRAWN_selection_virtualIndexLine = 0;
-        let cursor_DRAWN_selection_virtualCount = 0;
+        this.cursor_DRAWN_selection_virtualIndexLine = 0;
+        this.cursor_DRAWN_selection_virtualCount = 0;
 
         /**
          * Not every edit makes use of an editLength. Because some edits are more computationally expensive than others.
          * These computationally expensive edits only know the editLength at time of finalization.
          * This only ever should be the count of characters inserted or 0 if not applicable for the EditKind.
          */
-        let cursor_editLength_characters = 0;
+        this.cursor_editLength_characters = 0;
         // TODO: move 'export const fEDI_cursor_editLength_bytes = 104;' closer numerically and text position
-        let cursor_editPosition = 0;
-        let cursor_editIndexLine = 0;
-        let cursor_editIndexColumn = 0;
+        this.cursor_editPosition = 0;
+        this.cursor_editIndexLine = 0;
+        this.cursor_editIndexColumn = 0;
         //TODO: move 'export const fEDI_cursor_edit_eventCount_occurred = 63;' closer (numerically and text position)
-        let cursor_edit_eventCount_drawn = 0;
+        this.cursor_edit_eventCount_drawn = 0;
         /**
          * I'm changing the code in relation to this and some other variables but,
          * I'm more concerned with 'fEDI_cursor_edit_eventCount_occurred' and 'fEDI_cursor_edit_eventCount_drawn'
@@ -423,10 +423,10 @@ class TextEditor {
          * Okay if you have a more optimized render function you set drawn to occurred.
          * If you have an unoptimized render function that is just a while loop you increment.
          */
-        let cursor_edit_eventCount_drawingStateContinuationValue = 0;
-        let cursor_END_editIndexLine = 0;
-        let cursor_END_editIndexColumn = 0;
-        let cursor_textInsertionBufferCount = 0;
+        this.cursor_edit_eventCount_drawingStateContinuationValue = 0;
+        this.cursor_END_editIndexLine = 0;
+        this.cursor_END_editIndexColumn = 0;
+        this.cursor_textInsertionBufferCount = 0;
 
         /**
          * TODO: probably is sensible to use this for the enter key too but I'm firstly adding it for the sake of backspace so
@@ -440,13 +440,13 @@ class TextEditor {
          * and then it is a number 0 to ... the offset in the pending line end position list
          * and then you have another number too separately that says the length of line endings that this cursor contributed to modifying.
          */
-        let cursor_editLineFeedCount = 0;
+        this.cursor_editLineFeedCount = 0;
 
 
         // TODO: Avoid re-using these locally after getting the w result (i.e.: avoid re-using over and over in a loop or something, probably make a local variable if accessed enough).
         // TODO: Verify and update all the previously -1 cases
-        let w_indexColumn_Goal = 0;
-        let w_indexColumn_Sum = 0;
+        this.w_indexColumn_Goal = 0;
+        this.w_indexColumn_Sum = 0;
 
         /**
          * This purposefully avoids the wording "edit length" in order to avoid accident / confusing / hard to read code
@@ -455,112 +455,112 @@ class TextEditor {
          * This way you can always just check whether the "sub length" which is relative to the edit_flagLineChanged has removed all the
          * text that other line that you landed on without having yet finalized.
          */
-        let cursor_edit_flagLineChanged = 0;
+        this.cursor_edit_flagLineChanged = 0;
 
         /**
          * TODO: isn't this just the column index now that there's just a single div?
          * 
          * TODO: MAYBEo-b-s-o-l-e-t-eMAYBE
          */
-        let w_indexColumn_SpanTextContentRelative = 0;
+        this.w_indexColumn_SpanTextContentRelative = 0;
 
         // TODO: This -1
-        let w_ringBufferIndex = 0;
+        this.w_ringBufferIndex = 0;
 
         // just floor these on init / resize and set the style so if they want resize they have to explicit and it is non decimal?
-        let lastReadNumber_offsetHeight = 0;
+        this.lastReadNumber_offsetHeight = 0;
 
-        let lastReadNumber_offsetWidth = 0;
+        this.lastReadNumber_offsetWidth = 0;
 
-        let EDI_mouseOver_event_clientY = 0;
+        this.EDI_mouseOver_event_clientY = 0;
 
-        let EDI_mouseOver_event_clientX = 0;
+        this.EDI_mouseOver_event_clientX = 0;
 
-        let cursor_edit_eventCount_occurred = 0;
+        this.cursor_edit_eventCount_occurred = 0;
 
-        let onResize_timer = 0;
+        this.onResize_timer = 0;
 
-        let hoverTimeout = 0;
-
-        // ====
-        /** 'ret_' will overwrite one another do not mix the function invocations without having read the values first */
-        let ret_getLineAndColumnIndices_indexLine = 0;
-        /** 'ret_' will overwrite one another do not mix the function invocations without having read the values first */
-        let ret_getLineBoundaryPositions_start = 0;
-        /** 'ret_' will overwrite one another do not mix the function invocations without having read the values first */
-        let ret_getIndexFromX_indexColumn = 0;
-
-        /** 'ret_' will overwrite one another do not mix the function invocations without having read the values first */
-        let ret_getLineAndColumnIndices_indexColumn = 0;
-        /** 'ret_' will overwrite one another do not mix the function invocations without having read the values first */
-        let ret_getLineBoundaryPositions_end = 0;
-        /** 'ret_' will overwrite one another do not mix the function invocations without having read the values first */
-        let ret_getIndexFromX_visualColumns = 0;
-        // ====
-
-        let cursorVisualColumnIndex = 0;
-
-        let ontab_visualWidth_perCharacter = 0;
-
-        let cursor_selectionIndexAnchorColumnVISUAL = 0;
-        let cursor_selectionIndexEndColumnVISUAL = 0;
-
-        let cursor_selectionIndexAnchorColumnVISUAL_DRAWN = 0;
-        let cursor_selectionIndexEndColumnVISUAL_DRAWN = 0;
-
-        let detail_smallColumnVisual = 0;
-        let detail_largeColumnVisual = 0;
-
-        let cursor_cached_indentation_string_visualWidth = 0;
-
-        let cursor_editLengthVisual = 0;
-
-        let textByteList_capacity = 0;
-        let textByteList_count = 0;
-
-        let lineEndPositionList_capacity = 0;
+        this.hoverTimeout = 0;
 
         // ====
-        /** 'editret_' will overwrite one another do not mix the function invocations without having read the values first */
-        let editret_cursor_EDI_duplicate_small = 0;
-        /** 'editret_' will overwrite one another do not mix the function invocations without having read the values first */
-        let editret_RemoveSelection_smallPosition = 0;
-        /** 'editret_' will overwrite one another do not mix the function invocations without having read the values first */
-        let editret_indentLess_startingLinePos_end = 0;
-        /** 'editret_' will overwrite one another do not mix the function invocations without having read the values first */
-        let editret_cursor_gapBufferWriteToSpanElement_SpanTextContentRelativeIndex = 0;
+        /** 'ret_' will overwrite one another do not mix the function invocations without having read the values first */
+        this.ret_getLineAndColumnIndices_indexLine = 0;
+        /** 'ret_' will overwrite one another do not mix the function invocations without having read the values first */
+        this.ret_getLineBoundaryPositions_start = 0;
+        /** 'ret_' will overwrite one another do not mix the function invocations without having read the values first */
+        this.ret_getIndexFromX_indexColumn = 0;
 
-        /** 'editret_' will overwrite one another do not mix the function invocations without having read the values first */
-        let editret_cursor_EDI_duplicate_length = 0;
-        /** 'editret_' will overwrite one another do not mix the function invocations without having read the values first */
-        let editret_RemoveSelection_largePosition = 0;
-
-        /** 'editret_' will overwrite one another do not mix the function invocations without having read the values first */
-        let editret_RemoveSelection_smallLineAndColumnIndices_small_indexLine = 0;
-
-        /** 'editret_' will overwrite one another do not mix the function invocations without having read the values first */
-        let editret_RemoveSelection_smallLineAndColumnIndices_small_indexColumn = 0;
+        /** 'ret_' will overwrite one another do not mix the function invocations without having read the values first */
+        this.ret_getLineAndColumnIndices_indexColumn = 0;
+        /** 'ret_' will overwrite one another do not mix the function invocations without having read the values first */
+        this.ret_getLineBoundaryPositions_end = 0;
+        /** 'ret_' will overwrite one another do not mix the function invocations without having read the values first */
+        this.ret_getIndexFromX_visualColumns = 0;
         // ====
 
-        let priorToLastJump_indexLine = 0;
-        let priorToLastJump_indexColumn = 0;
+        this.cursorVisualColumnIndex = 0;
 
-        let styleBuffer_capacity = 0;
+        this.ontab_visualWidth_perCharacter = 0;
+
+        this.cursor_selectionIndexAnchorColumnVISUAL = 0;
+        this.cursor_selectionIndexEndColumnVISUAL = 0;
+
+        this.cursor_selectionIndexAnchorColumnVISUAL_DRAWN = 0;
+        this.cursor_selectionIndexEndColumnVISUAL_DRAWN = 0;
+
+        this.detail_smallColumnVisual = 0;
+        this.detail_largeColumnVisual = 0;
+
+        this.cursor_cached_indentation_string_visualWidth = 0;
+
+        this.cursor_editLengthVisual = 0;
+
+        this.textByteList_capacity = 0;
+        this.textByteList_count = 0;
+
+        this.lineEndPositionList_capacity = 0;
+
+        // ====
+        /** 'editret_' will overwrite one another do not mix the function invocations without having read the values first */
+        this.editret_cursor_EDI_duplicate_small = 0;
+        /** 'editret_' will overwrite one another do not mix the function invocations without having read the values first */
+        this.editret_RemoveSelection_smallPosition = 0;
+        /** 'editret_' will overwrite one another do not mix the function invocations without having read the values first */
+        this.editret_indentLess_startingLinePos_end = 0;
+        /** 'editret_' will overwrite one another do not mix the function invocations without having read the values first */
+        this.editret_cursor_gapBufferWriteToSpanElement_SpanTextContentRelativeIndex = 0;
+
+        /** 'editret_' will overwrite one another do not mix the function invocations without having read the values first */
+        this.editret_cursor_EDI_duplicate_length = 0;
+        /** 'editret_' will overwrite one another do not mix the function invocations without having read the values first */
+        this.editret_RemoveSelection_largePosition = 0;
+
+        /** 'editret_' will overwrite one another do not mix the function invocations without having read the values first */
+        this.editret_RemoveSelection_smallLineAndColumnIndices_small_indexLine = 0;
+
+        /** 'editret_' will overwrite one another do not mix the function invocations without having read the values first */
+        this.editret_RemoveSelection_smallLineAndColumnIndices_small_indexColumn = 0;
+        // ====
+
+        this.priorToLastJump_indexLine = 0;
+        this.priorToLastJump_indexColumn = 0;
+
+        this.styleBuffer_capacity = 0;
 
         /**
          * When reading the clipboard use 'await EDI_read_clipboard();' and then read the result from this variable.
          * 
          * editPosition + this[i]
          */
-        let cursor_EDI_duplication_totalLineEndCount = 0;
+        this.cursor_EDI_duplication_totalLineEndCount = 0;
 
         /**
          * When reading the clipboard use 'await EDI_read_clipboard();' and then read the result from this variable.
          * editPosition + this[i]
          */
-        let cursor_EDI_paste_clipboardContent_totalLineEndCount = 0;
+        this.cursor_EDI_paste_clipboardContent_totalLineEndCount = 0;
 
-        let cursor_editLength_bytes = 0;
+        this.cursor_editLength_bytes = 0;
     }
 }
 
