@@ -462,7 +462,7 @@ let EDI_trackingUint32MaxHeap = new TrackingUint32MaxHeap();
  */
 let EDI_findOverlay_searchResultPositionList = null;
 
-export let EDI_textByteList_bytes = new Uint8Array(f.EDI_textByteList_capacity);
+export let EDI_textByteList_bytes = new Uint8Array(editor.textByteList_capacity);
 
 export let EDI_lineStringCache = [];
 export function set_EDI_lineStringCache(value) {
@@ -954,7 +954,7 @@ export const EDI_decoder_CUSTOM = new EDI_CustomDecoder();
 /** invoked from requestAnimationFrame */
 export function EDI_init() {
 
-    f.EDI_gutterWidthTotal = 60;
+    editor.gutterWidthTotal = 60;
 
     EDI_state_setText_byteArray(new Uint8Array(16), /*textByteLength*/ 0, /*fileStartsWithBom*/ false, /*textSourceIdentifier*/ null, /*FORMATTED_textSourceIdentifier*/ null, /*extensionKind*/ 0, /*lineEndString*/ '\n', /*lineEndCount*/ 0);
     EDI_registerHandlers();
@@ -982,7 +982,7 @@ function EDI_state_clear(trackingUint32MaxHeap_initialCapacity) {
     // TODO: Maybe re-use the 'TrackingUint32MaxHeap' rather than making a new one everytime
     EDI_trackingUint32MaxHeap = new TrackingUint32MaxHeap(trackingUint32MaxHeap_initialCapacity);
     editor.lineEndPositionList_count = 0;
-    f.EDI_textByteList_count = 0;
+    editor.textByteList_count = 0;
     editor.longestLine_indexLine = 0;
     editor.longestLine_length = 0;
 
@@ -1025,10 +1025,10 @@ export function EDI_state_setText_byteArray(paddedUint8Array, textByteLength, fi
     }
 
     EDI_textByteList_bytes = paddedUint8Array;
-    f.EDI_textByteList_capacity = paddedUint8Array.length;
+    editor.textByteList_capacity = paddedUint8Array.length;
     const local_EDI_textByteList_bytes = EDI_textByteList_bytes;
-    f.EDI_textByteList_count = textByteLength;
-    const local_EDI_textByteList_count = f.EDI_textByteList_count;
+    editor.textByteList_count = textByteLength;
+    const local_EDI_textByteList_count = editor.textByteList_count;
 
 
     EDI_lineEndPositionList_ensureCapacityForInsertion(0, necessaryCapacity);
@@ -1378,7 +1378,7 @@ function EDI_EnterKey(ctrlKey, originalIndexLine, originalIndexColumn) {
         }
         else {
             if (lastValidIndexColumn === editor.cursor_indexColumn) {
-                if (editor.cursor_editPosition === f.EDI_textByteList_count) {
+                if (editor.cursor_editPosition === editor.textByteList_count) {
                     editor.cursor_enterKeyEventKind = f.EnterKeyEventKind_EndOfFile;
                 }
                 else {
@@ -2210,7 +2210,7 @@ function EDI_finalizeEdit_InsertLtr(indexLine_editOccurredOn) {
         }
     }
     EDI_textByteList_insertBytes(editor.cursor_editPosition, EDI_cursor_textInsertionBuffer, /*offset*/ 0, /*length*/ editor.cursor_textInsertionBufferCount);
-    // TODO: ensure 'EDI_styleBuffer' count has 'editor.cursor_editPosition' in range / ensure it is equal with 'f.EDI_textByteList' count/capacity?
+    // TODO: ensure 'EDI_styleBuffer' count has 'editor.cursor_editPosition' in range / ensure it is equal with 'editor.textByteList' count/capacity?
     if (editor.styleBuffer_count !== 0) {
         EDI_styleBuffer_insertBytes(editor.cursor_editPosition, new Uint8Array(editor.cursor_textInsertionBufferCount), 0, editor.cursor_textInsertionBufferCount);
     }
@@ -2306,7 +2306,7 @@ function EDI_finalizeEdit_Enter(indexLine_editOccurredOn) {
     }
 
     EDI_textByteList_insertBytes(actualEditPosition, bytes, /*offset*/ 0, length);
-    // TODO: ensure 'EDI_styleBuffer' count has 'editor.cursor_editPosition' in range / ensure it is equal with 'f.EDI_textByteList' count/capacity?
+    // TODO: ensure 'EDI_styleBuffer' count has 'editor.cursor_editPosition' in range / ensure it is equal with 'editor.textByteList' count/capacity?
     if (editor.styleBuffer_count !== 0) {
         EDI_styleBuffer_insertBytes(actualEditPosition, new Uint8Array(bytes.length), 0, bytes.length);
     }
@@ -2388,7 +2388,7 @@ function EDI_finalizeEdit_Tab(indexLine_editOccurredOn) {
     }
 
     EDI_textByteList_insertBytes(editor.cursor_editPosition, bytes, /*offset*/ 0, /*length*/ length);
-    // TODO: ensure 'EDI_styleBuffer' count has 'editor.cursor_editPosition' in range / ensure it is equal with 'f.EDI_textByteList' count/capacity?
+    // TODO: ensure 'EDI_styleBuffer' count has 'editor.cursor_editPosition' in range / ensure it is equal with 'editor.textByteList' count/capacity?
     if (editor.styleBuffer_count !== 0) {
         EDI_styleBuffer_insertBytes(editor.cursor_editPosition, new Uint8Array(bytes.length), 0, bytes.length);
     }
@@ -2475,7 +2475,7 @@ function EDI_finalizeEdit_IndentMore(indexLine_editOccurredOn) {
 
         // # Insert the text on the respective line.
         EDI_textByteList_insertBytes(line_start, bytes, 0 /*offset*/, bytesLength /*length*/);
-        // TODO: ensure 'EDI_styleBuffer' count has 'editor.cursor_editPosition' in range / ensure it is equal with 'f.EDI_textByteList' count/capacity?
+        // TODO: ensure 'EDI_styleBuffer' count has 'editor.cursor_editPosition' in range / ensure it is equal with 'editor.textByteList' count/capacity?
         if (editor.styleBuffer_count !== 0) {
             EDI_styleBuffer_insertBytes(line_start, perEdit_styleBuffer_changes, 0, bytesLength);
         }
@@ -2639,7 +2639,7 @@ function EDI_finalizeEdit_IndentLess(indexLine_editOccurredOn) {
         }
 
         EDI_textByteList_removeAt(line_start, innerRemoveCount);
-        // TODO: ensure 'EDI_styleBuffer' count has 'editor.cursor_editPosition' in range / ensure it is equal with 'f.EDI_textByteList' count/capacity?
+        // TODO: ensure 'EDI_styleBuffer' count has 'editor.cursor_editPosition' in range / ensure it is equal with 'editor.textByteList' count/capacity?
         if (editor.styleBuffer_count !== 0) {
             EDI_styleBuffer_removeAt(line_start, innerRemoveCount);
         }
@@ -2692,7 +2692,7 @@ function EDI_finalizeEdit_Paste(indexLine_editOccurredOn) {
     let columnVisual = editor.ret_getIndexFromX_visualColumns;
 
     EDI_textByteList_insertBytes(editor.cursor_editPosition, EDI_cursor_EDI_paste_clipboardContent_bytes, 0, EDI_cursor_EDI_paste_clipboardContent_bytes.length);
-    // TODO: ensure 'EDI_styleBuffer' count has 'editor.cursor_editPosition' in range / ensure it is equal with 'f.EDI_textByteList' count/capacity?
+    // TODO: ensure 'EDI_styleBuffer' count has 'editor.cursor_editPosition' in range / ensure it is equal with 'editor.textByteList' count/capacity?
     if (editor.styleBuffer_count !== 0) {
         EDI_styleBuffer_insertBytes(editor.cursor_editPosition, EDI_cursor_EDI_paste_clipboardContent_bytes, 0, EDI_cursor_EDI_paste_clipboardContent_bytes.length);
     }
@@ -2752,7 +2752,7 @@ function EDI_finalizeEdit_Duplicate(indexLine_editOccurredOn) {
     let columnVisual = editor.ret_getIndexFromX_visualColumns;
 
     EDI_textByteList_duplicateWithin(small, editor.cursor_editPosition, length);
-    // TODO: ensure 'EDI_styleBuffer' count has 'editor.cursor_editPosition' in range / ensure it is equal with 'f.EDI_textByteList' count/capacity?
+    // TODO: ensure 'EDI_styleBuffer' count has 'editor.cursor_editPosition' in range / ensure it is equal with 'editor.textByteList' count/capacity?
     if (editor.styleBuffer_count !== 0) {
         EDI_styleBuffer_insertBytes(editor.cursor_editPosition, new Uint8Array(length), 0, length);
     }
@@ -2859,7 +2859,7 @@ function EDI_finalizeEdit_DeleteLtr_BackspaceRtl_RemoveTextNoBatching(indexLine_
     }
 
     EDI_textByteList_removeAt(editor.cursor_editPosition, editor.cursor_editLength_characters);
-    // TODO: ensure 'EDI_styleBuffer' count has 'editor.cursor_editPosition' in range / ensure it is equal with 'f.EDI_textByteList' count/capacity?
+    // TODO: ensure 'EDI_styleBuffer' count has 'editor.cursor_editPosition' in range / ensure it is equal with 'editor.textByteList' count/capacity?
     if (editor.styleBuffer_count !== 0) {
         EDI_styleBuffer_removeAt(editor.cursor_editPosition, editor.cursor_editLength_characters);
     }
@@ -3540,8 +3540,8 @@ function EDI_getCharacterKind(character) {
 }
 
 function EDI_measureBaseElement() {
-    editor.lastReadNumber_offsetWidth = Math.floor(f.EDI_baseElement.offsetWidth);
-    editor.lastReadNumber_offsetHeight = Math.floor(f.EDI_baseElement.offsetHeight);
+    editor.lastReadNumber_offsetWidth = Math.floor(editor.baseElement.offsetWidth);
+    editor.lastReadNumber_offsetHeight = Math.floor(editor.baseElement.offsetHeight);
 }
 
 /**
@@ -3877,14 +3877,14 @@ function EDI_requestLspHover() {
     ///////////
     ///////////
     if (f.get_EDI_recentBoundingClientRect_isNull_intFalsey() === 1) {
-        let boundingClientRect = f.EDI_baseElement.getBoundingClientRect();
+        let boundingClientRect = editor.baseElement.getBoundingClientRect();
         editor.recentBoundingClientRect_left = boundingClientRect.left;
         editor.recentBoundingClientRect_top = boundingClientRect.top;
         f.set_EDI_recentBoundingClientRect_isNull_intFalsey(0);
     }
 
     let rY = event_clientY - editor.recentBoundingClientRect_top + EDI_lastReadNumber_scrollTop;
-    let rX = event_clientX - editor.recentBoundingClientRect_left - f.EDI_gutterWidthTotal + EDI_lastReadNumber_scrollLeft;
+    let rX = event_clientX - editor.recentBoundingClientRect_left - editor.gutterWidthTotal + EDI_lastReadNumber_scrollLeft;
 
     let indexLine = Math.floor(rY / editor.lineHeight);
     let indexColumn = Math.round(rX / EDI_characterWidth);
@@ -3942,7 +3942,7 @@ function EDI_getFinalizedEditsAndRawSaveFileData(NOTfinalizePendingEdits) {
     }
     return {
         uint8arrayTextBytes: EDI_textByteList_bytes,
-        countOfBytesInUse: f.EDI_textByteList_count,
+        countOfBytesInUse: editor.textByteList_count,
         lineEndString: EDI_lineEndString,
         fileStartsWithBom: Boolean(f.get_EDI_fileStartsWithBom())
     };
@@ -3965,27 +3965,27 @@ export function EDI_toExtensionKind(extensionWithPeriod) {
 function EDI_registerHandlers() {
     EDI_scroll_viewport.addEventListener('scroll', EDI_scrollViewport_scroll, { passive: true });
     // TODO: text area to capture all the languages
-    f.EDI_baseElement.addEventListener('keydown', EDI_onKeyDown);
+    editor.baseElement.addEventListener('keydown', EDI_onKeyDown);
 
 
 
 
-    ////f.EDI_baseElement.addEventListener('keydown', EDI_onKeyDown);
-    f.EDI_baseElement.addEventListener('mousedown', EDI_onMouseDown);
+    ////editor.baseElement.addEventListener('keydown', EDI_onKeyDown);
+    editor.baseElement.addEventListener('mousedown', EDI_onMouseDown);
 
-    //f.EDI_baseElement.addEventListener('contextmenu', EDI_onContextMenu);
+    //editor.baseElement.addEventListener('contextmenu', EDI_onContextMenu);
     window.addEventListener('resize', EDI_onResize);
 
     // Attach a single listener to your text container (Event Delegation)
-    //f.EDI_baseElement.addEventListener('mouseover', EDI_mouseOver);
-    //f.EDI_baseElement.addEventListener('mouseleave', EDI_mouseLeave);
+    //editor.baseElement.addEventListener('mouseover', EDI_mouseOver);
+    //editor.baseElement.addEventListener('mouseleave', EDI_mouseLeave);
 
-    f.EDI_baseElement.addEventListener('focus', EDI_onfocus);
-    f.EDI_baseElement.addEventListener('blur', EDI_onblur);
+    editor.baseElement.addEventListener('focus', EDI_onfocus);
+    editor.baseElement.addEventListener('blur', EDI_onblur);
 
     ////EDI_scroll_viewport.addEventListener('scroll', EDI_scrollViewport_scroll, { passive: true });
 
-    //f.EDI_gutter.addEventListener('wheel', EDI_onWheelGutter, { passive: false /* 'e.preventDefault();' is used*/ });
+    //editor.gutter.addEventListener('wheel', EDI_onWheelGutter, { passive: false /* 'e.preventDefault();' is used*/ });
 }
 //#endregion
 
@@ -4005,16 +4005,16 @@ function EDI_textByteList_insertBytes(index, incomingBs, offset, length) {
     }
 
     // 2. Validate that the target insertion index makes sense
-    if (index < 0 || index > f.EDI_textByteList_count) {
+    if (index < 0 || index > editor.textByteList_count) {
         throw new RangeError(
-            //`Invalid insertion index: index ${index} must be between 0 and current count ${f.EDI_textByteList_count}.`
+            //`Invalid insertion index: index ${index} must be between 0 and current count ${editor.textByteList_count}.`
         );
     }
 
     EDI_textByteList_ensureCapacityForInsertion(index, length);
 
-    if (index !== f.EDI_textByteList_count) {
-        EDI_textByteList_copyTo(EDI_textByteList_bytes, index, EDI_textByteList_bytes, index + length, f.EDI_textByteList_count - index);
+    if (index !== editor.textByteList_count) {
+        EDI_textByteList_copyTo(EDI_textByteList_bytes, index, EDI_textByteList_bytes, index + length, editor.textByteList_count - index);
     }
 
     // TODO: Google AI is telling me:
@@ -4029,7 +4029,7 @@ function EDI_textByteList_insertBytes(index, incomingBs, offset, length) {
         : incomingBs.subarray(offset, offset + length);
     EDI_textByteList_bytes.set(segmentToInsert, index);
 
-    f.EDI_textByteList_count += length;
+    editor.textByteList_count += length;
 }
 /**
  * Does not clear trailing information.
@@ -4037,12 +4037,12 @@ function EDI_textByteList_insertBytes(index, incomingBs, offset, length) {
  * count === 0 immediately returns
  */
 function EDI_textByteList_removeAt(index, count) {
-    if (index > f.EDI_textByteList_count) { throw new Error('removeAt(...): index > f.EDI_textByteList_count'); }
-    if (index + count > f.EDI_textByteList_count) { throw new Error('removeAt(...): index + count > f.EDI_textByteList_count'); }
+    if (index > editor.textByteList_count) { throw new Error('removeAt(...): index > editor.textByteList_count'); }
+    if (index + count > editor.textByteList_count) { throw new Error('removeAt(...): index + count > editor.textByteList_count'); }
     if (count === 0) { return; }
 
-    if (index + count === f.EDI_textByteList_count) {
-        let shiftableCount = f.EDI_textByteList_count - (index + count);
+    if (index + count === editor.textByteList_count) {
+        let shiftableCount = editor.textByteList_count - (index + count);
         if (shiftableCount > 0) {
             EDI_textByteList_copyTo(
                 EDI_textByteList_bytes,
@@ -4058,10 +4058,10 @@ function EDI_textByteList_removeAt(index, count) {
             index + count,
             EDI_textByteList_bytes,
             index,
-            f.EDI_textByteList_count - (index + count));
+            editor.textByteList_count - (index + count));
     }
 
-    f.EDI_textByteList_count -= count;
+    editor.textByteList_count -= count;
 }
 /**
  * 
@@ -4084,31 +4084,31 @@ function EDI_textByteList_duplicateWithin(sourceStart, destinationStart, length)
 
     EDI_textByteList_ensureCapacityForInsertion(destinationStart, length);
 
-    if (destinationStart !== f.EDI_textByteList_count) {
-        EDI_textByteList_copyTo(EDI_textByteList_bytes, destinationStart, EDI_textByteList_bytes, destinationStart + length, f.EDI_textByteList_count - destinationStart);
+    if (destinationStart !== editor.textByteList_count) {
+        EDI_textByteList_copyTo(EDI_textByteList_bytes, destinationStart, EDI_textByteList_bytes, destinationStart + length, editor.textByteList_count - destinationStart);
     }
 
     EDI_textByteList_copyTo(EDI_textByteList_bytes, sourceStart, EDI_textByteList_bytes, destinationStart, length);
 
-    f.EDI_textByteList_count += length;
+    editor.textByteList_count += length;
 }
 function EDI_textByteList_ensureCapacityForInsertion(index, count) {
     // TODO: sparse insertions?
-    const requiredCapacity = Math.max(f.EDI_textByteList_count + count, index);
+    const requiredCapacity = Math.max(editor.textByteList_count + count, index);
 
     // If we already have enough capacity, do absolutely nothing
-    if (requiredCapacity <= f.EDI_textByteList_capacity) {
+    if (requiredCapacity <= editor.textByteList_capacity) {
         return;
     }
 
-    let capacityNew = f.EDI_textByteList_capacity;
+    let capacityNew = editor.textByteList_capacity;
 
     // 1. Scale geometrically by 1.125x (current + current / 8)
     capacityNew = capacityNew + (capacityNew >> 3);
 
     // 2. Minimum growth step: Ensure it grows by at least 1024 bytes 
     //    so small files don't reallocate on every single keystroke.
-    const minGrowth = f.EDI_textByteList_capacity + 1024;
+    const minGrowth = editor.textByteList_capacity + 1024;
     if (capacityNew < minGrowth) {
         capacityNew = minGrowth;
     }
@@ -4121,17 +4121,17 @@ function EDI_textByteList_ensureCapacityForInsertion(index, count) {
     }
 
     // Safety check against integer overflow / negative bounds
-    if (capacityNew < f.EDI_textByteList_capacity) {
+    if (capacityNew < editor.textByteList_capacity) {
         throw new Error('ensureCapacityForInsertion(...): Capacity overflowed or went negative');
     }
 
     // Allocate and copy EXACTLY ONCE
     let bytesNew = new Uint8Array(capacityNew);
-    EDI_textByteList_copyTo(EDI_textByteList_bytes, 0, bytesNew, 0, f.EDI_textByteList_count);
+    EDI_textByteList_copyTo(EDI_textByteList_bytes, 0, bytesNew, 0, editor.textByteList_count);
 
     // Commit the changes to your global/module state
     EDI_textByteList_bytes = bytesNew;
-    f.EDI_textByteList_capacity = capacityNew;
+    editor.textByteList_capacity = capacityNew;
 }
 /**
  * inclusive/exclusive
@@ -4743,7 +4743,7 @@ function EDI_resizeCanvases() {
     const dpr = window.devicePixelRatio || 1;
 
     // 1. Get the real bounding dimensions of your visible viewport frame
-    const viewportRect = f.EDI_viewport.getBoundingClientRect();
+    const viewportRect = editor.viewport.getBoundingClientRect();
     const viewWidth = viewportRect.width;
     const viewHeight = viewportRect.height;
 
@@ -4751,7 +4751,7 @@ function EDI_resizeCanvases() {
     const gutterLayoutWidth = 60;
 
     // --- 2. CONFIG DIGEST FOR GUTTER CANVAS ---
-    const gutterCanvas = f.EDI_gutter_canvas;
+    const gutterCanvas = editor.gutter_canvas;
     // Set the CSS display size (how much room it occupies on screen)
     gutterCanvas.style.width = gutterLayoutWidth + 'px';
     gutterCanvas.style.height = viewHeight + 'px';
@@ -4812,8 +4812,8 @@ function EDI_resizeCanvases() {
 
     // If local_lineHeight is 24px and fontActualHeight is 14px, your vertical midpoint padding is 12px
 
-    editor.lastReadNumber_offsetWidth = Math.floor(f.EDI_text.offsetWidth);
-    editor.lastReadNumber_offsetHeight = Math.floor(f.EDI_text.offsetHeight);
+    editor.lastReadNumber_offsetWidth = Math.floor(editor.text.offsetWidth);
+    editor.lastReadNumber_offsetHeight = Math.floor(editor.text.offsetHeight);
 
     editor.virtualCount = Math.ceil(editor.lastReadNumber_offsetHeight / editor.lineHeight);
 
@@ -5130,12 +5130,12 @@ function EDI_render_do_Scroll() {
 
     const local_EDI_decoder_CUSTOM = EDI_decoder_CUSTOM;
 
-    const ctxText = f.EDI_text_canvas.getContext('2d');
+    const ctxText = editor.text_canvas.getContext('2d');
     
     const view_startLineIndex = editor.virtualIndexLine;
     const view_upperLineIndexExclusive = view_startLineIndex + editor.virtualCount;
 
-    const topPadding = f.EDI_textTopPadding;
+    const topPadding = editor.textTopPadding;
 
     const cache = EDI_lineStringCache;
     const cacheNUMBERS = EDI_line_NUMBER_StringCache;
@@ -5146,15 +5146,15 @@ function EDI_render_do_Scroll() {
     const new_loopLimit = new_lowerBound + diff;
 
     // 3. Let your context handle the scroll natively inside the static window
-    const ctxGutter = f.EDI_gutter_canvas.getContext('2d');
+    const ctxGutter = editor.gutter_canvas.getContext('2d');
 
-    ctxGutter.clearRect(0, 0, f.EDI_gutter_canvas.width, f.EDI_gutter_canvas.height);
+    ctxGutter.clearRect(0, 0, editor.gutter_canvas.width, editor.gutter_canvas.height);
 
     ctxGutter.fillStyle = 'rgb(30, 45, 45)';
-    ctxGutter.fillRect(0, 0, f.EDI_gutter_canvas.width, f.EDI_gutter_canvas.height); 
+    ctxGutter.fillRect(0, 0, editor.gutter_canvas.width, editor.gutter_canvas.height); 
     ctxGutter.fillStyle = '#858585';
 
-    ctxText.clearRect(0, 0, f.EDI_text_canvas.width, f.EDI_text_canvas.height);
+    ctxText.clearRect(0, 0, editor.text_canvas.width, editor.text_canvas.height);
 
     let ringBufferIndex = editor.ringBuffer_indexZero - 1;
 
@@ -5250,7 +5250,7 @@ function EDI_render_do_Scroll() {
 
     // I'm just experimenting because tons of variables are shared.
     //EDI_render_SelectionAndCursor();
-    const cursorCanvas = f.EDI_cursor_canvas;
+    const cursorCanvas = editor.cursor_canvas;
     const ctx = cursorCanvas.getContext('2d');
     ctx.clearRect(0, 0, cursorCanvas.width, cursorCanvas.height);
 
@@ -5280,11 +5280,11 @@ function EDI_render_do_Scroll() {
     const local_lineHeight = editor.lineHeight;
 
     // 3. Let your context handle the scroll natively inside the static window
-    const ctxGutter = f.EDI_gutter_canvas.getContext('2d');
-    ctxGutter.clearRect(0, 0, f.EDI_gutter_canvas.width, f.EDI_gutter_canvas.height);
+    const ctxGutter = editor.gutter_canvas.getContext('2d');
+    ctxGutter.clearRect(0, 0, editor.gutter_canvas.width, editor.gutter_canvas.height);
 
     ctxGutter.fillStyle = 'rgb(30, 45, 45)';
-    ctxGutter.fillRect(0, 0, f.EDI_gutter_canvas.width, f.EDI_gutter_canvas.height); 
+    ctxGutter.fillRect(0, 0, editor.gutter_canvas.width, editor.gutter_canvas.height); 
     ctxGutter.fillStyle = '#858585';
 
     let lineIndex = editor.virtualIndexLine;
@@ -5296,7 +5296,7 @@ function EDI_render_do_Scroll() {
     const lineCount = editor.lineEndPositionList_count;
     const upperLineIndexExclusive = lineIndex + editor.virtualCount;
     const splitIndex = Math.min(upperLineIndexExclusive, lineCount);
-    const local_EDI_textTopPadding = f.EDI_textTopPadding;
+    const local_EDI_textTopPadding = editor.textTopPadding;
 
     //const original_ringBufferIndex = ringBufferIndex;
     //const local_ArrayFrom_textElement_children_length = editor.ArrayFrom_textElement_children_length;
@@ -5326,8 +5326,8 @@ function EDI_render_do_Scroll() {
 }*/
 
 /*function EDI_render_TextContent(ringBufferIndex, lowerBound, loopLimit, lineStart, lineEnd) {
-    const ctxText = f.EDI_text_canvas.getContext('2d');
-    ctxText.clearRect(0, 0, f.EDI_text_canvas.width, f.EDI_text_canvas.height);
+    const ctxText = editor.text_canvas.getContext('2d');
+    ctxText.clearRect(0, 0, editor.text_canvas.width, editor.text_canvas.height);
 
     const local_lineHeight = editor.lineHeight;
     const lineCount = editor.lineEndPositionList_count;
@@ -5336,7 +5336,7 @@ function EDI_render_do_Scroll() {
     const upperLineIndexExclusive = Math.min(startLineIndex + editor.virtualCount, lineCount);
 
     let viewportY = -(EDI_lastReadNumber_scrollTop % local_lineHeight);
-    const topPadding = f.EDI_textTopPadding;
+    const topPadding = editor.textTopPadding;
 
     const local_EDI_lineEndPositionList_data = EDI_lineEndPositionList_data;
     const local_EDI_decoder_CUSTOM = EDI_decoder_CUSTOM;
@@ -7635,7 +7635,7 @@ function theNew_walkLineUntilIndexColumn() {
  */
 function update_verticalVirtualizationBoundary(lineCount) {
     if (!lineCount) lineCount = editor.lineEndPositionList_count;
-    f.EDI_virtualization_horizontal.style.height = ((lineCount + editor.virtualCount - 1) * editor.lineHeight) + 'px';
+    editor.virtualization_horizontal.style.height = ((lineCount + editor.virtualCount - 1) * editor.lineHeight) + 'px';
 }
 
 /**
@@ -7713,8 +7713,8 @@ function EDI_shiftLinesOfText_ToASmaller_IndexLine_byDistance(ringBufferIndex_la
         destinationDivTextNode.replaceData(0, destinationDivTextNode.length, EDI_ringBuffer_text[sourceIndex].textContent);
         // You don't need to clear 'EDI_ringBuffer_text[sourceIndex].textContent', that's done in the final step of this function
         // when invoking 'EDI_drawLine'.
-        if (f.EDI_gutter_scroll_mover.children[sourceIndex].textContent === '~') {
-            const destination_textNode_gutter = f.EDI_gutter_scroll_mover.children[destinationIndex].firstChild;
+        if (editor.gutter_scroll_mover.children[sourceIndex].textContent === '~') {
+            const destination_textNode_gutter = editor.gutter_scroll_mover.children[destinationIndex].firstChild;
             destination_textNode_gutter.replaceData(0, destination_textNode_gutter.length, '~');
         }
         destinationIndex = (destinationIndex + 1) % local_ArrayFrom_textElement_children_length;
@@ -7724,7 +7724,7 @@ function EDI_shiftLinesOfText_ToASmaller_IndexLine_byDistance(ringBufferIndex_la
     for (let i = 0; ; i++) {
         EDI_drawLine(
             (local_virtualIndexLine + local_virtualCount - 1 - i) + distance,
-            f.EDI_gutter_scroll_mover.children[ringBufferIndex],
+            editor.gutter_scroll_mover.children[ringBufferIndex],
             EDI_ringBuffer_text[ringBufferIndex],
             (local_virtualIndexLine + local_virtualCount - 1 - i));
         if (ringBufferIndex === breakingPoint) break; // awkward positioning of this break, it seems somewhat necessary but need to take time to read the code further and try to have it moved somewhere more sensible.
@@ -7753,14 +7753,14 @@ function EDI_drawGutter_Width(lineCount) {
 //
     //editor.drawn_count_of_digits_longest_line_number = digitCountOfLargestLineNumber;
 //
-    //f.EDI_gutterWidthStyleValue = Math.ceil(digitCountOfLargestLineNumber * EDI_characterWidth);
-    //f.EDI_gutterWidthTotal = f.EDI_gutterWidthStyleValue + f.EDI_gutterPaddingLeft + f.CONST_fEDI_gutterPaddingRight;
-    //gutterWidthTotal_withPxUnits = `${f.EDI_gutterWidthTotal}px`;
+    //editor.gutterWidthStyleValue = Math.ceil(digitCountOfLargestLineNumber * EDI_characterWidth);
+    //editor.gutterWidthTotal = editor.gutterWidthStyleValue + editor.gutterPaddingLeft + f.CONST_fEDI_gutterPaddingRight;
+    //gutterWidthTotal_withPxUnits = `${editor.gutterWidthTotal}px`;
 //
-    //let gutterWidth = f.EDI_gutterWidthStyleValue + 'px';
-    //f.EDI_gutter.style.width = gutterWidth;
+    //let gutterWidth = editor.gutterWidthStyleValue + 'px';
+    //editor.gutter.style.width = gutterWidth;
 //
-    //f.EDI_text.style.left = gutterWidthTotal_withPxUnits;
+    //editor.text.style.left = gutterWidthTotal_withPxUnits;
     //EDI_scroll_viewport.style.left = gutterWidthTotal_withPxUnits;
 //
     //for (let i = 0; i < editor.ArrayFrom_textElement_children_length/*a 'ArrayFrom_gutter_children_length' would always be equal to the textElement equivalent*/; i++) {
@@ -7784,14 +7784,14 @@ function EDI_drawHorizontalScrollbar() {
 
         editor.contentWidth = Math.ceil((editor.longestLine_length + 6/*characterwidth padding?*/) * EDI_characterWidth);
 
-        if ((editor.contentWidth < (f.EDI_baseElement.clientWidth - f.EDI_gutterWidthTotal)) && (f.EDI_baseElement.clientWidth - f.EDI_gutterWidthTotal > 0)) {
-            editor.contentWidth = Math.floor(f.EDI_baseElement.clientWidth - f.EDI_gutterWidthTotal);
+        if ((editor.contentWidth < (editor.baseElement.clientWidth - editor.gutterWidthTotal)) && (editor.baseElement.clientWidth - editor.gutterWidthTotal > 0)) {
+            editor.contentWidth = Math.floor(editor.baseElement.clientWidth - editor.gutterWidthTotal);
         }
 
         // The scrollViewport currently has a 'left/inset' that places it beyond the gutter. So the gutterWidthTotal being added is not necessary.
         const virtualization_horizontal_style_width_attribute = editor.contentWidth + 'px';
 
-        f.EDI_virtualization_horizontal.style.width = virtualization_horizontal_style_width_attribute;
+        editor.virtualization_horizontal.style.width = virtualization_horizontal_style_width_attribute;
 
         //for (let i = 0; i < editor.ArrayFrom_textElement_children_length; i++) {
         //    EDI_ringBuffer_text[i].style.width = virtualization_horizontal_style_width_attribute;
@@ -7833,7 +7833,7 @@ function EDI_render_SelectionAndCursor() {
 
     // I'm just experimenting because tons of variables are shared.
     //EDI_render_SelectionAndCursor();
-    const cursorCanvas = f.EDI_cursor_canvas;
+    const cursorCanvas = editor.cursor_canvas;
     const ctx = cursorCanvas.getContext('2d');
     ctx.clearRect(0, 0, cursorCanvas.width, cursorCanvas.height);
 
@@ -8311,7 +8311,7 @@ export function EDI_onMouseDown(event) {
     }
 
     if (f.get_EDI_recentBoundingClientRect_isNull_intFalsey() === 1) {
-        let boundingClientRect = f.EDI_baseElement.getBoundingClientRect();
+        let boundingClientRect = editor.baseElement.getBoundingClientRect();
         editor.recentBoundingClientRect_left = boundingClientRect.left;
         editor.recentBoundingClientRect_top = boundingClientRect.top;
         f.set_EDI_recentBoundingClientRect_isNull_intFalsey(0);
@@ -8319,7 +8319,7 @@ export function EDI_onMouseDown(event) {
 
     if (event.button === 0) {
         editor.mousemove_eventListener_isActive = 1;
-        f.EDI_baseElement.addEventListener('mousemove', EDI_onMouseMove_WRAPIT);
+        editor.baseElement.addEventListener('mousemove', EDI_onMouseMove_WRAPIT);
     }
     else if (event.button === 3) {
         EDI_moveCursor_indexLine_indexColumn(editor.priorToLastJump_indexLine, editor.priorToLastJump_indexColumn);
@@ -8327,7 +8327,7 @@ export function EDI_onMouseDown(event) {
     }
 
     let rY = event.clientY - editor.recentBoundingClientRect_top + EDI_lastReadNumber_scrollTop;
-    let rX = event.clientX - editor.recentBoundingClientRect_left - f.EDI_gutterWidthTotal + EDI_lastReadNumber_scrollLeft;
+    let rX = event.clientX - editor.recentBoundingClientRect_left - editor.gutterWidthTotal + EDI_lastReadNumber_scrollLeft;
     
     let indexLine = Math.floor(rY / editor.lineHeight);
     let indexColumn = Math.round(rX / EDI_characterWidth);
@@ -8368,7 +8368,7 @@ export function EDI_onMouseDown(event) {
         indexColumnVisual = indexColumn;
     }
 
-    if (rX < -1 * f.EDI_gutterPaddingRight) {
+    if (rX < -1 * editor.gutterPaddingRight) {
         f.set_EDI_detailRank(3);
         EDI_onMouseDownDetailRankThree(event.button, event.shiftKey, indexLine, indexColumn);
         return;
@@ -8604,7 +8604,7 @@ export function EDI_onMouseMove_WRAPIT(event) {
         // TODO: Consider short circuiting at via event.clientX and clientY by tracking the necessary thresholds for the cursor position to pass rather than the previous and current indices. (you can possibly thereby skip the calculation of the indices entirely for the redundant events).
         // TODO: Is it correct to use the cursor's indexLine and indexColumn directly as a means of determining redundancy? I worry about odd interactions, but I have no proof that such an odd interaction could exist.
 
-        let rX = Math.max(0, event.clientX - editor.recentBoundingClientRect_left - f.EDI_gutterWidthTotal + EDI_lastReadNumber_scrollLeft);
+        let rX = Math.max(0, event.clientX - editor.recentBoundingClientRect_left - editor.gutterWidthTotal + EDI_lastReadNumber_scrollLeft);
         let rY = Math.max(0, event.clientY - editor.recentBoundingClientRect_top + EDI_lastReadNumber_scrollTop);
 
         let indexColumn = Math.round(rX / EDI_characterWidth);
@@ -8656,7 +8656,7 @@ export function EDI_onMouseMove_WRAPIT(event) {
     }
     else {
         editor.mousemove_eventListener_isActive = 0;
-        f.EDI_baseElement.removeEventListener('mousemove', EDI_onMouseMove_WRAPIT);
+        editor.baseElement.removeEventListener('mousemove', EDI_onMouseMove_WRAPIT);
     }
 }
 
@@ -9474,7 +9474,7 @@ async function EDI_onKeyDown_keyLengthEqualsOne_ctrlKey(event) {
             EDI_finalizeEdit();
             editor.cursor_selectionAnchor = 0;
             editor.cursor_selectionIndexAnchorColumnVISUAL = 0;
-            editor.cursor_selectionEnd = f.EDI_textByteList_count;
+            editor.cursor_selectionEnd = editor.textByteList_count;
             editor.cursor_selectionIndexEndColumnVISUAL = editor.cursorVisualColumnIndex;
             EDI_ret_getLineAndColumnIndices_raw(editor.cursor_selectionEnd);
             let selectionEndLineAndColumnIndices_indexLine = editor.ret_getLineAndColumnIndices_indexLine;
