@@ -3901,9 +3901,9 @@ async function EDI_read_clipboard() {
         // TODO: what are the possible returned values of 'await window.myAPI.readClipboard();'? Is it nullable?
         EDI_cursor_EDI_paste_clipboardContent_string = EDI_cursor_EDI_paste_clipboardContent_string.replaceAll('\r\n', '\n');
         EDI_cursor_EDI_paste_clipboardContent_bytes = EDI_encoder.encode(EDI_cursor_EDI_paste_clipboardContent_string);
-        f.INTS[f.fEDI_cursor_EDI_paste_clipboardContent_totalLineEndCount] = countNewlines(EDI_cursor_EDI_paste_clipboardContent_string);
-        EDI_cursor_EDI_paste_clipboardContent_arrayLinePositions_OFFSETS = new Array(1 + f.INTS[f.fEDI_cursor_EDI_paste_clipboardContent_totalLineEndCount]);
-        EDI_cursor_EDI_paste_clipboardContent_arrayLineVisualLengths = new Array(1 + f.INTS[f.fEDI_cursor_EDI_paste_clipboardContent_totalLineEndCount]);
+        f.fEDI_cursor_EDI_paste_clipboardContent_totalLineEndCount = countNewlines(EDI_cursor_EDI_paste_clipboardContent_string);
+        EDI_cursor_EDI_paste_clipboardContent_arrayLinePositions_OFFSETS = new Array(1 + f.fEDI_cursor_EDI_paste_clipboardContent_totalLineEndCount);
+        EDI_cursor_EDI_paste_clipboardContent_arrayLineVisualLengths = new Array(1 + f.fEDI_cursor_EDI_paste_clipboardContent_totalLineEndCount);
         EDI_cursor_EDI_duplicationORpaste_cacheEachLineSubstringDecodedArray = null;
 
         let lineEndIndex = 0;
@@ -3941,12 +3941,12 @@ function EDI_read_duplication() {
         // Timing don't do this like u did in the other
         //EDI_finalizeEdit();
 
-        const large = f.INTS[f.fEDI_editret_cursor_EDI_duplicate_small] + f.INTS[f.fEDI_editret_cursor_EDI_duplicate_length];
-        EDI_cursor_EDI_duplication_bytes = EDI_textByteList_bytes.subarray(f.INTS[f.fEDI_editret_cursor_EDI_duplicate_small], large);
+        const large = f.fEDI_editret_cursor_EDI_duplicate_small + f.fEDI_editret_cursor_EDI_duplicate_length;
+        EDI_cursor_EDI_duplication_bytes = EDI_textByteList_bytes.subarray(f.fEDI_editret_cursor_EDI_duplicate_small, large);
 
-        f.INTS[f.fEDI_cursor_EDI_duplication_totalLineEndCount] = countNewlines(EDI_decoder.decode(EDI_cursor_EDI_duplication_bytes));
-        EDI_cursor_EDI_duplication_arrayLinePositions_OFFSETS = new Array(1 + f.INTS[f.fEDI_cursor_EDI_duplication_totalLineEndCount]);
-        EDI_cursor_EDI_duplication_arrayLineVisualLengths = new Array(1 + f.INTS[f.fEDI_cursor_EDI_duplication_totalLineEndCount]);
+        f.fEDI_cursor_EDI_duplication_totalLineEndCount = countNewlines(EDI_decoder.decode(EDI_cursor_EDI_duplication_bytes));
+        EDI_cursor_EDI_duplication_arrayLinePositions_OFFSETS = new Array(1 + f.fEDI_cursor_EDI_duplication_totalLineEndCount);
+        EDI_cursor_EDI_duplication_arrayLineVisualLengths = new Array(1 + f.fEDI_cursor_EDI_duplication_totalLineEndCount);
         EDI_cursor_EDI_duplicationORpaste_cacheEachLineSubstringDecodedArray = null;
 
         let lineEndIndex = 0;
@@ -3979,10 +3979,10 @@ function EDI_read_duplication() {
 
 function EDI_requestLspComplete() {
     // TODO: long term continue reducing the frequency of 'finalizeEdit' for now though you want things to work and not be confusing
-    if (f.INTS[f.fEDI_cursor_editKind] !== f.EditKind_None) {
+    if (f.fEDI_cursor_editKind !== f.EditKind_None) {
         EDI_finalizeEdit();
     }
-    //window.myAPI.editorCompletionRequest(f.INTS[f.fEDI_cursor_indexLine], f.INTS[f.fEDI_cursor_indexColumn]);
+    //window.myAPI.editorCompletionRequest(f.fEDI_cursor_indexLine, f.fEDI_cursor_indexColumn);
 }
 
 /**
@@ -3992,7 +3992,7 @@ function EDI_requestLspComplete() {
 function EDI_doEditorGoToDefinitionRequest(ctrlKey) {
     if (!ctrlKey) {
         // TODO: long term continue reducing the frequency of 'finalizeEdit' for now though you want things to work and not be confusing
-        if (f.INTS[f.fEDI_cursor_editKind] !== f.EditKind_None) {
+        if (f.fEDI_cursor_editKind !== f.EditKind_None) {
             EDI_finalizeEdit();
         }
         sendTransaction_MessageKind_textDocument_definition(EDI_getPositionIndex_cursor_raw());
@@ -4004,11 +4004,11 @@ function EDI_doEditorGoToDefinitionRequest(ctrlKey) {
 
 function EDI_requestLspHover() {
     // TODO: long term continue reducing the frequency of 'finalizeEdit' for now though you want things to work and not be confusing
-    if (f.INTS[f.fEDI_cursor_editKind] !== f.EditKind_None) {
+    if (f.fEDI_cursor_editKind !== f.EditKind_None) {
         EDI_finalizeEdit();
     }
-    let event_clientY = f.INTS[f.fEDI_EDI_mouseOver_event_clientY];
-    let event_clientX = f.INTS[f.fEDI_EDI_mouseOver_event_clientX];
+    let event_clientY = f.fEDI_EDI_mouseOver_event_clientY;
+    let event_clientX = f.fEDI_EDI_mouseOver_event_clientX;
 
     ///////////
     ///////////
@@ -4017,20 +4017,20 @@ function EDI_requestLspHover() {
     ///////////
     if (f.get_EDI_recentBoundingClientRect_isNull_intFalsey() === 1) {
         let boundingClientRect = f.EDI_baseElement.getBoundingClientRect();
-        f.INTS[f.fEDI_recentBoundingClientRect_left] = boundingClientRect.left;
-        f.INTS[f.fEDI_recentBoundingClientRect_top] = boundingClientRect.top;
+        f.fEDI_recentBoundingClientRect_left = boundingClientRect.left;
+        f.fEDI_recentBoundingClientRect_top = boundingClientRect.top;
         f.set_EDI_recentBoundingClientRect_isNull_intFalsey(0);
     }
 
-    let rY = event_clientY - f.INTS[f.fEDI_recentBoundingClientRect_top] + EDI_lastReadNumber_scrollTop;
-    let rX = event_clientX - f.INTS[f.fEDI_recentBoundingClientRect_left] - f.INTS[f.EDI_gutterWidthTotal] + EDI_lastReadNumber_scrollLeft;
+    let rY = event_clientY - f.fEDI_recentBoundingClientRect_top + EDI_lastReadNumber_scrollTop;
+    let rX = event_clientX - f.fEDI_recentBoundingClientRect_left - f.EDI_gutterWidthTotal + EDI_lastReadNumber_scrollLeft;
 
-    let indexLine = Math.floor(rY / f.INTS[f.fEDI_lineHeight]);
+    let indexLine = Math.floor(rY / f.fEDI_lineHeight);
     let indexColumn = Math.round(rX / EDI_characterWidth);
 
     if (indexLine < 0) return;
     if (indexColumn < 0) return;
-    if (indexLine >= f.INTS[f.fEDI_lineEndPositionList_count]) return;
+    if (indexLine >= f.fEDI_lineEndPositionList_count) return;
     // ----
     let lastValidIndexColumn = EDI_getLastValidIndexColumn_raw(indexLine);
     if (indexColumn > lastValidIndexColumn) return;
@@ -4081,7 +4081,7 @@ function EDI_getFinalizedEditsAndRawSaveFileData(NOTfinalizePendingEdits) {
     }
     return {
         uint8arrayTextBytes: EDI_textByteList_bytes,
-        countOfBytesInUse: f.INTS[f.EDI_textByteList_count],
+        countOfBytesInUse: f.EDI_textByteList_count,
         lineEndString: EDI_lineEndString,
         fileStartsWithBom: Boolean(f.get_EDI_fileStartsWithBom())
     };
@@ -4144,16 +4144,16 @@ function EDI_textByteList_insertBytes(index, incomingBs, offset, length) {
     }
 
     // 2. Validate that the target insertion index makes sense
-    if (index < 0 || index > f.INTS[f.EDI_textByteList_count]) {
+    if (index < 0 || index > f.EDI_textByteList_count) {
         throw new RangeError(
-            //`Invalid insertion index: index ${index} must be between 0 and current count ${f.INTS[f.EDI_textByteList_count]}.`
+            //`Invalid insertion index: index ${index} must be between 0 and current count ${f.EDI_textByteList_count}.`
         );
     }
 
     EDI_textByteList_ensureCapacityForInsertion(index, length);
 
-    if (index !== f.INTS[f.EDI_textByteList_count]) {
-        EDI_textByteList_copyTo(EDI_textByteList_bytes, index, EDI_textByteList_bytes, index + length, f.INTS[f.EDI_textByteList_count] - index);
+    if (index !== f.EDI_textByteList_count) {
+        EDI_textByteList_copyTo(EDI_textByteList_bytes, index, EDI_textByteList_bytes, index + length, f.EDI_textByteList_count - index);
     }
 
     // TODO: Google AI is telling me:
@@ -4168,7 +4168,7 @@ function EDI_textByteList_insertBytes(index, incomingBs, offset, length) {
         : incomingBs.subarray(offset, offset + length);
     EDI_textByteList_bytes.set(segmentToInsert, index);
 
-    f.INTS[f.EDI_textByteList_count] += length;
+    f.EDI_textByteList_count += length;
 }
 /**
  * Does not clear trailing information.
@@ -4176,12 +4176,12 @@ function EDI_textByteList_insertBytes(index, incomingBs, offset, length) {
  * count === 0 immediately returns
  */
 function EDI_textByteList_removeAt(index, count) {
-    if (index > f.INTS[f.EDI_textByteList_count]) { throw new Error('removeAt(...): index > f.INTS[f.EDI_textByteList_count]'); }
-    if (index + count > f.INTS[f.EDI_textByteList_count]) { throw new Error('removeAt(...): index + count > f.INTS[f.EDI_textByteList_count]'); }
+    if (index > f.EDI_textByteList_count) { throw new Error('removeAt(...): index > f.EDI_textByteList_count'); }
+    if (index + count > f.EDI_textByteList_count) { throw new Error('removeAt(...): index + count > f.EDI_textByteList_count'); }
     if (count === 0) { return; }
 
-    if (index + count === f.INTS[f.EDI_textByteList_count]) {
-        let shiftableCount = f.INTS[f.EDI_textByteList_count] - (index + count);
+    if (index + count === f.EDI_textByteList_count) {
+        let shiftableCount = f.EDI_textByteList_count - (index + count);
         if (shiftableCount > 0) {
             EDI_textByteList_copyTo(
                 EDI_textByteList_bytes,
@@ -4197,10 +4197,10 @@ function EDI_textByteList_removeAt(index, count) {
             index + count,
             EDI_textByteList_bytes,
             index,
-            f.INTS[f.EDI_textByteList_count] - (index + count));
+            f.EDI_textByteList_count - (index + count));
     }
 
-    f.INTS[f.EDI_textByteList_count] -= count;
+    f.EDI_textByteList_count -= count;
 }
 /**
  * 
@@ -4223,31 +4223,31 @@ function EDI_textByteList_duplicateWithin(sourceStart, destinationStart, length)
 
     EDI_textByteList_ensureCapacityForInsertion(destinationStart, length);
 
-    if (destinationStart !== f.INTS[f.EDI_textByteList_count]) {
-        EDI_textByteList_copyTo(EDI_textByteList_bytes, destinationStart, EDI_textByteList_bytes, destinationStart + length, f.INTS[f.EDI_textByteList_count] - destinationStart);
+    if (destinationStart !== f.EDI_textByteList_count) {
+        EDI_textByteList_copyTo(EDI_textByteList_bytes, destinationStart, EDI_textByteList_bytes, destinationStart + length, f.EDI_textByteList_count - destinationStart);
     }
 
     EDI_textByteList_copyTo(EDI_textByteList_bytes, sourceStart, EDI_textByteList_bytes, destinationStart, length);
 
-    f.INTS[f.EDI_textByteList_count] += length;
+    f.EDI_textByteList_count += length;
 }
 function EDI_textByteList_ensureCapacityForInsertion(index, count) {
     // TODO: sparse insertions?
-    const requiredCapacity = Math.max(f.INTS[f.EDI_textByteList_count] + count, index);
+    const requiredCapacity = Math.max(f.EDI_textByteList_count + count, index);
 
     // If we already have enough capacity, do absolutely nothing
-    if (requiredCapacity <= f.INTS[f.EDI_textByteList_capacity]) {
+    if (requiredCapacity <= f.EDI_textByteList_capacity) {
         return;
     }
 
-    let capacityNew = f.INTS[f.EDI_textByteList_capacity];
+    let capacityNew = f.EDI_textByteList_capacity;
 
     // 1. Scale geometrically by 1.125x (current + current / 8)
     capacityNew = capacityNew + (capacityNew >> 3);
 
     // 2. Minimum growth step: Ensure it grows by at least 1024 bytes 
     //    so small files don't reallocate on every single keystroke.
-    const minGrowth = f.INTS[f.EDI_textByteList_capacity] + 1024;
+    const minGrowth = f.EDI_textByteList_capacity + 1024;
     if (capacityNew < minGrowth) {
         capacityNew = minGrowth;
     }
@@ -4260,17 +4260,17 @@ function EDI_textByteList_ensureCapacityForInsertion(index, count) {
     }
 
     // Safety check against integer overflow / negative bounds
-    if (capacityNew < f.INTS[f.EDI_textByteList_capacity]) {
+    if (capacityNew < f.EDI_textByteList_capacity) {
         throw new Error('ensureCapacityForInsertion(...): Capacity overflowed or went negative');
     }
 
     // Allocate and copy EXACTLY ONCE
     let bytesNew = new Uint8Array(capacityNew);
-    EDI_textByteList_copyTo(EDI_textByteList_bytes, 0, bytesNew, 0, f.INTS[f.EDI_textByteList_count]);
+    EDI_textByteList_copyTo(EDI_textByteList_bytes, 0, bytesNew, 0, f.EDI_textByteList_count);
 
     // Commit the changes to your global/module state
     EDI_textByteList_bytes = bytesNew;
-    f.INTS[f.EDI_textByteList_capacity] = capacityNew;
+    f.EDI_textByteList_capacity = capacityNew;
 }
 /**
  * inclusive/exclusive
@@ -4307,16 +4307,16 @@ function EDI_styleBuffer_insertBytes(index, incomingBs, offset, length) {
     }
 
     // 2. Validate that the target insertion index makes sense
-    if (index < 0 || index > f.INTS[f.fEDI_styleBuffer_count]) {
+    if (index < 0 || index > f.fEDI_styleBuffer_count) {
         throw new RangeError(
-            //`Invalid insertion index: index ${index} must be between 0 and current count ${f.INTS[f.fEDI_styleBuffer_count]}.`
+            //`Invalid insertion index: index ${index} must be between 0 and current count ${f.fEDI_styleBuffer_count}.`
         );
     }
 
     EDI_styleBuffer_ensureCapacityForInsertion(index, length);
 
-    if (index !== f.INTS[f.fEDI_styleBuffer_count]) {
-        EDI_styleBuffer_copyTo(EDI_styleBuffer, index, EDI_styleBuffer, index + length, f.INTS[f.fEDI_styleBuffer_count] - index);
+    if (index !== f.fEDI_styleBuffer_count) {
+        EDI_styleBuffer_copyTo(EDI_styleBuffer, index, EDI_styleBuffer, index + length, f.fEDI_styleBuffer_count - index);
     }
 
     // TODO: Google AI is telling me:
@@ -4331,7 +4331,7 @@ function EDI_styleBuffer_insertBytes(index, incomingBs, offset, length) {
         : incomingBs.subarray(offset, offset + length);
     EDI_styleBuffer.set(segmentToInsert, index);
 
-    f.INTS[f.fEDI_styleBuffer_count] += length;
+    f.fEDI_styleBuffer_count += length;
 }
 /**
  * Does not clear trailing information.
@@ -4339,12 +4339,12 @@ function EDI_styleBuffer_insertBytes(index, incomingBs, offset, length) {
  * count === 0 immediately returns
  */
 function EDI_styleBuffer_removeAt(index, count) {
-    if (index > f.INTS[f.fEDI_styleBuffer_count]) { throw new Error('removeAt(...): index > f.INTS[f.fEDI_styleBuffer_count]'); }
-    if (index + count > f.INTS[f.fEDI_styleBuffer_count]) { throw new Error('removeAt(...): index + count > f.INTS[f.fEDI_styleBuffer_count]'); }
+    if (index > f.fEDI_styleBuffer_count) { throw new Error('removeAt(...): index > f.fEDI_styleBuffer_count'); }
+    if (index + count > f.fEDI_styleBuffer_count) { throw new Error('removeAt(...): index + count > f.fEDI_styleBuffer_count'); }
     if (count === 0) { return; }
 
-    if (index + count === f.INTS[f.fEDI_styleBuffer_count]) {
-        let shiftableCount = f.INTS[f.fEDI_styleBuffer_count] - (index + count);
+    if (index + count === f.fEDI_styleBuffer_count) {
+        let shiftableCount = f.fEDI_styleBuffer_count - (index + count);
         if (shiftableCount > 0) {
             EDI_styleBuffer_copyTo(
                 EDI_styleBuffer,
@@ -4360,28 +4360,28 @@ function EDI_styleBuffer_removeAt(index, count) {
             index + count,
             EDI_styleBuffer,
             index,
-            f.INTS[f.fEDI_styleBuffer_count] - (index + count));
+            f.fEDI_styleBuffer_count - (index + count));
     }
 
-    f.INTS[f.fEDI_styleBuffer_count] -= count;
+    f.fEDI_styleBuffer_count -= count;
 }
 function EDI_styleBuffer_ensureCapacityForInsertion(index, count) {
     // TODO: sparse insertions?
-    const requiredCapacity = Math.max(f.INTS[f.fEDI_styleBuffer_count] + count, index);
+    const requiredCapacity = Math.max(f.fEDI_styleBuffer_count + count, index);
 
     // If we already have enough capacity, do absolutely nothing
-    if (requiredCapacity <= f.INTS[f.fEDI_styleBuffer_capacity]) {
+    if (requiredCapacity <= f.fEDI_styleBuffer_capacity) {
         return;
     }
 
-    let capacityNew = f.INTS[f.fEDI_styleBuffer_capacity];
+    let capacityNew = f.fEDI_styleBuffer_capacity;
 
     // 1. Scale geometrically by 1.125x (current + current / 8)
     capacityNew = capacityNew + (capacityNew >> 3);
 
     // 2. Minimum growth step: Ensure it grows by at least 1024 bytes 
     //    so small files don't reallocate on every single keystroke.
-    const minGrowth = f.INTS[f.fEDI_styleBuffer_capacity] + 1024;
+    const minGrowth = f.fEDI_styleBuffer_capacity + 1024;
     if (capacityNew < minGrowth) {
         capacityNew = minGrowth;
     }
@@ -4394,17 +4394,17 @@ function EDI_styleBuffer_ensureCapacityForInsertion(index, count) {
     }
 
     // Safety check against integer overflow / negative bounds
-    if (capacityNew < f.INTS[f.fEDI_styleBuffer_capacity]) {
+    if (capacityNew < f.fEDI_styleBuffer_capacity) {
         throw new Error('ensureCapacityForInsertion(...): Capacity overflowed or went negative');
     }
 
     // Allocate and copy EXACTLY ONCE
     let bytesNew = new Uint8Array(capacityNew);
-    EDI_styleBuffer_copyTo(EDI_styleBuffer, 0, bytesNew, 0, f.INTS[f.fEDI_styleBuffer_count]);
+    EDI_styleBuffer_copyTo(EDI_styleBuffer, 0, bytesNew, 0, f.fEDI_styleBuffer_count);
 
     // Commit the changes to your global/module state
     EDI_styleBuffer = bytesNew;
-    f.INTS[f.fEDI_styleBuffer_capacity] = capacityNew;
+    f.fEDI_styleBuffer_capacity = capacityNew;
 }
 /**
  * inclusive/exclusive
@@ -4437,8 +4437,8 @@ function EDI_lineEndPositionList_insert(lineIndex, position, lineLengthVisual) {
     EDI_trackingUint32MaxHeap.batchInsertLines(lineIndex, 1);
 
     // 2. Shift your linear text data arrays down to open a hole in your document structure
-    if (lineIndex !== f.INTS[f.fEDI_lineEndPositionList_count]) {
-        EDI_lineEndPositionList_copyTo(EDI_lineEndPositionList_data, lineIndex, EDI_lineEndPositionList_data, lineIndex + 1, f.INTS[f.fEDI_lineEndPositionList_count] - lineIndex);
+    if (lineIndex !== f.fEDI_lineEndPositionList_count) {
+        EDI_lineEndPositionList_copyTo(EDI_lineEndPositionList_data, lineIndex, EDI_lineEndPositionList_data, lineIndex + 1, f.fEDI_lineEndPositionList_count - lineIndex);
     }
 
     // 3. Now it is safe to insert the new line into the heap.
@@ -4447,13 +4447,13 @@ function EDI_lineEndPositionList_insert(lineIndex, position, lineLengthVisual) {
 
     // 4. Update the linear data metrics
     EDI_lineEndPositionList_data[lineIndex] = position;
-    f.INTS[f.fEDI_lineEndPositionList_count]++;
+    f.fEDI_lineEndPositionList_count++;
 
     // TODO: probably remove this and let the invoker do it themselves if warranted.
     if (EDI_trackingUint32MaxHeap.tryPooledPeek() &&
-        (f.INTS[f.fEDI_longestLine_length] !== EDI_trackingUint32MaxHeap.unpack_pool_length || f.INTS[f.fEDI_longestLine_indexLine] !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
-        f.INTS[f.fEDI_longestLine_indexLine] = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
-        f.INTS[f.fEDI_longestLine_length] = EDI_trackingUint32MaxHeap.unpack_pool_length;
+        (f.fEDI_longestLine_length !== EDI_trackingUint32MaxHeap.unpack_pool_length || f.fEDI_longestLine_indexLine !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
+        f.fEDI_longestLine_indexLine = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
+        f.fEDI_longestLine_length = EDI_trackingUint32MaxHeap.unpack_pool_length;
     }
 }
 
@@ -4463,8 +4463,8 @@ function EDI_lineEndPositionList_insert(lineIndex, position, lineLengthVisual) {
  * count === 0 immediately returns
  */
 function EDI_lineEndPositionList_removeAt(index, count) {
-    if (index > f.INTS[f.fEDI_lineEndPositionList_count]) { throw new Error('removeAt(...): index > f.INTS[f.fEDI_lineEndPositionList_count]'); }
-    if (index + count > f.INTS[f.fEDI_lineEndPositionList_count]) { throw new Error('removeAt(...): index + count > f.INTS[f.fEDI_lineEndPositionList_count]'); }
+    if (index > f.fEDI_lineEndPositionList_count) { throw new Error('removeAt(...): index > f.fEDI_lineEndPositionList_count'); }
+    if (index + count > f.fEDI_lineEndPositionList_count) { throw new Error('removeAt(...): index + count > f.fEDI_lineEndPositionList_count'); }
     if (count === 0) { return; }
 
     const endDeletedRange = index + count;
@@ -4472,7 +4472,7 @@ function EDI_lineEndPositionList_removeAt(index, count) {
     // 1. Process the heap internally (it compacts, re-heapifies, and re-syncs its own map)
     EDI_trackingUint32MaxHeap.batchRemoveLines(index, count);
 
-    let shiftableCount = f.INTS[f.fEDI_lineEndPositionList_count] - endDeletedRange;
+    let shiftableCount = f.fEDI_lineEndPositionList_count - endDeletedRange;
     if (shiftableCount > 0) {
         EDI_lineEndPositionList_copyTo(
             EDI_lineEndPositionList_data,
@@ -4483,40 +4483,40 @@ function EDI_lineEndPositionList_removeAt(index, count) {
         );
     }
 
-    f.INTS[f.fEDI_lineEndPositionList_count] -= count;
+    f.fEDI_lineEndPositionList_count -= count;
 
     if (EDI_trackingUint32MaxHeap.tryPooledPeek() &&
-        (f.INTS[f.fEDI_longestLine_length] !== EDI_trackingUint32MaxHeap.unpack_pool_length || f.INTS[f.fEDI_longestLine_indexLine] !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
-        f.INTS[f.fEDI_longestLine_indexLine] = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
-        f.INTS[f.fEDI_longestLine_length] = EDI_trackingUint32MaxHeap.unpack_pool_length;
+        (f.fEDI_longestLine_length !== EDI_trackingUint32MaxHeap.unpack_pool_length || f.fEDI_longestLine_indexLine !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
+        f.fEDI_longestLine_indexLine = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
+        f.fEDI_longestLine_length = EDI_trackingUint32MaxHeap.unpack_pool_length;
     }
 }
 function EDI_lineEndPositionList_ensureCapacityForInsertion(index, count) {
     // TODO: sparse insertions?
-    const requiredCapacity = Math.max(f.INTS[f.fEDI_lineEndPositionList_count] + count, index);
+    const requiredCapacity = Math.max(f.fEDI_lineEndPositionList_count + count, index);
 
     // If we already have enough capacity, do absolutely nothing
-    if (requiredCapacity <= f.INTS[f.fEDI_lineEndPositionList_capacity]) {
+    if (requiredCapacity <= f.fEDI_lineEndPositionList_capacity) {
         return;
     }
 
     // Calculate the new capacity by doubling until it fits
-    let capacityNew = f.INTS[f.fEDI_lineEndPositionList_capacity] || 1; // Prevent infinite loops if capacity is 0
+    let capacityNew = f.fEDI_lineEndPositionList_capacity || 1; // Prevent infinite loops if capacity is 0
     while (capacityNew < requiredCapacity) {
         capacityNew *= 2;
     }
 
     // Safety check against integer overflow / negative bounds
-    if (capacityNew < f.INTS[f.fEDI_lineEndPositionList_capacity]) {
+    if (capacityNew < f.fEDI_lineEndPositionList_capacity) {
         throw new Error('ensureCapacityForInsertion(...): Capacity overflowed or went negative');
     }
 
     // Allocate and copy EXACTLY ONCE
     let dataNew = new Uint32Array(capacityNew);
-    EDI_lineEndPositionList_copyTo(EDI_lineEndPositionList_data, 0, dataNew, 0, f.INTS[f.fEDI_lineEndPositionList_count]);
+    EDI_lineEndPositionList_copyTo(EDI_lineEndPositionList_data, 0, dataNew, 0, f.fEDI_lineEndPositionList_count);
     // Commit the changes to your global/module state
     EDI_lineEndPositionList_data = dataNew;
-    f.INTS[f.fEDI_lineEndPositionList_capacity] = capacityNew;
+    f.fEDI_lineEndPositionList_capacity = capacityNew;
 }
 /**
  * inclusive/exclusive
@@ -4774,10 +4774,10 @@ thus the same thing happens but now I can't just re-use that I'm virtual index f
  */
 function EDI_render_do() {
     // Process everything in the queue until head catches up to tail
-    while (f.INTS[f.fEDI_queueHead] !== f.INTS[f.fEDI_queueTail]) {
+    while (f.fEDI_queueHead !== f.fEDI_queueTail) {
         // Read the item at the head and advance the head pointer safely
-        const renderKind = EDI_renderKindBuffer[f.INTS[f.fEDI_queueHead] & f.BUFFER_MASK];
-        f.INTS[f.fEDI_queueHead]++;
+        const renderKind = EDI_renderKindBuffer[f.fEDI_queueHead & f.BUFFER_MASK];
+        f.fEDI_queueHead++;
 
         switch (renderKind) {
             case f.RenderKind_Scroll:
@@ -4837,7 +4837,7 @@ function EDI_render_do() {
         }
     }
     
-    f.INTS[f.fEDI_isRenderPending] = 0;
+    f.fEDI_isRenderPending = 0;
 }
 
 /**
@@ -4859,9 +4859,9 @@ function EDI_render_do() {
  */
 export function EDI_render_request(renderKind) {
     // Check if the queue is empty
-    if (f.INTS[f.fEDI_queueHead] !== f.INTS[f.fEDI_queueTail]) {
+    if (f.fEDI_queueHead !== f.fEDI_queueTail) {
         // Get the last inserted item's index
-        const lastIndex = (f.INTS[f.fEDI_queueTail] - 1) & f.BUFFER_MASK;
+        const lastIndex = (f.fEDI_queueTail - 1) & f.BUFFER_MASK;
         // De-duplicate: if it's the same renderKind, skip adding it
         if (EDI_renderKindBuffer[lastIndex] === renderKind) {
             return;
@@ -4869,11 +4869,11 @@ export function EDI_render_request(renderKind) {
     }
 
     // Insert the item at the tail and advance the tail pointer
-    EDI_renderKindBuffer[f.INTS[f.fEDI_queueTail] & f.BUFFER_MASK] = renderKind;
-    f.INTS[f.fEDI_queueTail]++;
+    EDI_renderKindBuffer[f.fEDI_queueTail & f.BUFFER_MASK] = renderKind;
+    f.fEDI_queueTail++;
     
-    if (f.INTS[f.fEDI_isRenderPending] === 0) {
-        f.INTS[f.fEDI_isRenderPending] = 1;
+    if (f.fEDI_isRenderPending === 0) {
+        f.fEDI_isRenderPending = 1;
         requestAnimationFrame(EDI_render_do);
     }
 }
@@ -4935,7 +4935,7 @@ function EDI_resizeCanvases() {
 
     const fontHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
     const linePadding = 6; // Total padding between lines
-    f.INTS[f.fEDI_lineHeight] = fontHeight + linePadding;
+    f.fEDI_lineHeight = fontHeight + linePadding;
 
 
 
@@ -4951,12 +4951,12 @@ function EDI_resizeCanvases() {
 
     // If local_lineHeight is 24px and fontActualHeight is 14px, your vertical midpoint padding is 12px
 
-    f.INTS[f.fEDI_lastReadNumber_offsetWidth] = Math.floor(f.EDI_text.offsetWidth);
-    f.INTS[f.fEDI_lastReadNumber_offsetHeight] = Math.floor(f.EDI_text.offsetHeight);
+    f.fEDI_lastReadNumber_offsetWidth = Math.floor(f.EDI_text.offsetWidth);
+    f.fEDI_lastReadNumber_offsetHeight = Math.floor(f.EDI_text.offsetHeight);
 
-    f.INTS[f.fEDI_virtualCount] = Math.ceil(f.INTS[f.fEDI_lastReadNumber_offsetHeight] / f.INTS[f.fEDI_lineHeight]);
+    f.fEDI_virtualCount = Math.ceil(f.fEDI_lastReadNumber_offsetHeight / f.fEDI_lineHeight);
 
-    //EDI_character_count_that_fits_view = Math.ceil(f.INTS[f.fEDI_lastReadNumber_offsetWidth] / EDI_characterWidth);
+    //EDI_character_count_that_fits_view = Math.ceil(f.fEDI_lastReadNumber_offsetWidth / EDI_characterWidth);
 
 
 
@@ -4973,11 +4973,11 @@ function EDI_resizeCanvases() {
     // Set your editor's cursor color profile
     ctxCursor.fillStyle = '#528bff'; // A nice modern blue cursor, or white (#ffffff)
 
-    set_EDI_lineStringCache(new Array(f.INTS[f.fEDI_virtualCount]));
-    set_EDI_line_NUMBER_StringCache(new Array(f.INTS[f.fEDI_virtualCount]));
-    f.INTS[f.fEDI_ArrayFrom_textElement_children_length] = f.INTS[f.fEDI_virtualCount];
+    set_EDI_lineStringCache(new Array(f.fEDI_virtualCount));
+    set_EDI_line_NUMBER_StringCache(new Array(f.fEDI_virtualCount));
+    f.fEDI_ArrayFrom_textElement_children_length = f.fEDI_virtualCount;
 
-    const aaa = f.INTS[f.fEDI_virtualCount];
+    const aaa = f.fEDI_virtualCount;
     for (let i = 0; i < aaa; i++) {
         EDI_lineStringCache[i] = [];
         //EDI_line_NUMBER_StringCache[i] = 0;
@@ -5007,7 +5007,7 @@ function EDI_resizeCanvases() {
  * 
  * If the scroll and mouse down events are handled prior to my rAF
  * 
- * and I've moved all the f.INTS[f.fEDI_virtualIndexLine] logic from here to the rAF
+ * and I've moved all the f.fEDI_virtualIndexLine logic from here to the rAF
  * then the user will "click the wrong line".
  * 
  * "I don't want to limit the speed of editing to that of the screen's refresh rate"
@@ -5039,12 +5039,12 @@ function EDI_render_specific_recache_REMOVAL(recycled_itemIndex, linesRemovedCou
     let ringBufferIndex = recycled_ringBufferIndex - 1;
     let lineIndex = recycled_itemIndex + linesRemovedCount;
 
-    const local_ArrayFrom_textElement_children_length = f.INTS[f.fEDI_ArrayFrom_textElement_children_length];
+    const local_ArrayFrom_textElement_children_length = f.fEDI_ArrayFrom_textElement_children_length;
     const cache = EDI_lineStringCache;
     const cacheNUMBERS = EDI_line_NUMBER_StringCache;
 
     const local_EDI_lineEndPositionList_data = EDI_lineEndPositionList_data;
-    const local_EDI_lineEndPositionList_count = f.INTS[f.fEDI_lineEndPositionList_count];
+    const local_EDI_lineEndPositionList_count = f.fEDI_lineEndPositionList_count;
 
     const local_bytes = EDI_textByteList_bytes;
     const local_styles = EDI_styleBuffer; // Your matching parallel array
@@ -5052,7 +5052,7 @@ function EDI_render_specific_recache_REMOVAL(recycled_itemIndex, linesRemovedCou
 
     const local_EDI_decoder_CUSTOM = EDI_decoder_CUSTOM;
 
-    // If you intend to use the variables 'new_lineStart' or 'new_lineEnd': Important detail to consider: the lines that are >= f.INTS[f.fEDI_lineEndPositionList_count] will continually increment new_lineStart by 1 So if you expect this to accurately represent the EOF position when it is in view, it probably does NOT.
+    // If you intend to use the variables 'new_lineStart' or 'new_lineEnd': Important detail to consider: the lines that are >= f.fEDI_lineEndPositionList_count will continually increment new_lineStart by 1 So if you expect this to accurately represent the EOF position when it is in view, it probably does NOT.
     let new_lineStart = 0;
     let new_lineEnd = -1;
     let new_lowerBound = lineIndex;
@@ -5129,12 +5129,12 @@ function EDI_render_specific_recache_INSERTION(recycled_itemIndex, linesRemovedC
     let ringBufferIndex = recycled_ringBufferIndex - 1;
     let lineIndex = recycled_itemIndex + linesRemovedCount;
 
-    const local_ArrayFrom_textElement_children_length = f.INTS[f.fEDI_ArrayFrom_textElement_children_length];
+    const local_ArrayFrom_textElement_children_length = f.fEDI_ArrayFrom_textElement_children_length;
     const cache = EDI_lineStringCache;
     const cacheNUMBERS = EDI_line_NUMBER_StringCache;
 
     const local_EDI_lineEndPositionList_data = EDI_lineEndPositionList_data;
-    const local_EDI_lineEndPositionList_count = f.INTS[f.fEDI_lineEndPositionList_count];
+    const local_EDI_lineEndPositionList_count = f.fEDI_lineEndPositionList_count;
 
     const local_bytes = EDI_textByteList_bytes;
     const local_styles = EDI_styleBuffer; // Your matching parallel array
@@ -5142,7 +5142,7 @@ function EDI_render_specific_recache_INSERTION(recycled_itemIndex, linesRemovedC
 
     const local_EDI_decoder_CUSTOM = EDI_decoder_CUSTOM;
 
-    // If you intend to use the variables 'new_lineStart' or 'new_lineEnd': Important detail to consider: the lines that are >= f.INTS[f.fEDI_lineEndPositionList_count] will continually increment new_lineStart by 1 So if you expect this to accurately represent the EOF position when it is in view, it probably does NOT.
+    // If you intend to use the variables 'new_lineStart' or 'new_lineEnd': Important detail to consider: the lines that are >= f.fEDI_lineEndPositionList_count will continually increment new_lineStart by 1 So if you expect this to accurately represent the EOF position when it is in view, it probably does NOT.
     let new_lineStart = 0;
     let new_lineEnd = -1;
     let new_lowerBound = lineIndex;
@@ -5216,20 +5216,20 @@ function EDI_render_specific_recache_INSERTION(recycled_itemIndex, linesRemovedC
 }
 
 function EDI_render_do_Scroll() {
-    const local_lineHeight = f.INTS[f.fEDI_lineHeight];
-    f.INTS[f.fEDI_virtualIndexLine] = EDI_lastReadNumber_scrollTop / local_lineHeight | 0;
+    const local_lineHeight = f.fEDI_lineHeight;
+    f.fEDI_virtualIndexLine = EDI_lastReadNumber_scrollTop / local_lineHeight | 0;
 
-    const local_prevVli = f.INTS[f.fEDI_ONSCROLLvirtualIndexLine];
-    const local_currVli = f.INTS[f.fEDI_virtualIndexLine];
-    f.INTS[f.fEDI_ONSCROLLvirtualIndexLine] = local_currVli;
+    const local_prevVli = f.fEDI_ONSCROLLvirtualIndexLine;
+    const local_currVli = f.fEDI_virtualIndexLine;
+    f.fEDI_ONSCROLLvirtualIndexLine = local_currVli;
 
-    if (f.INTS[f.fEDI_cursor_editKind] !== f.EditKind_None) {
+    if (f.fEDI_cursor_editKind !== f.EditKind_None) {
         EDI_finalizeEdit();
     }
 
     let diff = local_currVli - local_prevVli;
 
-    const local_ArrayFrom_textElement_children_length = f.INTS[f.fEDI_ArrayFrom_textElement_children_length];
+    const local_ArrayFrom_textElement_children_length = f.fEDI_ArrayFrom_textElement_children_length;
     let new_lowerBound = 0;
 
     if (diff !== 0) {
@@ -5239,7 +5239,7 @@ function EDI_render_do_Scroll() {
         }
         else if (diff > 0) {
             new_lowerBound = local_prevVli + local_ArrayFrom_textElement_children_length;
-            f.INTS[f.fEDI_ringBuffer_indexZero] = (f.INTS[f.fEDI_ringBuffer_indexZero] + diff) % local_ArrayFrom_textElement_children_length;
+            f.fEDI_ringBuffer_indexZero = (f.INTS[f.fEDI_ringBuffer_indexZero] + diff) % local_ArrayFrom_textElement_children_length;
         }
         else {
             new_lowerBound = local_currVli;
