@@ -1,10 +1,5 @@
 import {APP_lineHeightStringWithPx} from "./applicationRendererRoot.js"
-import {
-    TreeViewNodeKind_isExpandable_isExpanded,
-    TreeViewNodeKind_isExpandable_NOTisExpanded,
-    TreeViewNodeKind_NOTisExpandable_isExpanded,
-    TreeViewNodeKind_NOTisExpandable_NOTisExpanded
-} from "./treeViewComponent.js"
+import {TreeViewNodeKind} from "./treeViewComponent.js"
 import {CONST_EDI_ASCII_TAB, CONST_EDI_ASCII_SPACE} from './editorGlobal_edit.js'
 
 class DIALOG_FindAll_TreeViewDirector {
@@ -33,7 +28,7 @@ class DIALOG_FindAll_TreeViewDirector {
         this.component.setItems(this, f.INTS[f.fAPP_lineHeight], f.INTS[f.fAPP_lineHeight] + 'px');
 
         for (let i = 0; i < actualData.length; i++) {
-            let nodeKind = TreeViewNodeKind_isExpandable_NOTisExpanded;
+            let nodeKind = TreeViewNodeKind.isExpandable_NOTisExpanded;
             this.nodeList.insert(this.nodeList.count_abstract, nodeKind, i, 0);
         }
         this.component.itemHeightTotal = this.tvd_getTotalCount() * this.component.itemHeightNumber;
@@ -71,7 +66,7 @@ class DIALOG_FindAll_TreeViewDirector {
         for (var indexItem = start; indexItem < upperBound; indexItem++) {
 
             let depth = 0;
-            let nodeKind = TreeViewNodeKind_NOTisExpandable_NOTisExpanded;
+            let nodeKind = TreeViewNodeKind.NOTisExpandable_NOTisExpanded;
 
             let divItem;
             let divIndex;
@@ -121,16 +116,16 @@ class DIALOG_FindAll_TreeViewDirector {
             }
 
             switch (nodeKind) {
-                case TreeViewNodeKind_isExpandable_isExpanded:
+                case TreeViewNodeKind.isExpandable_isExpanded:
                     divItem.children[0].textContent = '-';
                     break;
-                case TreeViewNodeKind_isExpandable_NOTisExpanded:
+                case TreeViewNodeKind.isExpandable_NOTisExpanded:
                     divItem.children[0].textContent = '+';
                     break;
-                case TreeViewNodeKind_NOTisExpandable_isExpanded:
+                case TreeViewNodeKind.NOTisExpandable_isExpanded:
                     divItem.children[0].textContent = '';
                     break;
-                case TreeViewNodeKind_NOTisExpandable_NOTisExpanded:
+                case TreeViewNodeKind.NOTisExpandable_NOTisExpanded:
                     divItem.children[0].textContent = '';
                     break;
             }
@@ -168,7 +163,7 @@ class DIALOG_FindAll_TreeViewDirector {
         let depth = f.INTS[f.fTreeView_poolret_pooledNode_depth];
         let nodeKind = f.BYTES[f.byteTreeView_byteret_pooledNode_nodeKind];
 
-        if (nodeKind === TreeViewNodeKind_NOTisExpandable_NOTisExpanded) {
+        if (nodeKind === TreeViewNodeKind.NOTisExpandable_NOTisExpanded) {
 
             let textNode = divItem.lastChild;
             if (textNode.nodeType !== Node.TEXT_NODE) throw new Error('if (textNode.nodeType !== Node.TEXT_NODE)');
@@ -214,10 +209,10 @@ class DIALOG_FindAll_TreeViewDirector {
         let depth = f.INTS[f.fTreeView_poolret_pooledNode_depth];
         let nodeKind = f.BYTES[f.byteTreeView_byteret_pooledNode_nodeKind];
 
-        if (nodeKind === TreeViewNodeKind_isExpandable_NOTisExpanded) {
+        if (nodeKind === TreeViewNodeKind.isExpandable_NOTisExpanded) {
 
             divItem.children[0].textContent = '-';
-            this.nodeList.setNodeKind(indexItem, TreeViewNodeKind_isExpandable_isExpanded);
+            this.nodeList.setNodeKind(indexItem, TreeViewNodeKind.isExpandable_isExpanded);
 
             let searchTextInput = document.getElementById('DIALOG_FindAll_searchTextInput');
             if (!searchTextInput) return;
@@ -234,7 +229,7 @@ class DIALOG_FindAll_TreeViewDirector {
                 }
 
                 for (let i = 0; i < results.length; i++) {
-                    let nodeKind = TreeViewNodeKind_NOTisExpandable_NOTisExpanded;
+                    let nodeKind = TreeViewNodeKind.NOTisExpandable_NOTisExpanded;
                     // TODO: Insert range, or at the least 'pre-emptively' resize the list so that it fits each insertion without resizing per insertion.
                     this.nodeList.insert(indexItem + 1 + i, nodeKind, indexItem + 1 + i, depth + 1);
                 }
@@ -244,10 +239,10 @@ class DIALOG_FindAll_TreeViewDirector {
             this.component.scrollbar_space_generator.style.height = this.component.itemHeightTotal + 'px';
             this.component.draw_render_fullReset_request();
         }
-        else if (nodeKind === TreeViewNodeKind_isExpandable_isExpanded) {
+        else if (nodeKind === TreeViewNodeKind.isExpandable_isExpanded) {
 
             divItem.children[0].textContent = '+';
-            this.nodeList.setNodeKind(indexItem, TreeViewNodeKind_isExpandable_NOTisExpanded);
+            this.nodeList.setNodeKind(indexItem, TreeViewNodeKind.isExpandable_NOTisExpanded);
 
             let countChildren = 0;
             for (let i = indexItem + 1; i < this.nodeList.count_abstract; i++) {

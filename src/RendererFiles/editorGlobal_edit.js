@@ -2,7 +2,7 @@ import "./fieldBuffer.js"
 import {TrackingUint32MaxHeap} from './editorMaxHeap.js'
 import {UInt32List} from './listTypes.js'
 import * as f from './fieldBuffer.js'
-import {CommandKind_Cut, CommandKind_Copy, CommandKind_Paste, CommandKind_Find} from './menuGlobal.js'
+import {CommandKind} from './menuGlobal.js'
 import {sendTransaction_MessageKind_custom_edit_InsertLtr} from './applicationRendererRoot.js'
 
 export const EDI_baseElement = document.getElementById('EDITOR_inner_container');
@@ -3872,22 +3872,22 @@ async function EDI_MenuOnClick(isCancelled, menuOption, request) {
     if (!commandKind) { return; }
 
     switch (commandKind) {
-        case CommandKind_Cut:
+        case CommandKind.Cut:
             EDI_finalizeEdit();
             await EDI_copySelection();
             EDI_removeSelection();
             EDI_render_request(f.RenderKind_Cursor_n);
             return;
-        case CommandKind_Copy:
+        case CommandKind.Copy:
             EDI_finalizeEdit();
             return EDI_copySelection();
-        case CommandKind_Paste:
+        case CommandKind.Paste:
             EDI_finalizeEdit();
             await EDI_read_clipboard();
             EDI_paste();
             EDI_render_request(f.RenderKind_Cursor_n);
             return;
-        case CommandKind_Find:
+        case CommandKind.Find:
             EDI_findOverlay_showSetter(!f.get_EDI_findOverlay_show());
             return;
     }

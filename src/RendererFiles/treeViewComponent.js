@@ -15,7 +15,7 @@ const TREEVIEWrenderKind = Object.freeze({
     Resize: 8,
 });
 
-const TreeViewNodeKind = Object.freeze({
+export const TreeViewNodeKind = Object.freeze({
     None: 0,
     isExpandable_isExpanded: 1,
     isExpandable_NOTisExpanded: 2,
@@ -492,7 +492,7 @@ export class TreeViewComponent {
         let depth = f.INTS[f.fTreeView_poolret_pooledNode_depth];
         let nodeKind = f.BYTES[f.byteTreeView_byteret_pooledNode_nodeKind];
         
-        if (nodeKind === TreeViewNodeKind_isExpandable_isExpanded) {
+        if (nodeKind === TreeViewNodeKind.isExpandable_isExpanded) {
             if (this.cursorIndex + 1 < this.countAbstract) {
                 if (this.getDepth(this.cursorIndex + 1) > depth) {
                     this.cursorIndex = this.state_cursor_validateIndex(this.cursorIndex + 1);
@@ -500,7 +500,7 @@ export class TreeViewComponent {
                 }
             }
         }
-        else if (nodeKind === TreeViewNodeKind_isExpandable_NOTisExpanded) {
+        else if (nodeKind === TreeViewNodeKind.isExpandable_NOTisExpanded) {
             this.expandCollapseIconWasClicked(undefined /*divItem*/, this.cursorIndex, ringBufferIndexItem);
         }
     }
@@ -518,7 +518,7 @@ export class TreeViewComponent {
         let depth = f.INTS[f.fTreeView_poolret_pooledNode_depth];
         let nodeKind = f.BYTES[f.byteTreeView_byteret_pooledNode_nodeKind];
         
-        if (nodeKind === TreeViewNodeKind_isExpandable_isExpanded) {
+        if (nodeKind === TreeViewNodeKind.isExpandable_isExpanded) {
             this.expandCollapseIconWasClicked(undefined /*divItem*/, this.cursorIndex, ringBufferIndexItem);
         }
         else {

@@ -1,7 +1,7 @@
 import * as f from './fieldBuffer.js'
 import {APP_lineHeightStringWithPx} from "./applicationRendererRoot.js"
 
-const CommandKind = Object.freeze({
+export const CommandKind = Object.freeze({
     None: 0,
     Submenu: 1,
     Copy: 2,
@@ -130,7 +130,7 @@ function MENU_render_do_Set() {
         optionElement.textContent = entry.text;
 
         if (entry.submenu) {
-            optionElement.setAttribute("data-command-kind", CommandKind_Submenu);
+            optionElement.setAttribute("data-command-kind", CommandKind.Submenu);
             optionElement.textContent += '>';
         }
         else {
