@@ -9,6 +9,12 @@ export function set_shouldUseCSharpToSaveFileWhenPossible(value) {
     shouldUseCSharpToSaveFileWhenPossible = value;
 }
 
+class EditorAaaApp {
+    constructor() {
+        let isDark = true;
+    }
+}
+
 /**
  * Connect to the single threaded C# console app (custom language server)
  * 

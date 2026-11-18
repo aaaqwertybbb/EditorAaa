@@ -15,6 +15,44 @@ const AUTOCOMPLETErenderKind = Object.freeze({
     Scroll: 5,
 });
 
+class Autocomplete {
+    constructor() {
+        let exists = false;
+        let isRenderPending = false;
+        let rect_isNull = true;
+        let isCheckingTrailingEdge = false;
+        let scrollIsFetchingData = false;
+        let queueHead = 0;
+        let queueTail = 0;
+
+        // I don't think 'slice' is in LSP specification but I need to start like this cause it is only way I'll get something "initially working".
+        /** TODO: This isn't used only set */
+        let items_slice_start = 0;
+        /** TODO: This isn't used only set */
+        let items_slice_end = 0;
+        let items_totalLength = 0;
+
+        let cursorIndex = 0;
+
+        let rectHeight = 0;
+        let rectLeft = 0;
+        /** TODO: This isn't used only set, but it probably will be used for mouse events just that they're not written yet? */
+        let rectTop = 0;
+
+        let sliceVirtualIndex_SLICE = 0;
+        let sliceVirtualCount_SLICE = 0;
+        let sliceRingBufferIndexZero_SLICE = 0;
+
+        let virtualCount = 0;
+        let virtualIndex = 0;
+        let ringBufferIndexZero = 0;
+
+        let scrollTop = 0;
+
+        let isCheckingTrailingEdgeTimeoutId = 0;
+    }
+}
+
 let AUTOCOMPLETEElement = null;
 let AUTOCOMPLETE_scroll_viewport = null;
 let AUTOCOMPLETE_text = null;

@@ -1,5 +1,20 @@
 let TOOLTIP_pending_textContent = null;
 
+class Tooltip {
+    constructor() {
+        let isRenderPending = false;
+
+        /**
+         * 0 => None
+         * 1 => Show
+         * 2 => Hide
+         */
+        let pending_renderKind = 0;
+
+        let exists = false;
+    }
+}
+
 function TOOLTIP_render_request(renderKind) {
     f.byteTOOLTIP_pending_renderKind = renderKind;
     

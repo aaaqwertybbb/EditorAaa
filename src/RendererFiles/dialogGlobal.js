@@ -15,6 +15,20 @@ const DIALOGrenderKind = Object.freeze({
     DimensionsChanged: 3,
 });
 
+class Dialog {
+    constructor() {
+        let hasBeenMeasured = false;
+        let windowExists = false;
+        let isRenderPending = false;
+        
+        /** TODO: seemingly could be made obsolete sensibly */
+        let currentDialogKind = 0;
+
+        let queueHead = 0;
+        let queueTail = 0;
+    }
+}
+
 export const CONST_DIALOG_minTop = 8;
 export const CONST_DIALOG_minLeft = 8;
 export const CONST_DIALOG_minHeight = 100;

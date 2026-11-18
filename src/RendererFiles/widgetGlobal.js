@@ -10,6 +10,35 @@ const WIDGETrenderKind = Object.freeze({
     Hide: 2,
 });
 
+class Widget {
+    constructor() {
+        let isRenderPending = false;
+        let widgetKind_drawn = 0;
+        let queueHead = 0;
+        let queueTail = 0;
+
+        /**
+         * start it at 1 because you thought about starting it at 0 then using a prefix incrementation to ensure the 0 state is never used as a means of detecting an empty state
+         * but if someone changes the code and moves it to postfix incrementation then everything breaks so why even take that risk when you can just start at 1
+         * then if they go from postfix to prefix then you simply miss out on the number 1 and the first ticketId is 2 who cares...
+         * 
+         * ticketId because you're standing in line at the deli in the supermarket and you've grabbed from the machine a paper that has your number on it
+         * and you're waiting for your number to be called so you can get the turkey
+         * 
+         * > "what is it called when you are in line at a deli and they have a machine that prints a paper with a number on it"
+         * 
+         * < It is called a take-a-number system or a queue management system. It uses a ticket dispenser to give out paper numbers so people can wait in order without standing in a tight line.
+         * 
+         * okay yeah it is a ticket dispenser we're good
+         */
+        let ticketId_counter = 1;
+
+        let ticketId_drawn = 0;
+
+        let renderKind_Show_countOfPendingRequests = 0;
+    }
+}
+
 /**
  * @callback WIDGET_Callback
  * @param {WidgetResult} result

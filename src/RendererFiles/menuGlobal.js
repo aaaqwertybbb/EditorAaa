@@ -26,6 +26,20 @@ const MENUrenderKind = Object.freeze({
     Hide: 3,
 });
 
+class Menu {
+    constructor() {
+        let isRenderPending = false;
+        let queueHead = 0;
+        let queueTail = 0;
+
+        let ticketId_counter = 1;
+
+        let ticketId_drawn = 0;
+
+        let renderKind_Set_countOfPendingRequests = 0;
+    }
+}
+
 /**
  * @callback MENU_OnCompleteAction
  * @param {boolean} isCancelled
