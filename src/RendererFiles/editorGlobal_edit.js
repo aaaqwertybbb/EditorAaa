@@ -3859,7 +3859,7 @@ function EDI_requestLspHover() {
     // # GET INDICES
     ///////////
     ///////////
-    if (f.get_EDI_recentBoundingClientRect_isNull_intFalsey() === 1) {
+    if (editor.recentBoundingClientRect_isNull) {
         let boundingClientRect = editor.baseElement.getBoundingClientRect();
         editor.recentBoundingClientRect_left = boundingClientRect.left;
         editor.recentBoundingClientRect_top = boundingClientRect.top;
@@ -8293,7 +8293,7 @@ export function EDI_onMouseDown(event) {
         TOOLTIP_hide();
     }
 
-    if (f.get_EDI_recentBoundingClientRect_isNull_intFalsey() === 1) {
+    if (editor.recentBoundingClientRect_isNull) {
         let boundingClientRect = editor.baseElement.getBoundingClientRect();
         editor.recentBoundingClientRect_left = boundingClientRect.left;
         editor.recentBoundingClientRect_top = boundingClientRect.top;
@@ -8352,21 +8352,21 @@ export function EDI_onMouseDown(event) {
     }
 
     if (rX < -1 * editor.gutterPaddingRight) {
-        f.set_EDI_detailRank(3);
+        editor.detailRank = 3;
         EDI_onMouseDownDetailRankThree(event.button, event.shiftKey, indexLine, indexColumn);
         return;
     }
 
     if (event.detail % 3 === 0) {
-        f.set_EDI_detailRank(3);
+        editor.detailRank = 3;
         EDI_onMouseDownDetailRankThree(event.button, event.shiftKey, indexLine, indexColumn);
     }
     else if (event.detail % 2 === 0) {
-        f.set_EDI_detailRank(2);
+        editor.detailRank = 2;
         EDI_onMouseDownDetailRankTwo(event.button, event.shiftKey, indexLine, indexColumn, indexColumnVisual);
     }
     else {
-        f.set_EDI_detailRank(1);
+        editor.detailRank = 1;
         EDI_onMouseDownDetailRankOne(event.button, event.shiftKey, indexLine, indexColumn, indexColumnVisual);
     }
 }
@@ -8583,7 +8583,7 @@ function EDI_onMouseDownDetailRankThree(event_button, event_shiftKey, indexLineC
 }
 
 export function EDI_onMouseMove_WRAPIT(event) {
-    if ((event.buttons & 1) && f.get_EDI_recentBoundingClientRect_isNull_intFalsey() === 0) {
+    if ((event.buttons & 1) && !editor.recentBoundingClientRect_isNull) {
         // TODO: Consider short circuiting at via event.clientX and clientY by tracking the necessary thresholds for the cursor position to pass rather than the previous and current indices. (you can possibly thereby skip the calculation of the indices entirely for the redundant events).
         // TODO: Is it correct to use the cursor's indexLine and indexColumn directly as a means of determining redundancy? I worry about odd interactions, but I have no proof that such an odd interaction could exist.
 

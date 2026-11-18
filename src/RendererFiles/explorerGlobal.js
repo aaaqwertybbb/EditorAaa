@@ -10,7 +10,7 @@ import {
     menuSet,
 } from './menuGlobal.js'
 import {set_shouldUseCSharpToSaveFileWhenPossible, sendTransaction_MessageKind_textDocument_didOpen} from './applicationRendererRoot.js'
-import {EDI_state_setText_byteArray, EDI_toExtensionKind} from './editorGlobal_edit.js'
+import {EDI_state_setText_byteArray, EDI_toExtensionKind, EDI_onResize} from './editorGlobal_edit.js'
 
 class Explorer {
     constructor() {
@@ -400,7 +400,7 @@ const EXPLORER_pickFolderOrWorkspaceButton = document.getElementById('EXPLORER_f
 if (EXPLORER_pickFolderOrWorkspaceButton) { EXPLORER_pickFolderOrWorkspaceButton.addEventListener('click', EXPLORER_pickFolderOrWorkspaceButton_onClick); }
 //
 let toggleShowExplorerButton = document.getElementById('HEADER_toggleShowExplorer');
-toggleShowExplorerButton.checked = f.byteEXPLORER_show;
+toggleShowExplorerButton.checked = explorer.show;
 toggleShowExplorerButton.addEventListener('click', toggleShowExplorerButton_onClick);
 
 function toggleShowExplorerButton_onClick() {
@@ -435,25 +435,25 @@ function EXPLORER_setShow(shouldShow) {
     const EXPLORER_Element = document.getElementById('EXPLORER');
     if (!EXPLORER_Element) return;
 
-	if (shouldShow && !f.byteEXPLORER_show) {
+	if (shouldShow && !explorer.show) {
 		let editorHackElement = document.getElementById('EDI_hack');
 		EXPLORER_Element.style.width = '200px';
 		EXPLORER_Element.style.visibility = '';
 		editorHackElement.style.width = 'calc(100% - 200px)';
-		f.byteEXPLORER_show = shouldShow;
+		explorer.show = shouldShow;
 		let toggleShowExplorerButton = document.getElementById('HEADER_toggleShowExplorer');
-		toggleShowExplorerButton.checked = f.byteEXPLORER_show;
+		toggleShowExplorerButton.checked = explorer.show;
 		EDI_onResize();
 	}
-	else if (!shouldShow && f.byteEXPLORER_show) {
+	else if (!shouldShow && explorer.show) {
 		// !show is redundant, but exists for readability.
 		let editorHackElement = document.getElementById('EDI_hack');
 		EXPLORER_Element.style.width = '0px';
 		EXPLORER_Element.style.visibility = 'hidden';
 		editorHackElement.style.width = '100%';
-		f.byteEXPLORER_show = shouldShow;
+		explorer.show = shouldShow;
 		let toggleShowExplorerButton = document.getElementById('HEADER_toggleShowExplorer');
-		toggleShowExplorerButton.checked = f.byteEXPLORER_show;
+		toggleShowExplorerButton.checked = explorer.show;
 		EDI_onResize();
 	}
 }

@@ -1,6 +1,7 @@
 import * as f from "./fieldBuffer.js"
 import {explorer, set_EXPLORER_firstSpanWidth} from './explorerGlobal.js'
 import {EDI_init, EDI_encoder, EDI_decoder_CUSTOM, EDI_styleBuffer, set_EDI_styleBuffer, EDI_render_request, RenderKind} from './editorGlobal_edit.js'
+import {DIALOG_show, DialogKind} from './dialogGlobal.js'
 
 export let APP_lineHeightStringWithPx = '';
 
@@ -581,5 +582,5 @@ function documentBody_onKeyDown(event) {
 }
 
 function HEADER_buttonSettings_onClick() {
-    DIALOG_show(DialogKind_Settings, null, null);
+    DIALOG_show(DialogKind.Settings, null, null);
 }

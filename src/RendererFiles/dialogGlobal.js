@@ -1,6 +1,6 @@
-import "./fieldBuffer.js"
+import * as f from "./fieldBuffer.js"
 
-const DialogKind = Object.freeze({
+export const DialogKind = Object.freeze({
     None: 0,
     FindAll: 1,
     Settings: 2,
@@ -71,13 +71,13 @@ let DIALOG_request = null;
 
 function DIALOG_render_request(renderKind) {
     if (dialog.queueHead !== dialog.queueTail) {
-        const lastAbsoluteIndex = f.OFFSET_DIALOG + ((dialog.queueTail - 1) & f.UI_SLOT_MASK);
+        const lastAbsoluteIndex = OFFSET_DIALOG + ((dialog.queueTail - 1) & f.UI_SLOT_MASK);
         if (f.MASTER_RENDER_BUFFER[lastAbsoluteIndex] === renderKind) {
             return;
         }
     }
 
-    const absoluteIndex = f.OFFSET_DIALOG + (dialog.queueTail & f.UI_SLOT_MASK);
+    const absoluteIndex = OFFSET_DIALOG + (dialog.queueTail & f.UI_SLOT_MASK);
     f.MASTER_RENDER_BUFFER[absoluteIndex] = renderKind;
     dialog.queueTail++;
     
@@ -90,7 +90,7 @@ function DIALOG_render_request(renderKind) {
 function DIALOG_render_do() {
     while (dialog.queueHead !== dialog.queueTail) {
         // 1. Wrap the virtual pointer to 0-31, then add the base offset
-        const absoluteIndex = f.OFFSET_DIALOG + (dialog.queueHead & f.UI_SLOT_MASK);
+        const absoluteIndex = OFFSET_DIALOG + (dialog.queueHead & f.UI_SLOT_MASK);
         const renderKind = f.MASTER_RENDER_BUFFER[absoluteIndex];
         dialog.queueHead++; 
 
@@ -168,7 +168,7 @@ function DIALOG_render_do_Show() {
     dialog.currentDialogKind = DIALOG_request.dialogKind;
 }
 
-function DIALOG_show(dialogKind, onResizeAction, elementToFocusOnDialogHideInitiated) {
+export function DIALOG_show(dialogKind, onResizeAction, elementToFocusOnDialogHideInitiated) {
     const local_request = {
         dialogKind: dialogKind,
         onResizeAction: onResizeAction,
@@ -195,7 +195,7 @@ function DIALOG_show(dialogKind, onResizeAction, elementToFocusOnDialogHideIniti
         local_request.top_DRAWN = DIALOG_request.top_DRAWN;
     }
     DIALOG_request = local_request;
-    DIALOG_render_request(DIALOGrenderKind_Show);
+    DIALOG_render_request(DIALOGrenderKind.Show);
 }
 
 function DIALOG_render_do_Hide() {
@@ -232,14 +232,14 @@ function DIALOG_render_do_Hide() {
 function DIALOG_hide() {
     const local_request = DIALOG_request;
     if (local_request === null) {
-        // TODO: Consider adding 'DIALOG_render_request(DIALOGrenderKind_Hide);' here for each respective UI to be safe (but don't end up with render_do_Hide throwing a null exception when the UI isn't there...)?
-        DIALOG_render_request(DIALOGrenderKind_Hide);
+        // TODO: Consider adding 'DIALOG_render_request(DIALOGrenderKind.Hide);' here for each respective UI to be safe (but don't end up with render_do_Hide throwing a null exception when the UI isn't there...)?
+        DIALOG_render_request(DIALOGrenderKind.Hide);
         return; // TODO: Since you remove the events in DIALOG_hide you shouldn't need this.
     }
     if (!local_request.disableFocusOnDialogHideInitiated && local_request.elementToFocusOnDialogHideInitiated) {
         local_request.elementToFocusOnDialogHideInitiated.focus();
     }
-    DIALOG_render_request(DIALOGrenderKind_Hide);
+    DIALOG_render_request(DIALOGrenderKind.Hide);
 }
 
 function DIALOG_closeButton_onclick() {
@@ -477,7 +477,7 @@ function DIALOG_resize_body_onmousemove(event) {
             return;
     }
 
-    DIALOG_render_request(DIALOGrenderKind_DimensionsChanged);
+    DIALOG_render_request(DIALOGrenderKind.DimensionsChanged);
 }
 
 function DIALOG_resize_setCursor(clientX, clientY, dialogBoundingClientRect, resize) {
@@ -603,12 +603,12 @@ function DIALOG_toolbar_body_onmousemove(event) {
 
             DIALOG_request.left -= absdiff_X;
             DIALOG_request.before_X = clientX;
-            DIALOG_render_request(DIALOGrenderKind_DimensionsChanged);
+            DIALOG_render_request(DIALOGrenderKind.DimensionsChanged);
         }
         else {
             DIALOG_request.left -= absdiff_X;
             DIALOG_request.before_X = clientX;
-            DIALOG_render_request(DIALOGrenderKind_DimensionsChanged);
+            DIALOG_render_request(DIALOGrenderKind.DimensionsChanged);
         }
     }
     else if (diff_X > 0) {
@@ -623,12 +623,12 @@ function DIALOG_toolbar_body_onmousemove(event) {
 
             DIALOG_request.left += absdiff_X;
             DIALOG_request.before_X = clientX;
-            DIALOG_render_request(DIALOGrenderKind_DimensionsChanged);
+            DIALOG_render_request(DIALOGrenderKind.DimensionsChanged);
         }
         else {
             DIALOG_request.left += absdiff_X;
             DIALOG_request.before_X = clientX;
-            DIALOG_render_request(DIALOGrenderKind_DimensionsChanged);
+            DIALOG_render_request(DIALOGrenderKind.DimensionsChanged);
         }
     }
 
@@ -643,12 +643,12 @@ function DIALOG_toolbar_body_onmousemove(event) {
             
             DIALOG_request.top -= absdiff_Y;
             DIALOG_request.before_Y = clientY;
-            DIALOG_render_request(DIALOGrenderKind_DimensionsChanged);
+            DIALOG_render_request(DIALOGrenderKind.DimensionsChanged);
         }
         else {
             DIALOG_request.top -= absdiff_Y;
             DIALOG_request.before_Y = clientY;
-            DIALOG_render_request(DIALOGrenderKind_DimensionsChanged);
+            DIALOG_render_request(DIALOGrenderKind.DimensionsChanged);
         }
     }
     else if (diff_Y > 0) {
@@ -663,12 +663,12 @@ function DIALOG_toolbar_body_onmousemove(event) {
             
             DIALOG_request.top += absdiff_Y;
             DIALOG_request.before_Y = clientY;
-            DIALOG_render_request(DIALOGrenderKind_DimensionsChanged);
+            DIALOG_render_request(DIALOGrenderKind.DimensionsChanged);
         }
         else {
             DIALOG_request.top += absdiff_Y;
             DIALOG_request.before_Y = clientY;
-            DIALOG_render_request(DIALOGrenderKind_DimensionsChanged);
+            DIALOG_render_request(DIALOGrenderKind.DimensionsChanged);
         }
     }
 }
