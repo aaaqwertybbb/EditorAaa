@@ -1,3 +1,5 @@
+import * as f from "./fieldBuffer.js"
+
 export const WidgetKind = Object.freeze({
     None: 0,
     InputText: 1,
