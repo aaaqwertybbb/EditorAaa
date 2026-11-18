@@ -86,7 +86,7 @@ function WIDGET_render_request(renderKind) {
 
     const absoluteIndex = OFFSET_WIDGET + (widget.queueTail & f.UI_SLOT_MASK);
     f.MASTER_RENDER_BUFFER[absoluteIndex] = renderKind;
-    if (renderKind === WIDGETrenderKind_Show) widget.renderKind_Show_countOfPendingRequests++;
+    if (renderKind === WIDGETrenderKind.Show) widget.renderKind_Show_countOfPendingRequests++;
     widget.queueTail++;
     
     if (!widget.isRenderPending) {
@@ -205,7 +205,7 @@ export async function WIDGET_show(widgetKind, left, top, placeholder, value, tar
         ticket: widget.ticketId_counter++
     };
 
-    WIDGET_render_request(WIDGETrenderKind_Show);
+    WIDGET_render_request(WIDGETrenderKind.Show);
 }
 
 function WIDGET_render_do_Hide() {
@@ -231,7 +231,7 @@ function WIDGET_render_do_Hide() {
 function WIDGET_hide() {
     WIDGET_request = null; // In case someone skips a 'WIDGET_completeForm', this null setting is done here.
     // TODO: remove the events here?
-    WIDGET_render_request(WIDGETrenderKind_Hide);
+    WIDGET_render_request(WIDGETrenderKind.Hide);
 }
 
 /**
