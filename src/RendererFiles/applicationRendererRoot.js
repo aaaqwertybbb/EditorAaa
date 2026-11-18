@@ -1,6 +1,6 @@
 import * as f from "./fieldBuffer.js"
-import {EXPLORER_firstSpanWidth, set_EXPLORER_firstSpanWidth} from './explorerGlobal.js'
-import {EDI_init, EDI_encoder, EDI_decoder_CUSTOM, EDI_styleBuffer, set_EDI_styleBuffer, EDI_render_request} from './editorGlobal_edit.js'
+import {explorer, set_EXPLORER_firstSpanWidth} from './explorerGlobal.js'
+import {EDI_init, EDI_encoder, EDI_decoder_CUSTOM, EDI_styleBuffer, set_EDI_styleBuffer, EDI_render_request, RenderKind} from './editorGlobal_edit.js'
 
 export let APP_lineHeightStringWithPx = '';
 
@@ -12,6 +12,13 @@ export function set_shouldUseCSharpToSaveFileWhenPossible(value) {
 class EditorAaaApp {
     constructor() {
         let isDark = true;
+        /**
+         * This value ought to be an int (no decimal places) due to its high frequency usage in drawing UI,
+         * and visually this having decimal places being of little to no value to the user when you could just ceil whatever height measurement you get.
+         * 
+         * TODO: (speculation) I've never liked saying "line height" I believe that deals with the vertical alignment of text within some container is "line height" a good wording.
+         * */
+        this.lineHeight = 0;
     }
 }
 
@@ -394,7 +401,7 @@ function APP_socket_onmessage(event) {
             editor.styleBuffer_count = EDI_styleBuffer.length;
             editor.styleBuffer_capacity = EDI_styleBuffer.length;
             
-            EDI_render_request(f.RenderKind_SyntaxHighlighting);
+            EDI_render_request(RenderKind.SyntaxHighlighting);
             //view = new TextEncoder().encode(event.data);
             //EDI_styleBuffer = view;
         }
@@ -437,8 +444,8 @@ function APP_measureLineHeightAndCharacterWidth() {
     rect = measureElement.getBoundingClientRect();
     const plusWidth = Math.ceil(rect.width);
     const largerWidth = minusWidth > plusWidth ? minusWidth : plusWidth; // 11
-    f.fEXPLORER_firstSpanWidthValue = largerWidth;
-    set_EXPLORER_firstSpanWidth(f.fEXPLORER_firstSpanWidthValue + 'px');
+    explorer.firstSpanWidthValue = largerWidth;
+    set_EXPLORER_firstSpanWidth(explorer.firstSpanWidthValue + 'px');
 
     wrapper.removeChild(measureElement);
     document.body.removeChild(wrapper);

@@ -5,18 +5,7 @@ import * as f from './fieldBuffer.js'
 import {CommandKind} from './menuGlobal.js'
 import {sendTransaction_MessageKind_custom_edit_InsertLtr} from './applicationRendererRoot.js'
 
-export const EDI_baseElement = document.getElementById('EDITOR_inner_container');
 
-export const EDI_scroll_viewport = EDI_baseElement.children[0];
-export const EDI_virtualization_horizontal = EDI_baseElement.children[0].children[0];
-
-export const EDI_viewport = EDI_baseElement.children[1];
-
-export const EDI_gutter = EDI_baseElement.children[1].children[0];
-export const EDI_gutter_canvas = EDI_baseElement.children[1].children[0].children[0];
-export const EDI_text = EDI_baseElement.children[1].children[1];
-export const EDI_text_canvas = EDI_baseElement.children[1].children[1].children[0];
-export const EDI_cursor_canvas = EDI_baseElement.children[1].children[1].children[1];
 
 /**
  * If you have an extension listed here, it is expected that the "function to invoke" exists.
@@ -71,7 +60,7 @@ const CharacterKind = Object.freeze({
 });
 
 /** @enum {number} */
-const RenderKind = Object.freeze({
+export const RenderKind = Object.freeze({
     None: 0,
     Scroll: 1,
     Resize: 2,
@@ -103,31 +92,12 @@ export const CONST_EDI_ASCII_SPACE = 32;
 
 export const CONST_EDI_cursor_htmlId = "EDI_cursor-1";
 
-/**
- * This value ought to be an int (no decimal places) due to its high frequency usage in drawing UI,
- * and visually this having decimal places being of little to no value to the user when you could just ceil whatever height measurement you get.
- * 
- * TODO: (speculation) I've never liked saying "line height" I believe that deals with the vertical alignment of text within some container is "line height" a good wording.
- * */
-export const fAPP_lineHeight = 109;
-fAUTOCOMPLETE_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING = 20;
+
 
 /**
  * I'm not sure how large I want this, what matters is that I just have a size of anything for the time being, then can change this constant later.
  */
 export const CONST_EDI_cursor_GAP_BUFFER_CAPACITY = 32;
-
-// ====
-export const byteTreeView_byteret_pooledNode_nodeKind = 26;
-export const byteEDI_byteret_pooledTrackedSyntax_trackedSyntaxKind = 26;
-// ====
-export const byteEXPLORER_show = 33;
-BYTES[byteEXPLORER_show] = 1;
-
-export const byteEXPLORER_isRenderPending = 34;
-export const byteEXPLORER_isCheckingTrailingEdge = 35;
-export const byteEXPLORER_scrollIsFetchingData = 36;
-export const byteEXPLORER_boundingClientRect_isValid = 37;
 
 class TextEditor {
     constructor() {
@@ -157,13 +127,13 @@ class TextEditor {
         this.mousemove_eventListener_isActive = false;
 
         /**
-         * 'await window.myAPI.editorSetClipboard(...);' needs to be followed up with 'BYTES[byteEDI_clipboard_may_have_changed] = 0'
+         * 'await window.myAPI.editorSetClipboard(...);' needs to be followed up with 'editor.clipboard_may_have_changed = 0'
          * When reading the clipboard use 'await EDI_read_clipboard();'
          */
         this.duplication_may_have_changed = true;
 
         /**
-         * 'await window.myAPI.editorSetClipboard(...);' needs to be followed up with 'BYTES[byteEDI_clipboard_may_have_changed] = 0'
+         * 'await window.myAPI.editorSetClipboard(...);' needs to be followed up with 'editor.clipboard_may_have_changed = 0'
          * When reading the clipboard use 'await EDI_read_clipboard();'
          */
         this.clipboard_may_have_changed = true;
@@ -442,6 +412,22 @@ class TextEditor {
         this.cursor_EDI_paste_clipboardContent_totalLineEndCount = 0;
 
         this.cursor_editLength_bytes = 0;
+
+        /** TODO: obsolete */
+        this.byteEDI_byteret_pooledTrackedSyntax_trackedSyntaxKind = 0;
+
+        this.baseElement = document.getElementById('EDITOR_inner_container');
+
+        this.scroll_viewport = this.baseElement.children[0];
+        this.virtualization_horizontal = this.baseElement.children[0].children[0];
+
+        this.viewport = this.baseElement.children[1];
+
+        this.gutter = this.baseElement.children[1].children[0];
+        this.gutter_canvas = this.baseElement.children[1].children[0].children[0];
+        this.text = this.baseElement.children[1].children[1];
+        this.text_canvas = this.baseElement.children[1].children[1].children[0];
+        this.cursor_canvas = this.baseElement.children[1].children[1].children[1];
     }
 }
 
@@ -959,7 +945,7 @@ export function EDI_init() {
 }
 
 function EDI_createViewport() {
-    EDI_render_request(f.RenderKind_CreateViewport);
+    EDI_render_request(RenderKind.CreateViewport);
 }
 
 function EDI_state_clear(trackingUint32MaxHeap_initialCapacity) {
@@ -970,11 +956,11 @@ function EDI_state_clear(trackingUint32MaxHeap_initialCapacity) {
 
     EDI_finalizeEdit();
     EDI_cursor_clear();
-    f.set_EDI_recentBoundingClientRect_isNull_intFalsey(1);
+    editor.recentBoundingClientRect_isNull = true;
     EDI_textSourceIdentifier = '';
     EDI_FORMATTED_textSourceIdentifier = '';
     editor.extensionKind = f.ExtensionKind_None;
-    f.set_EDI_fileStartsWithBom(false);
+    editor.fileStartsWithBom = false;
     EDI_lineEndString = null;
     // TODO: Maybe re-use the 'TrackingUint32MaxHeap' rather than making a new one everytime
     EDI_trackingUint32MaxHeap = new TrackingUint32MaxHeap(trackingUint32MaxHeap_initialCapacity);
@@ -991,7 +977,7 @@ function EDI_state_clear(trackingUint32MaxHeap_initialCapacity) {
 
 function EDI_clear() {
     EDI_state_clear();
-    EDI_render_request(f.RenderKind_Clear);
+    EDI_render_request(RenderKind.Clear);
 }
 
 /**
@@ -1012,7 +998,7 @@ export function EDI_state_setText_byteArray(paddedUint8Array, textByteLength, fi
     }
 
     EDI_state_clear(necessaryCapacity);
-    f.set_EDI_fileStartsWithBom(fileStartsWithBom);
+    editor.fileStartsWithBom = fileStartsWithBom;
     EDI_textSourceIdentifier = textSourceIdentifier;
     EDI_FORMATTED_textSourceIdentifier = FORMATTED_textSourceIdentifier;
     editor.extensionKind = extensionKind;
@@ -1075,7 +1061,7 @@ export function EDI_state_setText_byteArray(paddedUint8Array, textByteLength, fi
     // TODO: Timing of 'EDI_render_do_SetText'...
     // ...probably what you can do is invoke the inner render requests directly...
     // ...but you'd still have a moment where they can click and the event sees current layout like scrollTop etc...
-    EDI_render_request(f.RenderKind_SetText);
+    EDI_render_request(RenderKind.SetText);
 }
 
 /**
@@ -1157,7 +1143,7 @@ function EDI_indentMore() {
     editor.cursorVisualColumnIndex += EDI_on_tab_bytes.length;
 
     editor.cursor_edit_eventCount_occurred++;
-    EDI_render_request(f.RenderKind_IndentMore);
+    EDI_render_request(RenderKind.IndentMore);
 }
 
 function EDI_indentLess() {
@@ -1215,7 +1201,7 @@ function EDI_indentLess() {
     //}
 
     editor.cursor_edit_eventCount_occurred++;
-    EDI_render_request(f.RenderKind_IndentLess);
+    EDI_render_request(RenderKind.IndentLess);
 }
 
 /**
@@ -1288,7 +1274,7 @@ async function EDI_duplicateSelection() {
     EDI_read_duplication();
 
     // TODO: The previous render logic was actually moving the cursor as well. Just something to keep in mind, you might see a bug related to this.
-    EDI_render_request(f.RenderKind_DuplicateOrPaste);
+    EDI_render_request(RenderKind.DuplicateOrPaste);
 }
 
 function EDI_paste() {
@@ -1300,7 +1286,7 @@ function EDI_paste() {
 
     // TODO: The previous render logic was actually moving the cursor as well. Just something to keep in mind, you might see a bug related to this.
     // TODO: ^Moving the cursor would be done here.
-    EDI_render_request(f.RenderKind_DuplicateOrPaste);
+    EDI_render_request(RenderKind.DuplicateOrPaste);
 }
 
 function EDI_tabKey() {
@@ -1352,7 +1338,7 @@ function EDI_tabKey() {
     editor.cursor_indexColumn += EDI_on_tab_bytes.length;
 
     editor.cursor_STORED_visualWidth = editor.cursorVisualColumnIndex;
-    EDI_render_request(f.RenderKind_TabKey);
+    EDI_render_request(RenderKind.TabKey);
 }
 
 /**
@@ -1405,7 +1391,7 @@ function EDI_EnterKey(ctrlKey, originalIndexLine, originalIndexColumn) {
     editor.cursor_END_editIndexLine = editor.cursor_indexLine;
     editor.cursor_END_editIndexColumn = editor.cursor_indexColumn;
 
-    EDI_render_request(f.RenderKind_Enter);
+    EDI_render_request(RenderKind.Enter);
 }
 
 /**
@@ -1467,7 +1453,7 @@ function EDI_removeSelection() {
 
     editor.cursor_STORED_visualWidth = editor.cursorVisualColumnIndex;
 
-    EDI_render_request(f.RenderKind_RemoveSelection);
+    EDI_render_request(RenderKind.RemoveSelection);
 }
 
 function EDI_state_do_Delete(event) {
@@ -1584,7 +1570,7 @@ function EDI_state_do_Delete(event) {
     }
 
     editor.cursor_edit_eventCount_occurred++;
-    EDI_render_request(f.RenderKind_DeleteLtr);
+    EDI_render_request(RenderKind.DeleteLtr);
 }
 
 /**
@@ -1683,7 +1669,7 @@ function EDI_state_do_Backspace(event) {
     }
 
     editor.cursor_edit_eventCount_occurred++;
-    EDI_render_request(f.RenderKind_BackspaceRtl);
+    EDI_render_request(RenderKind.BackspaceRtl);
 }
 
 /**
@@ -1693,10 +1679,10 @@ function EDI_state_do_Backspace(event) {
 function EDI_backspaceDo(event) {
     EDI_state_do_Backspace(event);
 
-    // EDI_render_request(f.RenderKind_BackspaceRtl);
+    // EDI_render_request(RenderKind.BackspaceRtl);
     //
     // This is too confusing for me to read given my current mood / energy levels. (I tell myself it is just my current mood / energy levels to cope with my incompetence)
-    // I'm just gonna isolate the code that doesn't remove a lineEnd and get that part working with 'EDI_render_request(f.RenderKind_BackspaceRtl);'
+    // I'm just gonna isolate the code that doesn't remove a lineEnd and get that part working with 'EDI_render_request(RenderKind.BackspaceRtl);'
     // first.
 
     // I'm exhausted I'll probably do non-lineEnd delete key then be done
@@ -1850,8 +1836,8 @@ function EDI_editEvent_theEditIself_InsertLtr(event) {
     }
     EDI_insertDo(event.key);
     editor.cursor_STORED_visualWidth = editor.cursorVisualColumnIndex;
-    EDI_render_request(f.RenderKind_Cursor_n);
-    EDI_render_request(f.RenderKind_InsertLtr);
+    EDI_render_request(RenderKind.Cursor_n);
+    EDI_render_request(RenderKind.InsertLtr);
 }
 
 function EDI_editEvent_theEditIself_DeleteLtr(event) {
@@ -1864,7 +1850,7 @@ function EDI_editEvent_theEditIself_DeleteLtr(event) {
         }
         EDI_deleteDo(event);
     }
-    EDI_render_request(f.RenderKind_Cursor_n);
+    EDI_render_request(RenderKind.Cursor_n);
 }
 
 function EDI_editEvent_theEditIself_BackspaceRtl(event) {
@@ -1878,7 +1864,7 @@ function EDI_editEvent_theEditIself_BackspaceRtl(event) {
         EDI_backspaceDo(event);
         editor.cursor_STORED_visualWidth = editor.cursorVisualColumnIndex;
     }
-    EDI_render_request(f.RenderKind_Cursor_n);
+    EDI_render_request(RenderKind.Cursor_n);
 }
 
 function EDI_editEvent_theEditIself_Tab(event) {
@@ -1911,7 +1897,7 @@ function EDI_editEvent_theEditIself_Tab(event) {
             EDI_tabKey();
         }
     }
-    EDI_render_request(f.RenderKind_Cursor_n);
+    EDI_render_request(RenderKind.Cursor_n);
 }
 
 function EDI_editEvent_theEditIself_Enter(event) {
@@ -1935,7 +1921,7 @@ function EDI_editEvent_theEditIself_Enter(event) {
 
     EDI_EnterKey(event.ctrlKey, originalIndexLine, originalIndexColumn);
     editor.cursor_STORED_visualWidth = editor.cursorVisualColumnIndex;
-    EDI_render_request(f.RenderKind_Cursor_n);
+    EDI_render_request(RenderKind.Cursor_n);
 }
 
 function EDI_editEvent_theEditIself_Paste() {
@@ -1944,7 +1930,7 @@ function EDI_editEvent_theEditIself_Paste() {
     }
     EDI_paste();
     editor.cursor_STORED_visualWidth = editor.cursorVisualColumnIndex;
-    EDI_render_request(f.RenderKind_Cursor_n);
+    EDI_render_request(RenderKind.Cursor_n);
 }
 
 function EDI_editEvent_theEditIself_Duplicate() {
@@ -1953,7 +1939,7 @@ function EDI_editEvent_theEditIself_Duplicate() {
     }
     EDI_duplicateSelection();
     editor.cursor_STORED_visualWidth = editor.cursorVisualColumnIndex;
-    EDI_render_request(f.RenderKind_Cursor_n);
+    EDI_render_request(RenderKind.Cursor_n);
 }
 
 /**
@@ -3412,7 +3398,7 @@ function EDI_moveCursor_indexLine_indexColumn(indexLine, indexColumn) {
 
     // TODO: selectionAnchor = selectionEnd; EDI_drawCursor(/*NOTscrollCursorIntoView*/ false); # being the way to clear a selection should be documented / wrapped by a method for ease of use / readability?
     editor.cursor_selectionAnchor = editor.cursor_selectionEnd;
-    EDI_render_request(f.RenderKind_Cursor_n);
+    EDI_render_request(RenderKind.Cursor_n);
 }
 
 /**
@@ -3455,7 +3441,7 @@ function EDI_measureEndExclusiveIndentationIndexColumn() {
 function EDI_lineWasInsertedValidateGutter(lineCount) {
     if (EDI_drawGutter_Width(lineCount)) {
         // If true then you need to also draw the dependent UI
-        EDI_render_request(f.RenderKind_Cursor_n);
+        EDI_render_request(RenderKind.Cursor_n);
         EDI_drawHorizontalScrollbar();
     }
 }
@@ -3734,7 +3720,7 @@ async function EDI_MenuOnClick(isCancelled, menuOption, request) {
             EDI_finalizeEdit();
             await EDI_copySelection();
             EDI_removeSelection();
-            EDI_render_request(f.RenderKind_Cursor_n);
+            EDI_render_request(RenderKind.Cursor_n);
             return;
         case CommandKind.Copy:
             EDI_finalizeEdit();
@@ -3743,7 +3729,7 @@ async function EDI_MenuOnClick(isCancelled, menuOption, request) {
             EDI_finalizeEdit();
             await EDI_read_clipboard();
             EDI_paste();
-            EDI_render_request(f.RenderKind_Cursor_n);
+            EDI_render_request(RenderKind.Cursor_n);
             return;
         case CommandKind.Find:
             EDI_findOverlay_showSetter(!f.get_EDI_findOverlay_show());
@@ -4638,58 +4624,58 @@ function EDI_render_do() {
         editor.queueHead++;
 
         switch (renderKind) {
-            case f.RenderKind_Scroll:
+            case RenderKind.Scroll:
                 EDI_render_do_Scroll();
                 break;
-            case f.RenderKind_Resize:
+            case RenderKind.Resize:
                 EDI_render_do_Resize();
                 break;
-            case f.RenderKind_InsertLtr:
+            case RenderKind.InsertLtr:
                 EDI_render_do_InsertLtr();
                 break;
-            case f.RenderKind_TabKey:
+            case RenderKind.TabKey:
                 EDI_render_do_TabKey();
                 break;
-            case f.RenderKind_IndentMore:
+            case RenderKind.IndentMore:
                 EDI_render_do_IndentMore();
                 break;
-            case f.RenderKind_IndentLess:
+            case RenderKind.IndentLess:
                 EDI_render_do_IndentLess();
                 break;
-            case f.RenderKind_BackspaceRtl:
+            case RenderKind.BackspaceRtl:
                 EDI_render_do_Backspace();
                 break;
-            case f.RenderKind_DeleteLtr:
+            case RenderKind.DeleteLtr:
                 EDI_render_do_Delete();
                 break;
-            case f.RenderKind_RemoveSelection:
+            case RenderKind.RemoveSelection:
                 EDI_render_do_RemoveSelection();
                 break;
-            case f.RenderKind_Enter:
+            case RenderKind.Enter:
                 EDI_render_do_EnterKey();
                 break;
-            case f.RenderKind_DuplicateOrPaste:
+            case RenderKind.DuplicateOrPaste:
                 EDI_render_do_DuplicateOrPaste();
                 break;
-            case f.RenderKind_Clear:
+            case RenderKind.Clear:
                 EDI_render_do_Clear();
                 break;
-            case f.RenderKind_SetText:
+            case RenderKind.SetText:
                 EDI_render_do_SetText();
                 break;
-            case f.RenderKind_CreateViewport:
+            case RenderKind.CreateViewport:
                 EDI_render_do_CreateViewport();
                 break;
-            case f.RenderKind_SyntaxHighlighting:
+            case RenderKind.SyntaxHighlighting:
                 EDI_render_do_ResetSyntaxHighlighting();
                 break;
-            case f.RenderKind_Cursor_flag_scrollIntoViewExplicit:
+            case RenderKind.Cursor_flag_scrollIntoViewExplicit:
                 EDI_render_do_cursor_flag_scrollIntoViewExplicit();
                 break;
-            case f.RenderKind_Cursor_flag_doNotScrollIntoView:
+            case RenderKind.Cursor_flag_doNotScrollIntoView:
                 EDI_drawCursor(/*NOTscrollCursorIntoView*/ true);
                 break;
-            case f.RenderKind_Cursor_n:
+            case RenderKind.Cursor_n:
                 EDI_drawCursor(/*NOTscrollCursorIntoView*/ false);
                 break;
         }
@@ -4705,7 +4691,7 @@ function EDI_render_do() {
  * 
  * However, in a real text editor, browsers fire alternate event streams during continuous scrolling or mouse dragging. For example, you will frequently get a stream of events like this:
  * 
- * Because f.RenderKind_Cursor breaks the consecutive chain of f.RenderKind_Scroll items, your check fails to catch the duplicate.
+ * Because RenderKind.Cursor breaks the consecutive chain of RenderKind.Scroll items, your check fails to catch the duplicate.
  * Your ring buffer will rapidly fill up with alternating requests (Scroll -> Cursor -> Scroll -> Cursor).
  * When requestAnimationFrame(EDI_render_do) finally executes, it will process a bloated queue containing redundant operations,
  * completely defeating your optimization.
@@ -4890,7 +4876,7 @@ function EDI_resizeCanvases() {
 export function EDI_scrollViewport_scroll() {
     set_EDI_lastReadNumber_scrollLeft(EDI_scroll_viewport.scrollLeft);
     set_EDI_lastReadNumber_scrollTop(EDI_scroll_viewport.scrollTop);
-    EDI_render_request(f.RenderKind_Scroll);
+    EDI_render_request(RenderKind.Scroll);
 }
 
 function EDI_render_specific_recache_REMOVAL(recycled_itemIndex, linesRemovedCount, availableRingBufferNodesVisuallyAfterCollapsedOne, recycled_ringBufferIndex, fakeLineIndices) {
@@ -5515,7 +5501,7 @@ function EDI_render_do_IndentMore() {
     }
 
     //// 6. Request a canvas redraw layout frame pass to force the changes onto the screen
-    EDI_render_request(f.RenderKind_Scroll);
+    EDI_render_request(RenderKind.Scroll);
     //EDI_render_TextContent();
     //EDI_render_Cursor();
 }
@@ -5714,7 +5700,7 @@ function EDI_render_do_IndentLess() {
     }
 
     // 6. Request a canvas redraw layout frame pass to force the changes onto the screen
-    EDI_render_request(f.RenderKind_Scroll);
+    EDI_render_request(RenderKind.Scroll);
     //EDI_render_TextContent();
     //EDI_render_Cursor();
 }
@@ -5859,7 +5845,7 @@ function EDI_render_do_DuplicateOrPaste() {
                         n_ringBufferIndex -= editor.ArrayFrom_textElement_children_length;
                     }
                 }
-                EDI_render_request(f.RenderKind_Scroll);
+                EDI_render_request(RenderKind.Scroll);
                 //EDI_render_specific_recache_INSERTION(activeLine + 1, insertionCount, availableRingBufferNodesVisuallyAfterExpandedOne, next_ringBufferIndex, false);
             }
             //return;
@@ -6044,7 +6030,7 @@ function EDI_render_do_DuplicateOrPaste() {
     editor.cursor_STORED_visualWidth = editor.cursorVisualColumnIndex;
 
     //// 6. Request a canvas redraw layout frame pass to force the changes onto the screen
-    EDI_render_request(f.RenderKind_Scroll);
+    EDI_render_request(RenderKind.Scroll);
     //EDI_render_TextContent();
     //EDI_render_Cursor();
 }
@@ -6225,7 +6211,7 @@ function EDI_render_do_TabKey() {
         editor.cursor_edit_eventCount_drawingStateContinuationValue = editor.cursor_editLength_characters;
 
         // 6. Request a canvas redraw layout frame pass to force the changes onto the screen
-        EDI_render_request(f.RenderKind_Scroll);
+        EDI_render_request(RenderKind.Scroll);
         //EDI_render_TextContent();
         //EDI_render_Cursor();
     }
@@ -6476,7 +6462,7 @@ function EDI_render_do_EnterKey() {
     }
 
     // 6. Request a canvas redraw layout frame pass to force the changes onto the screen
-    EDI_render_request(f.RenderKind_Scroll);
+    EDI_render_request(RenderKind.Scroll);
     //EDI_render_TextContent();
     //EDI_render_Cursor();
 }
@@ -7091,7 +7077,7 @@ function EDI_render_do_RemoveSelection() {
 
         if (EDI_drawGutter_Width(editor.lineEndPositionList_count - linesRemovedCount)) {
             // If true then you need to also draw the dependent UI
-            EDI_render_request(f.RenderKind_Cursor_n);
+            EDI_render_request(RenderKind.Cursor_n);
             EDI_drawHorizontalScrollbar();
         }
     }
@@ -7101,7 +7087,7 @@ function EDI_render_do_RemoveSelection() {
 
     if (!shouldSkipSpecificRecache) {
         // 6. Request a canvas redraw layout frame pass to force the changes onto the screen
-        EDI_render_request(f.RenderKind_Scroll);
+        EDI_render_request(RenderKind.Scroll);
         //EDI_render_TextContent();
         //EDI_render_Cursor();
     }
@@ -7369,7 +7355,7 @@ function EDI_render_do_Delete() {
     }
 
     // 6. Request a canvas redraw layout frame pass to force the changes onto the screen
-    EDI_render_request(f.RenderKind_Scroll);
+    EDI_render_request(RenderKind.Scroll);
     //EDI_render_TextContent();
     //EDI_render_Cursor();
 }
@@ -7540,7 +7526,7 @@ function EDI_render_do_Backspace() {
     }
 
     // 6. Request a canvas redraw layout frame pass to force the changes onto the screen
-    EDI_render_request(f.RenderKind_Scroll);
+    EDI_render_request(RenderKind.Scroll);
     //EDI_render_TextContent();
     //EDI_render_Cursor();
 }
@@ -7608,7 +7594,7 @@ function EDI_render_do_InsertLtr() {
         editor.cursor_edit_eventCount_drawingStateContinuationValue = editor.cursor_editLength_characters;
 
         //// 6. Request a canvas redraw layout frame pass to force the changes onto the screen
-        EDI_render_request(f.RenderKind_Scroll);
+        EDI_render_request(RenderKind.Scroll);
         //EDI_render_TextContent();
         //EDI_render_Cursor();
     }
@@ -7737,10 +7723,10 @@ function EDI_shiftLinesOfText_ToASmaller_IndexLine_byDistance(ringBufferIndex_la
  * 
  * @returns a bool indicating whether the gutter was drawn (if 'editor.drawn_count_of_digits_longest_line_number' has not changed then false is returned because the gutter didn't need to be "re-" drawn)
  * 
- * Dependent UI: EDI_render_request(f.RenderKind_Cursor_n); EDI_drawHorizontalScrollbar();
+ * Dependent UI: EDI_render_request(RenderKind.Cursor_n); EDI_drawHorizontalScrollbar();
  * 
- * You either guarantee the dependent UI to run by invoking them regardless of this function's result 'EDI_drawGutter_Width(); EDI_render_request(f.RenderKind_Cursor_n); EDI_drawHorizontalScrollbar();'
- * Or you capture the return value to know whether the gutter was "re-" drawn, because if so, you need to invoke 'EDI_render_request(f.RenderKind_Cursor_n); EDI_drawHorizontalScrollbar();'
+ * You either guarantee the dependent UI to run by invoking them regardless of this function's result 'EDI_drawGutter_Width(); EDI_render_request(RenderKind.Cursor_n); EDI_drawHorizontalScrollbar();'
+ * Or you capture the return value to know whether the gutter was "re-" drawn, because if so, you need to invoke 'EDI_render_request(RenderKind.Cursor_n); EDI_drawHorizontalScrollbar();'
  * for the dependent UI.
  * The confusion, if there is any, comes from the dependent UI in some scenarios being required independently of whether drawGutter changes. And at other times they're solely dependent on whether drawGutter changes.
  */
@@ -8293,7 +8279,7 @@ export function EDI_onResize() {
 }
 
 function EDI_onResize_startThrottleTimeout_aaa() {
-    EDI_render_request(f.RenderKind_Resize);
+    EDI_render_request(RenderKind.Resize);
     editor.onResize_timer = 0;
 }
 
@@ -8411,7 +8397,7 @@ function EDI_onMouseDownDetailRankOne(event_button, event_shiftKey, indexLineCli
         }
     }
 
-    EDI_render_request(f.RenderKind_Cursor_n);
+    EDI_render_request(RenderKind.Cursor_n);
 }
 
 function EDI_onMouseDownDetailRankTwo(event_button, event_shiftKey, indexLineClicked, indexColumnClicked, indexColumnVisual) {
@@ -8478,7 +8464,7 @@ function EDI_onMouseDownDetailRankTwo(event_button, event_shiftKey, indexLineCli
             editor.cursorVisualColumnIndex = tempIndexColumnVisual;
         }
 
-        EDI_render_request(f.RenderKind_Cursor_n);
+        EDI_render_request(RenderKind.Cursor_n);
     }
     else if (leftCharacterKind > rightCharacterKind) {
         let goalCharacterKind = leftCharacterKind;
@@ -8503,7 +8489,7 @@ function EDI_onMouseDownDetailRankTwo(event_button, event_shiftKey, indexLineCli
         editor.cursor_selectionEnd = originalPositionIndex;
         editor.cursor_selectionIndexEndColumnVISUAL = editor.cursorVisualColumnIndex;
 
-        EDI_render_request(f.RenderKind_Cursor_n);
+        EDI_render_request(RenderKind.Cursor_n);
     }
     else {
         let goalCharacterKind = rightCharacterKind;
@@ -8534,7 +8520,7 @@ function EDI_onMouseDownDetailRankTwo(event_button, event_shiftKey, indexLineCli
             editor.cursor_selectionIndexEndColumnVISUAL = editor.cursorVisualColumnIndex;
         }
 
-        EDI_render_request(f.RenderKind_Cursor_n);
+        EDI_render_request(RenderKind.Cursor_n);
     }
 
     if (editor.cursor_selectionAnchor < editor.cursor_selectionEnd) {
@@ -8570,7 +8556,7 @@ function EDI_onMouseDownDetailRankThree(event_button, event_shiftKey, indexLineC
         EDI_ret_getLineBoundaryPositions_raw(editor.cursor_indexLine);
         editor.cursor_selectionEnd = editor.ret_getLineBoundaryPositions_end;
         editor.cursor_selectionIndexEndColumnVISUAL = EDI_getEntireLineVisualWidth(editor.ret_getLineBoundaryPositions_start, editor.ret_getLineBoundaryPositions_end);
-        EDI_render_request(f.RenderKind_Cursor_n);
+        EDI_render_request(RenderKind.Cursor_n);
     }
     else {
         editor.cursor_indexLine++;
@@ -8579,7 +8565,7 @@ function EDI_onMouseDownDetailRankThree(event_button, event_shiftKey, indexLineC
         EDI_ret_getLineBoundaryPositions_raw(editor.cursor_indexLine);
         editor.cursor_selectionEnd = editor.ret_getLineBoundaryPositions_start;
         editor.cursor_selectionIndexEndColumnVISUAL = editor.cursorVisualColumnIndex;
-        EDI_render_request(f.RenderKind_Cursor_n);
+        EDI_render_request(RenderKind.Cursor_n);
     }
 
     if (editor.cursor_selectionAnchor < editor.cursor_selectionEnd) {
@@ -8666,7 +8652,7 @@ function EDI_onMouseMoveDetailRankOne(indexLineClicked, indexColumnClicked, inde
     editor.cursor_selectionEnd = EDI_getPositionIndex_cursor_raw();
     editor.cursor_selectionIndexEndColumnVISUAL = editor.cursorVisualColumnIndex;
 
-    EDI_render_request(f.RenderKind_Cursor_flag_doNotScrollIntoView);
+    EDI_render_request(RenderKind.Cursor_flag_doNotScrollIntoView);
 }
 
 function EDI_onMouseMoveDetailRankTwo(indexLineClicked, indexColumnClicked, indexColumnVisual) {
@@ -8767,7 +8753,7 @@ function EDI_onMouseMoveDetailRankTwo(indexLineClicked, indexColumnClicked, inde
         editor.cursor_selectionIndexEndColumnVISUAL = editor.cursorVisualColumnIndex;
     }
 
-    EDI_render_request(f.RenderKind_Cursor_flag_doNotScrollIntoView);
+    EDI_render_request(RenderKind.Cursor_flag_doNotScrollIntoView);
 }
 
 function EDI_onMouseMoveDetailRankThree(indexLineClicked, indexColumnClicked) {
@@ -8798,7 +8784,7 @@ function EDI_onMouseMoveDetailRankThree(indexLineClicked, indexColumnClicked) {
             editor.cursor_selectionIndexAnchorColumnVISUAL = editor.cursorVisualColumnIndex;
         }
 
-        EDI_render_request(f.RenderKind_Cursor_flag_doNotScrollIntoView);
+        EDI_render_request(RenderKind.Cursor_flag_doNotScrollIntoView);
     }
     else if (indexLineClicked < editor.detailRank3OriginLine) {
         if (editor.cursor_selectionAnchor < editor.cursor_selectionEnd) {
@@ -8813,7 +8799,7 @@ function EDI_onMouseMoveDetailRankThree(indexLineClicked, indexColumnClicked) {
             editor.cursor_selectionEnd = editor.detail_smallPosition;
             editor.cursor_selectionIndexEndColumnVISUAL = editor.cursorVisualColumnIndex;
 
-            EDI_render_request(f.RenderKind_Cursor_flag_doNotScrollIntoView);
+            EDI_render_request(RenderKind.Cursor_flag_doNotScrollIntoView);
         }
 
         editor.cursor_indexLine = indexLineClicked;
@@ -8823,7 +8809,7 @@ function EDI_onMouseMoveDetailRankThree(indexLineClicked, indexColumnClicked) {
         editor.cursor_selectionEnd = EDI_getPositionIndex_Overload(indexLineClicked, 0);
         editor.cursor_selectionIndexEndColumnVISUAL = editor.cursorVisualColumnIndex;
 
-        EDI_render_request(f.RenderKind_Cursor_flag_doNotScrollIntoView);
+        EDI_render_request(RenderKind.Cursor_flag_doNotScrollIntoView);
     }
     else if (indexLineClicked > editor.detailRank3OriginLine) {
 
@@ -8859,7 +8845,7 @@ function EDI_onMouseMoveDetailRankThree(indexLineClicked, indexColumnClicked) {
             editor.cursor_selectionIndexEndColumnVISUAL = editor.cursorVisualColumnIndex;
         }
 
-        EDI_render_request(f.RenderKind_Cursor_flag_doNotScrollIntoView);
+        EDI_render_request(RenderKind.Cursor_flag_doNotScrollIntoView);
     }
 }
 
@@ -9135,7 +9121,7 @@ function EDI_onKeyDown_ArrowLeft(event) {
         EDI_postKeyboardMovementSelectionLogic(event.shiftKey);
     }
     editor.cursor_STORED_visualWidth = editor.cursorVisualColumnIndex;
-    EDI_render_request(f.RenderKind_Cursor_n);
+    EDI_render_request(RenderKind.Cursor_n);
 }
 
 /** @returns {boolean} whether invoking function ought to return */
@@ -9159,7 +9145,7 @@ function EDI_onKeyDown_ArrowDown(event) {
         }
         EDI_postKeyboardMovementSelectionLogic(event.shiftKey);
 
-        EDI_render_request(f.RenderKind_Cursor_n);
+        EDI_render_request(RenderKind.Cursor_n);
     }
     return false;
 }
@@ -9184,7 +9170,7 @@ function EDI_onKeyDown_ArrowUp(event) {
             EDI_set_indexColumn_and_visualColumn_relativeTo_storedVisualWidth(editor.ret_getLineBoundaryPositions_start, editor.ret_getLineBoundaryPositions_end);
         }
         EDI_postKeyboardMovementSelectionLogic(event.shiftKey);
-        EDI_render_request(f.RenderKind_Cursor_n);
+        EDI_render_request(RenderKind.Cursor_n);
     }
     return false;
 }
@@ -9268,7 +9254,7 @@ function EDI_onKeyDown_ArrowRight(event) {
         EDI_postKeyboardMovementSelectionLogic(event.shiftKey);
     }
     editor.cursor_STORED_visualWidth = editor.cursorVisualColumnIndex;
-    EDI_render_request(f.RenderKind_Cursor_n);
+    EDI_render_request(RenderKind.Cursor_n);
 }
 
 /** @returns {boolean} whether invoking function ought to return */
@@ -9299,7 +9285,7 @@ function EDI_onKeyDown_Home(event) {
     }
     EDI_postKeyboardMovementSelectionLogic(event.shiftKey);
     editor.cursor_STORED_visualWidth = editor.cursorVisualColumnIndex;
-    EDI_render_request(f.RenderKind_Cursor_n);
+    EDI_render_request(RenderKind.Cursor_n);
     return false;
 }
 
@@ -9332,7 +9318,7 @@ function EDI_onKeyDown_End(event) {
 
     EDI_postKeyboardMovementSelectionLogic(event.shiftKey);
     editor.cursor_STORED_visualWidth = editor.cursorVisualColumnIndex;
-    EDI_render_request(f.RenderKind_Cursor_n);
+    EDI_render_request(RenderKind.Cursor_n);
     return false;
 }
 
@@ -9354,7 +9340,7 @@ function EDI_onKeyDown_PageDown(event) {
         editor.cursorVisualColumnIndex = 0;
         // TODO: allow someone to select via this keybind, but for now it causes a bad selection if you { 'Ctrl' + 'a' } then use it so I'm clearing any active selection here for now.
         editor.cursor_selectionAnchor = editor.cursor_selectionEnd;
-        EDI_render_request(f.RenderKind_Cursor_n);
+        EDI_render_request(RenderKind.Cursor_n);
     }
     else {
         EDI_scroll_viewport.scrollBy(0, editor.lineHeight * editor.virtualCount);
@@ -9379,7 +9365,7 @@ function EDI_onKeyDown_PageUp(event) {
         editor.cursorVisualColumnIndex = 0;
         // TODO: allow someone to select via this keybind, but for now it causes a bad selection if you { 'Ctrl' + 'a' } then use it so I'm clearing any active selection here for now.
         editor.cursor_selectionAnchor = editor.cursor_selectionEnd;
-        EDI_render_request(f.RenderKind_Cursor_n);
+        EDI_render_request(RenderKind.Cursor_n);
     }
     else {
         EDI_scroll_viewport.scrollBy(0, -1 * editor.lineHeight * editor.virtualCount);
@@ -9437,7 +9423,7 @@ async function EDI_onKeyDown_keyLengthEqualsOne_ctrlKey(event) {
             EDI_finalizeEdit();
             await EDI_copySelection();
             EDI_removeSelection();
-            EDI_render_request(f.RenderKind_Cursor_n);
+            EDI_render_request(RenderKind.Cursor_n);
             break;
         case 'v':
 
@@ -9479,7 +9465,7 @@ async function EDI_onKeyDown_keyLengthEqualsOne_ctrlKey(event) {
             editor.cursor_indexLine = selectionEndLineAndColumnIndices_indexLine;
             editor.cursor_indexColumn = selectionEndLineAndColumnIndices_indexColumn;
             editor.cursorVisualColumnIndex = selectionEndLineAndColumnIndices_indexColumn;
-            EDI_render_request(f.RenderKind_Cursor_flag_doNotScrollIntoView);
+            EDI_render_request(RenderKind.Cursor_flag_doNotScrollIntoView);
             break;
         case 'f':
 

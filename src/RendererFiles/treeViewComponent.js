@@ -23,6 +23,10 @@ export const TreeViewNodeKind = Object.freeze({
     NOTisExpandable_NOTisExpanded: 4,
 });
 
+// ====
+export const byteTreeView_byteret_pooledNode_nodeKind = 0;
+// ====
+
 class TreeViewComponent_staticRunner {
     constructor() {
         this.queueHead = 0;

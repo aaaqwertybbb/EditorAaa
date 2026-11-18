@@ -46,6 +46,13 @@ class Explorer {
 
         this.boundingClientRect_left = 0;
         this.boundingClientRect_top = 0;
+
+        this.show = 1;
+
+        this.isRenderPending = false;
+        this.isCheckingTrailingEdge = false;
+        this.scrollIsFetchingData = false;
+        this.boundingClientRect_isValid = false;
     }
 }
 

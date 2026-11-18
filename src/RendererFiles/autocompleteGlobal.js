@@ -53,6 +53,8 @@ class Autocomplete {
         this.scrollTop = 0;
 
         this.isCheckingTrailingEdgeTimeoutId = 0;
+
+        this.WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING = 20;
     }
 }
 
