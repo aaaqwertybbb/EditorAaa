@@ -13,7 +13,75 @@ class EditorAaaApp {
     }
 }
 
+class Dialog {
+    constructor() {
+        let hasBeenMeasured = false;
+        let windowExists = false;
+        let isRenderPending = false;
+        
+        /** TODO: seemingly could be made obsolete sensibly */
+        let currentDialogKind = 0;
 
+        let queueHead = 0;
+        let queueTail = 0;
+    }
+}
+
+class Autocomplete {
+    constructor() {
+        let exists = false;
+        let isRenderPending = false;
+        let rect_isNull = true;
+        let isCheckingTrailingEdge = false;
+        let scrollIsFetchingData = false;
+        let queueHead = 0;
+        let queueTail = 0;
+    }
+}
+
+class Widget {
+    constructor() {
+        let isRenderPending = false;
+        let widgetKind_drawn = 0;
+        let queueHead = 0;
+        let queueTail = 0;
+    }
+}
+
+class Tooltip {
+    constructor() {
+        let isRenderPending = false;
+
+        /**
+         * 0 => None
+         * 1 => Show
+         * 2 => Hide
+         */
+        let pending_renderKind = 0;
+
+        let exists = false;
+    }
+}
+
+class Menu {
+    constructor() {
+        let isRenderPending = false;
+        let queueHead = 0;
+        let queueTail = 0;
+    }
+}
+
+// ====
+export const byteTreeView_byteret_pooledNode_nodeKind = 26;
+export const byteEDI_byteret_pooledTrackedSyntax_trackedSyntaxKind = 26;
+// ====
+export const byteEXPLORER_show = 33;
+BYTES[byteEXPLORER_show] = 1;
+
+export const byteEXPLORER_isRenderPending = 34;
+export const byteEXPLORER_isCheckingTrailingEdge = 35;
+export const byteEXPLORER_scrollIsFetchingData = 36;
+export const byteEXPLORER_boundingClientRect_isValid = 37;
 
 class TextEditor {
     constructor() {
@@ -25,113 +93,34 @@ class TextEditor {
         let findOverlay_show = false;
         let findOverlay_wasSearched = false;
         let findOverlay_options_matchWord = false;
-        
+
         let FindAll_options_matchWord = false;
-        
-        let isDark = true;
 
-        
+        let settings_trueTabs_falseSpaces = true;
+        let settings_editorDebugShowAdjacentCharacters = false;
 
-        export const byteDIALOG_Settings_trueTabs_falseSpaces = 9;
-        BYTES[byteDIALOG_Settings_trueTabs_falseSpaces] = 1;
+        let cursor_enterKeyEventKind = 0;
 
-        export const byteDIALOG_Settings_editorDebugShowAdjacentCharacters = 10;
+        let extensionKind = 0;
 
-        /** TODO: what is this? */
-        export const byteDIALOG_hasBeenMeasured = 11;
+        let isChecking_cursorBlinkTrailingEdge = false;
 
-        export const byteDIALOG_windowExists = 12;
+        let cursor_selectionDivExists = false;
+        let onResize_hasTrailingCall = false;
 
-        export const byteAUTOCOMPLETE_exists = 13;
-
-        export const byteAUTOCOMPLETE_isRenderPending = 14;
-
-        export const byteAUTOCOMPLETE_rect_isNull = 15;
-        BYTES[byteAUTOCOMPLETE_rect_isNull] = 1;
-
-        export const byteAUTOCOMPLETE_isCheckingTrailingEdge = 16;
-
-        export const byteAUTOCOMPLETE_scrollIsFetchingData = 17;
-
-        export const byteWIDGET_isRenderPending = 18;
-
-        export const byteDIALOG_isRenderPending = 19;
-
-        export const byteTOOLTIP_isRenderPending = 20;
-
-        /**
-         * 0 => None
-         * 1 => Show
-         * 2 => Hide
-         */
-        export const byteTOOLTIP_pending_renderKind = 21;
-
-        export const byteTOOLTIP_exists = 22;
-
-        /** TODO: seemingly could be made obsolete sensibly */
-        export const byteDIALOG_currentDialogKind = 23;
-
-        export const byteMENU_isRenderPending = 24;
-
-        export const byteWIDGET_WidgetKind_drawn = 25;
-
-        // ====
-        export const byteTreeView_byteret_pooledNode_nodeKind = 26;
-        export const byteEDI_byteret_pooledTrackedSyntax_trackedSyntaxKind = 26;
-        // ====
-
-        export const byteEDI_cursor_enterKeyEventKind = 27;
-
-        export const byteEDI_extensionKind = 28;
-
-
-
-        export const byteEDI_isChecking_cursorBlinkTrailingEdge = 29;
-
-        export const byteEDI_cursor_selectionDivExists = 30;
-
-        export const byteEDI_onResize_hasTrailingCall = 31;
-
-
-        export const byteEDI_mousemove_eventListener_isActive = 32;
-
-        export const byteEXPLORER_show = 33;
-        BYTES[byteEXPLORER_show] = 1;
-
-        export const byteEXPLORER_isRenderPending = 34;
-
-        export const byteEXPLORER_isCheckingTrailingEdge = 35;
-
-        export const byteEXPLORER_scrollIsFetchingData = 36;
-
-        export const byteEXPLORER_boundingClientRect_isValid = 37;
-
-
-        export const byteAUTOCOMPLETE_queueHead = 38;
-        export const byteAUTOCOMPLETE_queueTail = 39;
-
-        export const byteDIALOG_queueHead = 40;
-        export const byteDIALOG_queueTail = 41;
-
-        export const byteMENU_queueHead = 42;
-        export const byteMENU_queueTail = 43;
-
-        export const byteWIDGET_queueHead = 44;
-        export const byteWIDGET_queueTail = 45;
+        let mousemove_eventListener_isActive = false;
 
         /**
          * 'await window.myAPI.editorSetClipboard(...);' needs to be followed up with 'BYTES[byteEDI_clipboard_may_have_changed] = 0'
          * When reading the clipboard use 'await EDI_read_clipboard();'
          */
-        export const byteEDI_duplication_may_have_changed = 46;
-        BYTES[byteEDI_duplication_may_have_changed] = 1;
+        let duplication_may_have_changed = true;
 
         /**
          * 'await window.myAPI.editorSetClipboard(...);' needs to be followed up with 'BYTES[byteEDI_clipboard_may_have_changed] = 0'
          * When reading the clipboard use 'await EDI_read_clipboard();'
          */
-        export const byteEDI_clipboard_may_have_changed = 47;
-        BYTES[byteEDI_clipboard_may_have_changed] = 1;
+        let clipboard_may_have_changed = true;
     }
 }
 
