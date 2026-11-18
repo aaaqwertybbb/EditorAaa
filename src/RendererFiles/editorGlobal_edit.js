@@ -5,7 +5,38 @@ import * as f from './fieldBuffer.js'
 import {CommandKind_Cut, CommandKind_Copy, CommandKind_Paste, CommandKind_Find} from './menuGlobal.js'
 import {sendTransaction_MessageKind_custom_edit_InsertLtr} from './applicationRendererRoot.js'
 
+export const EDI_gutterPaddingLeft = 3;
+export const EDI_gutterPaddingRight = 6;
 
+export const CONST_EDI_ASCII_LINE_FEED = 10;
+export const CONST_EDI_ASCII_TAB = 9;
+export const CONST_EDI_ASCII_SPACE = 32;
+
+export const CONST_EDI_cursor_htmlId = "EDI_cursor-1";
+
+
+
+
+
+
+export const fAUTOCOMPLETE_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING = 108;
+INTS[fAUTOCOMPLETE_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING] = 2;
+
+/**
+ * This value ought to be an int (no decimal places) due to its high frequency usage in drawing UI,
+ * and visually this having decimal places being of little to no value to the user when you could just ceil whatever height measurement you get.
+ * 
+ * TODO: (speculation) I've never liked saying "line height" I believe that deals with the vertical alignment of text within some container is "line height" a good wording.
+ * */
+export const fAPP_lineHeight = 109;
+INTS[fAUTOCOMPLETE_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING] = 20;
+
+
+
+/**
+ * I'm not sure how large I want this, what matters is that I just have a size of anything for the time being, then can change this constant later.
+ */
+export const CONST_EDI_cursor_GAP_BUFFER_CAPACITY = 32;
 
 class EditorAaaApp {
     constructor() {
@@ -36,6 +67,30 @@ class Autocomplete {
         let scrollIsFetchingData = false;
         let queueHead = 0;
         let queueTail = 0;
+
+        // I don't think 'slice' is in LSP specification but I need to start like this cause it is only way I'll get something "initially working".
+        /** TODO: This isn't used only set */
+        export const fAUTOCOMPLETE_items_slice_start = 93;
+        /** TODO: This isn't used only set */
+        export const fAUTOCOMPLETE_items_slice_end = 94;
+        export const fAUTOCOMPLETE_items_totalLength = 95;
+
+        export const fAUTOCOMPLETE_cursorIndex = 96;
+
+        export const fAUTOCOMPLETE_rectHeight = 97;
+        export const fAUTOCOMPLETE_rectLeft = 98;
+        /** TODO: This isn't used only set, but it probably will be used for mouse events just that they're not written yet? */
+        export const fAUTOCOMPLETE_rectTop = 99;
+
+        export const fAUTOCOMPLETE_sliceVirtualIndex_SLICE = 100;
+        export const fAUTOCOMPLETE_sliceVirtualCount_SLICE = 101;
+        export const fAUTOCOMPLETE_sliceRingBufferIndexZero_SLICE = 102;
+
+        export const fAUTOCOMPLETE_virtualCount = 103;
+        export const fAUTOCOMPLETE_virtualIndex = 104;
+        export const fAUTOCOMPLETE_ringBufferIndexZero = 105;
+
+        export const fAUTOCOMPLETE_scrollTop = 106;
     }
 }
 
@@ -45,6 +100,27 @@ class Widget {
         let widgetKind_drawn = 0;
         let queueHead = 0;
         let queueTail = 0;
+
+        /**
+         * start it at 1 because you thought about starting it at 0 then using a prefix incrementation to ensure the 0 state is never used as a means of detecting an empty state
+         * but if someone changes the code and moves it to postfix incrementation then everything breaks so why even take that risk when you can just start at 1
+         * then if they go from postfix to prefix then you simply miss out on the number 1 and the first ticketId is 2 who cares...
+         * 
+         * ticketId because you're standing in line at the deli in the supermarket and you've grabbed from the machine a paper that has your number on it
+         * and you're waiting for your number to be called so you can get the turkey
+         * 
+         * > "what is it called when you are in line at a deli and they have a machine that prints a paper with a number on it"
+         * 
+         * < It is called a take-a-number system or a queue management system. It uses a ticket dispenser to give out paper numbers so people can wait in order without standing in a tight line.
+         * 
+         * okay yeah it is a ticket dispenser we're good
+         */
+        export const fWIDGET_ticketId_counter = 110;
+        INTS[fWIDGET_ticketId_counter] = 1;
+
+        export const fWIDGET_ticketId_drawn = 111;
+
+        export const fWIDGETrenderKind_Show_countOfPendingRequests = 112;
     }
 }
 
@@ -68,6 +144,13 @@ class Menu {
         let isRenderPending = false;
         let queueHead = 0;
         let queueTail = 0;
+
+        export const fMENU_ticketId_counter = 113;
+        INTS[fMENU_ticketId_counter] = 1;
+
+        export const fMENU_ticketId_drawn = 114;
+
+        export const fMENU_renderKind_Set_countOfPendingRequests = 115;
     }
 }
 
@@ -121,6 +204,296 @@ class TextEditor {
          * When reading the clipboard use 'await EDI_read_clipboard();'
          */
         let clipboard_may_have_changed = true;
+
+
+
+
+
+
+
+
+
+
+        let lineHeight = 20;
+
+        /** The first line of text that you should see shown in the UI given the current scrollTop */
+        let virtualIndexLine = 0;
+        let virtualCount = 0;
+
+        //throw new Error('-1');
+        // This set used to be -1 to indicate a non existent value, 500 "seems to work" but a proof of it being an equivalent solution has not thoroughly been thought out, only a sort of "yeah that probably works" kinda vibe.
+        let ONSCROLLvirtualIndexLine = 500;
+
+        /** TODO: obsolete? just use 'INTS[fEDI_ArrayFrom_textElement_children_length]' */
+        let ONSCROLLvirtualCount = 0;
+
+        /**
+         * I'm gonna store this in the int32 array so that the editor scroll render function can access it from the already existing local reference of INTS.
+         */
+        let cursor_editKind = 0;
+
+        /** TODO: Rename to 'fEDI_ringBuffer_length' */
+        let ArrayFrom_textElement_children_length = 0;
+
+        // And this -1
+        let ringBuffer_indexZero = 0;
+
+        let lineEndPositionList_count = 0;
+
+        let styleBuffer_count = 0;
+
+        let queueHead = 0;
+        let queueTail = 0;
+        let isRenderPending = 0;
+
+        let cursorBlinkingTrailingEdgeTimeoutId = 0;
+
+        drawn_count_of_digits_longest_line_number = 0;
+
+        let detail_smallPosition = 0;
+
+        let detail_largePosition = 0;
+
+        let detailRank3OriginLine = 0;
+
+        /**
+         * Pixels.
+         * 
+         * The gutter width changes far more frequently than the line height.
+         * That is why the gutter width is a JavaScript variable, and the styles are updated from JavaScript.
+         * 
+         * Whereas the line height is a css variable (and thus could cause layout for the entire application whenever it changes).
+         */
+        let gutterWidthStyleValue = 32;
+
+        /**
+         * This is the sum of the 'EDI_gutterWidthStyleValue()' in addition to paddig
+         * consider 'gutterWidthTotal_withPxUnits'
+         */
+        let gutterWidthTotal = 32;
+
+        let longestLine_indexLine = 0;
+
+        let longestLine_length = 0;
+
+        /**
+         * The fEDI_contentWidth() is calculated via Math.ceil(someVar * otherVar) so this is faster to check whether content width will change rather than the multiplication and ceil.
+         */
+        let longestLine_length_PreviousValueWhenLastDrewHorizontalScrollbar = 0;
+
+        let contentWidth = 0;
+
+        let indent_SMALL_lineAndColumnIndices_indexLine = 0;
+
+        let indent_startingIndex = 0;
+
+        let recentBoundingClientRect_left = 0;
+
+        let recentBoundingClientRect_top = 0;
+
+        // ====
+        export const fTreeView_poolret_pooledNode_key = 28;
+        /** TODO: obsolete */
+        export const fEDI_poolret_pooledTrackedSyntax_start = 28;
+
+        export const fTreeView_poolret_pooledNode_depth = 29;
+        /** TODO: obsolete */
+        export const fEDI_poolret_pooledTrackedSyntax_length = 29;
+        // ====
+
+        let cursor_indexLine = 0;
+        let cursor_indexColumn = 0;
+
+        /**
+         * When moving cursor vertically, if the current column index cannot be matched due to the upcoming line being too short,
+         * then this will allow a later vertical movement to a line that is long enough to match the original column rather than the minimized one.
+         */
+        let cursor_STORED_visualWidth = 0;
+
+        let cursor_cursorTranslateYValue = 0;
+
+        let render_do_ScrollTrailingEdgeCheckTimeoutId = 0;
+
+        let cursor_selectionAnchor = 0;
+        let cursor_selectionEnd = 0;
+
+        let cursor_selectionIndexAnchorLine = 0;
+        let cursor_selectionIndexAnchorColumn = 0;
+
+        let cursor_selectionIndexEndLine = 0;
+        let cursor_selectionIndexEndColumn = 0;
+
+        let cursor_DRAWN_selectionAnchor = 0;
+        let cursor_DRAWN_selectionEnd = 0;
+
+        let cursor_DRAWN_selection_virtualIndexLine = 0;
+        let cursor_DRAWN_selection_virtualCount = 0;
+
+        /**
+         * Not every edit makes use of an editLength. Because some edits are more computationally expensive than others.
+         * These computationally expensive edits only know the editLength at time of finalization.
+         * This only ever should be the count of characters inserted or 0 if not applicable for the EditKind.
+         */
+        let cursor_editLength_characters = 0;
+        // TODO: move 'export const fEDI_cursor_editLength_bytes = 104;' closer numerically and text position
+        let cursor_editPosition = 0;
+        let cursor_editIndexLine = 0;
+        let cursor_editIndexColumn = 0;
+        //TODO: move 'export const fEDI_cursor_edit_eventCount_occurred = 63;' closer (numerically and text position)
+        let cursor_edit_eventCount_drawn = 0;
+        /**
+         * I'm changing the code in relation to this and some other variables but,
+         * I'm more concerned with 'fEDI_cursor_edit_eventCount_occurred' and 'fEDI_cursor_edit_eventCount_drawn'
+         * on the first go-around.
+         * 
+         * Specifically the idea that every edit's render function checks fEDI_cursor_edit_eventCount_drawn < fEDI_cursor_edit_eventCount_occurred
+         * although this isn't even correct. It depends on the edit still.
+         * 
+         * Okay if you have a more optimized render function you set drawn to occurred.
+         * If you have an unoptimized render function that is just a while loop you increment.
+         */
+        let cursor_edit_eventCount_drawingStateContinuationValue = 0;
+        let cursor_END_editIndexLine = 0;
+        let cursor_END_editIndexColumn = 0;
+        let cursor_textInsertionBufferCount = 0;
+
+        /**
+         * TODO: probably is sensible to use this for the enter key too but I'm firstly adding it for the sake of backspace so
+         * I don't have to waste time looping over the removed text to find the line end positions that are being removed.
+         * (I could do some kind of other tracking but I chose not to for no particular reason, well I think I chose this one out of laziness and that the other solutions long term like a
+         *  list at the editor level 1 of them that is shared among all cursors is probably better or something.)
+         * 
+         * ========
+         * 
+         * TODO: Cursor should store this as -1 to signify false,
+         * and then it is a number 0 to ... the offset in the pending line end position list
+         * and then you have another number too separately that says the length of line endings that this cursor contributed to modifying.
+         */
+        let cursor_editLineFeedCount = 0;
+
+
+        // TODO: Avoid re-using these locally after getting the w result (i.e.: avoid re-using over and over in a loop or something, probably make a local variable if accessed enough).
+        // TODO: Verify and update all the previously -1 cases
+        let w_indexColumn_Goal = 0;
+        let w_indexColumn_Sum = 0;
+
+        /**
+         * This purposefully avoids the wording "edit length" in order to avoid accident / confusing / hard to read code
+         * but in simplest terms this variable is the resulting 'editLength' that existed after a delete or backspace removed a line end.
+         * 
+         * This way you can always just check whether the "sub length" which is relative to the edit_flagLineChanged has removed all the
+         * text that other line that you landed on without having yet finalized.
+         */
+        let cursor_edit_flagLineChanged = 0;
+
+        /**
+         * TODO: isn't this just the column index now that there's just a single div?
+         * 
+         * TODO: MAYBEo-b-s-o-l-e-t-eMAYBE
+         */
+        let w_indexColumn_SpanTextContentRelative = 0;
+
+        // TODO: This -1
+        let w_ringBufferIndex = 0;
+
+        // just floor these on init / resize and set the style so if they want resize they have to explicit and it is non decimal?
+        let lastReadNumber_offsetHeight = 0;
+
+        let lastReadNumber_offsetWidth = 0;
+
+        let EDI_mouseOver_event_clientY = 0;
+
+        let EDI_mouseOver_event_clientX = 0;
+
+        let cursor_edit_eventCount_occurred = 0;
+
+        let onResize_timer = 0;
+
+        let hoverTimeout = 0;
+
+        // ====
+        /** 'ret_' will overwrite one another do not mix the function invocations without having read the values first */
+        export const fEDI_ret_getLineAndColumnIndices_indexLine = 68;
+        /** 'ret_' will overwrite one another do not mix the function invocations without having read the values first */
+        export const fEDI_ret_getLineBoundaryPositions_start = 68;
+        /** 'ret_' will overwrite one another do not mix the function invocations without having read the values first */
+        export const fEDI_ret_getIndexFromX_indexColumn = 68;
+
+        /** 'ret_' will overwrite one another do not mix the function invocations without having read the values first */
+        export const fEDI_ret_getLineAndColumnIndices_indexColumn = 69;
+        /** 'ret_' will overwrite one another do not mix the function invocations without having read the values first */
+        export const fEDI_ret_getLineBoundaryPositions_end = 69;
+        /** 'ret_' will overwrite one another do not mix the function invocations without having read the values first */
+        export const fEDI_ret_getIndexFromX_visualColumns = 69;
+        // ====
+
+        let cursorVisualColumnIndex = 0;
+
+        export const fAUTOCOMPLETE_isCheckingTrailingEdgeTimeoutId = 71;
+
+        export const fEDI_ontab_visualWidth_perCharacter = 72;
+
+        export const fEDI_cursor_selectionIndexAnchorColumnVISUAL = 73;
+        export const fEDI_cursor_selectionIndexEndColumnVISUAL = 74;
+
+        export const fEDI_cursor_selectionIndexAnchorColumnVISUAL_DRAWN = 75;
+        export const fEDI_cursor_selectionIndexEndColumnVISUAL_DRAWN = 76;
+
+        export const fEDI_detail_smallColumnVisual = 77;
+        export const fEDI_detail_largeColumnVisual = 78;
+
+        export const fEDI_cursor_cached_indentation_string_visualWidth = 79;
+
+        export const fEDI_cursor_editLengthVisual = 80;
+
+        export const EDI_textByteList_capacity = 81;
+        export const EDI_textByteList_count = 82;
+
+        export const fEDI_lineEndPositionList_capacity = 83;
+
+        // ====
+        /** 'editret_' will overwrite one another do not mix the function invocations without having read the values first */
+        export const fEDI_editret_cursor_EDI_duplicate_small = 84;
+        /** 'editret_' will overwrite one another do not mix the function invocations without having read the values first */
+        export const fEDI_editret_RemoveSelection_smallPosition = 84;
+        /** 'editret_' will overwrite one another do not mix the function invocations without having read the values first */
+        export const fEDI_editret_indentLess_startingLinePos_end = 84;
+        /** 'editret_' will overwrite one another do not mix the function invocations without having read the values first */
+        export const fEDI_editret_cursor_gapBufferWriteToSpanElement_SpanTextContentRelativeIndex = 84;
+
+        /** 'editret_' will overwrite one another do not mix the function invocations without having read the values first */
+        export const fEDI_editret_cursor_EDI_duplicate_length = 85;
+        /** 'editret_' will overwrite one another do not mix the function invocations without having read the values first */
+        export const fEDI_editret_RemoveSelection_largePosition = 85;
+
+        /** 'editret_' will overwrite one another do not mix the function invocations without having read the values first */
+        export const fEDI_editret_RemoveSelection_smallLineAndColumnIndices_small_indexLine = 86;
+
+        /** 'editret_' will overwrite one another do not mix the function invocations without having read the values first */
+        export const fEDI_editret_RemoveSelection_smallLineAndColumnIndices_small_indexColumn = 87;
+        // ====
+
+        export const fEDI_priorToLastJump_indexLine = 88;
+        export const fEDI_priorToLastJump_indexColumn = 89;
+
+        export const fEDI_styleBuffer_capacity = 90;
+
+        /**
+         * When reading the clipboard use 'await EDI_read_clipboard();' and then read the result from this variable.
+         * 
+         * editPosition + this[i]
+         */
+        export const fEDI_cursor_EDI_duplication_totalLineEndCount = 91;
+
+        /**
+         * When reading the clipboard use 'await EDI_read_clipboard();' and then read the result from this variable.
+         * editPosition + this[i]
+         */
+        export const fEDI_cursor_EDI_paste_clipboardContent_totalLineEndCount = 92;
+
+
+
+        export const fEDI_cursor_editLength_bytes = 107;
     }
 }
 
@@ -185,7 +558,7 @@ const EDI_cursor_textInsertionBuffer = new Uint8Array(f.CONST_EDI_cursor_GAP_BUF
  * TODO: Prior to this changing you need to finalize the edits
  */
 let EDI_on_tab_bytes = new Uint8Array(1);
-EDI_on_tab_bytes[0] = f.CONST_EDI_ASCII_TAB;
+EDI_on_tab_bytes[0] = CONST_EDI_ASCII_TAB;
 f.INTS[f.fEDI_ontab_visualWidth_perCharacter] = 4;
 
 /**
@@ -742,7 +1115,7 @@ export function EDI_state_setText_byteArray(paddedUint8Array, textByteLength, fi
 
     for (let sourceI = 0; sourceI < local_EDI_textByteList_count; ++sourceI) {
         ++lineLengthVisual; // avoid branching by eager counting the lineLengthVisual and then excluding the lineEnding later
-        if (local_EDI_textByteList_bytes[sourceI] === f.CONST_EDI_ASCII_TAB) {
+        if (local_EDI_textByteList_bytes[sourceI] === CONST_EDI_ASCII_TAB) {
             lineLengthVisual += ((4 - ((lineLengthVisual - 1) % 4)) - 1); // (tab logic): avoid branching by eager counting... 'lineLengthVisual - 1... % 4)) - 1)'
         }
         else if (local_EDI_textByteList_bytes[sourceI] === f.CONST_EDI_ASCII_LINE_FEED) {
@@ -1278,7 +1651,7 @@ function EDI_state_do_Delete(event) {
 
             f.INTS[f.fEDI_cursor_editLength_characters]++;
             f.INTS[f.fEDI_cursor_editLengthVisual]++;
-            if (EDI_textByteList_bytes[f.INTS[f.fEDI_cursor_editPosition]] === f.CONST_EDI_ASCII_TAB) {
+            if (EDI_textByteList_bytes[f.INTS[f.fEDI_cursor_editPosition]] === CONST_EDI_ASCII_TAB) {
                 let tabLength = 4 - (f.INTS[f.fEDI_cursorVisualColumnIndex] % 4);
                 f.INTS[f.fEDI_cursor_editLengthVisual] += (tabLength - 1);
             }
@@ -1367,7 +1740,7 @@ function EDI_state_do_Backspace(event) {
             f.INTS[f.fEDI_cursor_editLengthVisual]++;
             f.INTS[f.fEDI_cursor_indexColumn] -= 1;
             f.INTS[f.fEDI_cursorVisualColumnIndex]--;
-            if (EDI_textByteList_bytes[f.INTS[f.fEDI_cursor_editPosition]] === f.CONST_EDI_ASCII_TAB) {
+            if (EDI_textByteList_bytes[f.INTS[f.fEDI_cursor_editPosition]] === CONST_EDI_ASCII_TAB) {
                 // Undo the default path to avoid branching on default path
                 f.INTS[f.fEDI_cursor_editLengthVisual]--;
                 f.INTS[f.fEDI_cursorVisualColumnIndex]++;
@@ -3136,11 +3509,11 @@ function EDI_measureEndExclusiveIndentationIndexColumn() {
     // i.e.: you can read directly from the byte array without worrying about a pending edit.
     outer: for (var i = 0; i < upperLimitIndexColumn; i++) {
         switch (EDI_textByteList_bytes[line_start + i]) {
-            case f.CONST_EDI_ASCII_SPACE:
+            case CONST_EDI_ASCII_SPACE:
                 indentation_string_visualWidth++;
                 count++;
                 break;
-            case f.CONST_EDI_ASCII_TAB:
+            case CONST_EDI_ASCII_TAB:
                 indentation_string_visualWidth += 4;
                 count++;
                 break;
@@ -8595,11 +8968,11 @@ function EDI_cacheIndentation(originalIndexLine, originalIndexColumn, lastValidI
     // i.e.: you can read directly from the byte array without worrying about a pending edit.
     outer: for (var i = 0; i < upperLimitIndexColumn; i++) {
         switch (EDI_textByteList_bytes[line_start + i]) {
-            case f.CONST_EDI_ASCII_SPACE:
+            case CONST_EDI_ASCII_SPACE:
                 indentation_string_visualWidth++;
                 count++;
                 break;
-            case f.CONST_EDI_ASCII_TAB:
+            case CONST_EDI_ASCII_TAB:
                 indentation_string_visualWidth += 4 - (indentation_string_visualWidth % 4);
                 count++;
                 break;

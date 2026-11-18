@@ -11,6 +11,11 @@ const DIALOGrenderKind_Show = 1;
 const DIALOGrenderKind_Hide = 2;
 const DIALOGrenderKind_DimensionsChanged = 3;
 
+export const CONST_DIALOG_minTop = 8;
+export const CONST_DIALOG_minLeft = 8;
+export const CONST_DIALOG_minHeight = 100;
+export const CONST_DIALOG_minWidth = 100;
+
 // No onComplete because all of that logic goes in the respective case of 'switch (f.BYTES[f.byteDIALOG_currentDialogKind])'/'switch (DIALOG_request.dialogKind)'.
 
 /**

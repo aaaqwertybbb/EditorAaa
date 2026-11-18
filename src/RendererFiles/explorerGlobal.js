@@ -29,7 +29,48 @@ import {
 import {set_shouldUseCSharpToSaveFileWhenPossible, sendTransaction_MessageKind_textDocument_didOpen} from './applicationRendererRoot.js'
 import {EDI_state_setText_byteArray, EDI_toExtensionKind} from './editorGlobal_edit.js'
 
+/** Pixels */
+export const CONST_EXPLORER_offsetPerDepth = 8;
 
+// Google AI'd the bit logic
+// Configuration matching our table above
+export const CONST_EXPLORER_KEY_BITS = 12;
+
+/**
+ * TODO: This is approaching the point of being obsolete
+ * 
+ * 8 or the measured value
+ */
+export const fEXPLORER_firstSpanWidthValue = 116;
+INTS[fEXPLORER_firstSpanWidthValue] = 8;
+
+export const fEXPLORER_menuOptionX = 117;
+export const fEXPLORER_menuOptionY = 118;
+
+/** TODO: obsolete */
+export const fEXPLORER_itemHeightTotal = 119;
+
+/** Consider the existence of such methods as 'state_cursor_setIndex' before mutating state directly */
+export const fEXPLORER_cursorIndex = 120;
+
+export const fEXPLORER_virtualIndex_ofScrollTop = 121;
+
+/** Hacky: Must initialize to a number other than 0 or else nothing renders. */
+export const fEXPLORER_virtualCount = 122;
+INTS[fEXPLORER_virtualCount] = 1;
+
+export const fEXPLORER_lastReadNumber_scrollTop = 123;
+
+export const fEXPLORER_ringBufferIndexZero = 124;
+
+export const fEXPLORER_ringBuffer_length = 125;
+
+/** TODO: what height should this start at? applicationRendererRoot.ts will eventually run initialization logic that actually does the measuring. */
+export const fEXPLORER_itemHeightNumber = 126;
+INTS[fEXPLORER_itemHeightNumber] = 20;
+
+export const fEXPLORER_boundingClientRect_left = 127;
+export const fEXPLORER_boundingClientRect_top = 128;
 
 /*
 When collapse maybe you reset the length of the longest line or something

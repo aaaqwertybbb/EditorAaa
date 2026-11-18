@@ -5,6 +5,7 @@ import {
     TreeViewNodeKind_NOTisExpandable_isExpanded,
     TreeViewNodeKind_NOTisExpandable_NOTisExpanded
 } from "./treeViewComponent.js"
+import {CONST_EDI_ASCII_TAB, CONST_EDI_ASCII_SPACE} from './editorGlobal_edit.js'
 
 class DIALOG_FindAll_TreeViewDirector {
 
@@ -478,15 +479,15 @@ function DIALOG_checkboxTrueTabsFalseSpaces_onchange() {
     f.BYTES[f.byteDIALOG_Settings_trueTabs_falseSpaces] = checkboxTrueTabsFalseSpaces.checked;
     if (f.BYTES[f.byteDIALOG_Settings_trueTabs_falseSpaces]) {
         EDI_on_tab_bytes = new Uint8Array(1);
-        EDI_on_tab_bytes[0] = f.CONST_EDI_ASCII_TAB;
+        EDI_on_tab_bytes[0] = CONST_EDI_ASCII_TAB;
         f.INTS[f.fEDI_ontab_visualWidth_perCharacter] = 4;
     }
     else {
         EDI_on_tab_bytes = new Uint8Array(4);
-        EDI_on_tab_bytes[0] = f.CONST_EDI_ASCII_SPACE;
-        EDI_on_tab_bytes[1] = f.CONST_EDI_ASCII_SPACE;
-        EDI_on_tab_bytes[2] = f.CONST_EDI_ASCII_SPACE;
-        EDI_on_tab_bytes[3] = f.CONST_EDI_ASCII_SPACE;
+        EDI_on_tab_bytes[0] = CONST_EDI_ASCII_SPACE;
+        EDI_on_tab_bytes[1] = CONST_EDI_ASCII_SPACE;
+        EDI_on_tab_bytes[2] = CONST_EDI_ASCII_SPACE;
+        EDI_on_tab_bytes[3] = CONST_EDI_ASCII_SPACE;
         f.INTS[f.fEDI_ontab_visualWidth_perCharacter] = 1;
     }
 }

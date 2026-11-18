@@ -1,5 +1,7 @@
 import {APP_lineHeightStringWithPx} from "./applicationRendererRoot.js"
 
+export const CONST_AUTOCOMPLETE_topPadding = 4;
+
 let AUTOCOMPLETE_pending_lspResult = null;
 // I don't think 'slice' is in LSP specification but I need to start like this cause it is only way I'll get something "initially working".
 let AUTOCOMPLETE_items_slice = null;
