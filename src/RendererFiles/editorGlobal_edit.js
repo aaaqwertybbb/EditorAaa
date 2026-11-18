@@ -16,10 +16,17 @@ let EDI_trackingUint32MaxHeap = new TrackingUint32MaxHeap();
  */
 let EDI_findOverlay_searchResultPositionList = null;
 
-let EDI_textByteList_bytes = new Uint8Array(f.INTS[f.EDI_textByteList_capacity]);
+export let EDI_textByteList_bytes = new Uint8Array(f.INTS[f.EDI_textByteList_capacity]);
 
-let EDI_lineStringCache = [];
-let EDI_line_NUMBER_StringCache = [];
+export let EDI_lineStringCache = [];
+export function set_EDI_lineStringCache(value) {
+    EDI_lineStringCache = value;
+}
+
+export let EDI_line_NUMBER_StringCache = [];
+export function set_EDI_line_NUMBER_StringCache(value) {
+    EDI_line_NUMBER_StringCache = value;
+}
 //let EDI_lineStringCache_capacity = [];
 //let EDI_lineStringCache_count = [];
 
@@ -45,7 +52,7 @@ const EDI_lineEndPositionList_PENDING = new UInt32List(128);
 
 
 /** Be wary to the possibility of pending edits causing this to not be up to date. */
-let EDI_lineEndPositionList_data = new Uint32Array(f.INTS[f.fEDI_lineEndPositionList_capacity]);
+export let EDI_lineEndPositionList_data = new Uint32Array(f.INTS[f.fEDI_lineEndPositionList_capacity]);
 
 let EDI_textSourceIdentifier = '';
 let EDI_FORMATTED_textSourceIdentifier = '';
@@ -64,10 +71,10 @@ let EDI_listComponent = null;
  */
 export const EDI_renderKindBuffer = new Uint8Array(f.BUFFER_SIZE);
 
-let EDI_styleBuffer = new Uint8Array(0);
+export let EDI_styleBuffer = new Uint8Array(0);
 
 // Quick index token to color assignment map
-const EDI_tokenColors = [
+export const EDI_tokenColors = [
     '#d4d4d4', // Token 0: standardText
     '#CE9178', // Token 1: string
     '#6A9955', // Token 2: comment
@@ -81,17 +88,23 @@ const EDI_tokenColors = [
 ];
 
 /** decimal */
-let EDI_lastReadNumber_scrollLeft = 0;
+export let EDI_lastReadNumber_scrollLeft = 0;
 /** decimal */
-let EDI_lastReadNumber_scrollTop = 0;
+export let EDI_lastReadNumber_scrollTop = 0;
 
-let EDI_characterWidth = 8;
+export let EDI_characterWidth = 8;
+export function set_EDI_characterWidth(value) {
+    EDI_characterWidth = value;
+}
 //let EDI_character_count_that_fits_view = 100;
 
 //let EDI_verticalCenterPadding = 0;
 let EDI_textTopPadding = 3;
 
-let EDI_cursor_cursorTranslateXValue = 0;
+export let EDI_cursor_cursorTranslateXValue = 0;
+export function set_EDI_cursor_cursorTranslateXValue(value) {
+    EDI_cursor_cursorTranslateXValue = value;
+}
 
 /**
  * Depending on 'f.BYTES[f.byteEDI_cursor_enterKeyEventKind]' this may either start OR end with '\n'.
@@ -475,7 +488,7 @@ class EDI_CustomDecoder {
 
 const EDI_encoder = new TextEncoder();
 const EDI_decoder = new TextDecoder();
-const EDI_decoder_CUSTOM = new EDI_CustomDecoder();
+export const EDI_decoder_CUSTOM = new EDI_CustomDecoder();
 
 //// Find-All for "EDI_debug_optimization" to find all the commented out logic that was related to this.
 // let EDI_debug_optimization_has_logged_disassembleFunction = false;
@@ -3166,7 +3179,7 @@ function EDI_render_do_cursor_flag_scrollIntoViewExplicit() {
     EDI_drawCursor(notShouldScrollIntoView);
 }
 
-function EDI_cursor_hasSelection() {
+export function EDI_cursor_hasSelection() {
     return f.INTS[f.fEDI_cursor_selectionAnchor] >= 0 &&
         f.INTS[f.fEDI_cursor_selectionEnd] >= 0 &&
         f.INTS[f.fEDI_cursor_selectionAnchor] != f.INTS[f.fEDI_cursor_selectionEnd];

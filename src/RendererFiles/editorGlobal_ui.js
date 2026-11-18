@@ -1,5 +1,23 @@
 import * as f from './fieldBuffer.js'
-import {EDI_renderKindBuffer} from './editorGlobal_edit.js'
+import {
+    EDI_renderKindBuffer,
+    EDI_characterWidth,
+    set_EDI_characterWidth,
+    EDI_lineStringCache,
+    set_EDI_lineStringCache,
+    EDI_line_NUMBER_StringCache,
+    set_EDI_line_NUMBER_StringCache,
+    EDI_lastReadNumber_scrollTop,
+    EDI_lineEndPositionList_data,
+    EDI_textByteList_bytes,
+    EDI_styleBuffer,
+    EDI_tokenColors,
+    EDI_decoder_CUSTOM,
+    EDI_lastReadNumber_scrollLeft,
+    EDI_cursor_hasSelection,
+    EDI_cursor_cursorTranslateXValue,
+    set_EDI_cursor_cursorTranslateXValue
+} from './editorGlobal_edit.js'
 
 /**
  * !!!!
@@ -179,7 +197,7 @@ function EDI_resizeCanvases() {
     gutterCanvas.height = viewHeight * dpr;
 
     // --- 3. CONFIG DIGEST FOR TEXT CANVAS ---
-    const textCanvas = document.getElementById('f.EDI_text_canvas');
+    const textCanvas = document.getElementById('EDI_text_canvas');
     const textLayoutWidth = viewWidth - gutterLayoutWidth;
     textCanvas.style.width = textLayoutWidth + 'px';
     textCanvas.style.height = viewHeight + 'px';
@@ -221,7 +239,7 @@ function EDI_resizeCanvases() {
 
     // The exact pixel width of every single character in a monospace font
     const charWidth = ctxText.measureText('M').width;
-    EDI_characterWidth = charWidth;
+    set_EDI_characterWidth(charWidth);
 
     // Run once during setup / font configuration
     //ctx.font = '14px monospace';
@@ -241,7 +259,7 @@ function EDI_resizeCanvases() {
 
 
     // --- CONFIG DIGEST FOR CURSOR CANVAS ---
-    const cursorCanvas = document.getElementById('f.EDI_cursor_canvas');
+    const cursorCanvas = document.getElementById('EDI_cursor_canvas');
     cursorCanvas.style.width = textLayoutWidth + 'px';
     cursorCanvas.style.height = viewHeight + 'px';
     cursorCanvas.width = textLayoutWidth * dpr;
@@ -253,8 +271,8 @@ function EDI_resizeCanvases() {
     // Set your editor's cursor color profile
     ctxCursor.fillStyle = '#528bff'; // A nice modern blue cursor, or white (#ffffff)
 
-    EDI_lineStringCache = new Array(f.INTS[f.fEDI_virtualCount]);
-    EDI_line_NUMBER_StringCache = new Array(f.INTS[f.fEDI_virtualCount]);
+    set_EDI_lineStringCache(new Array(f.INTS[f.fEDI_virtualCount]));
+    set_EDI_line_NUMBER_StringCache(new Array(f.INTS[f.fEDI_virtualCount]));
     f.INTS[f.fEDI_ArrayFrom_textElement_children_length] = f.INTS[f.fEDI_virtualCount];
 
     const aaa = f.INTS[f.fEDI_virtualCount];
@@ -690,7 +708,7 @@ function EDI_render_do_Scroll() {
         const cursorX = (f.INTS[f.fEDI_cursorVisualColumnIndex] * EDI_characterWidth) - EDI_lastReadNumber_scrollLeft;
         const cursorY = -(EDI_lastReadNumber_scrollTop % local_lineHeight) + ((cursorLine - view_startLineIndex) * local_lineHeight);
         
-        EDI_cursor_cursorTranslateXValue = cursorX;
+        set_EDI_cursor_cursorTranslateXValue(cursorX);
         ctx.fillRect(cursorX, cursorY, 2, local_lineHeight);
     }
 }
@@ -3054,7 +3072,7 @@ function theNew_walkLineUntilIndexColumn() {
  */
 function update_verticalVirtualizationBoundary(lineCount) {
     if (!lineCount) lineCount = f.INTS[f.fEDI_lineEndPositionList_count];
-    EDI_virtualization_horizontal.style.height = ((lineCount + f.INTS[f.fEDI_virtualCount] - 1) * f.INTS[f.fEDI_lineHeight]) + 'px';
+    f.EDI_virtualization_horizontal.style.height = ((lineCount + f.INTS[f.fEDI_virtualCount] - 1) * f.INTS[f.fEDI_lineHeight]) + 'px';
 }
 
 /**
@@ -3210,7 +3228,7 @@ function EDI_drawHorizontalScrollbar() {
         // The scrollViewport currently has a 'left/inset' that places it beyond the gutter. So the gutterWidthTotal being added is not necessary.
         const virtualization_horizontal_style_width_attribute = f.INTS[f.fEDI_contentWidth] + 'px';
 
-        EDI_virtualization_horizontal.style.width = virtualization_horizontal_style_width_attribute;
+        f.EDI_virtualization_horizontal.style.width = virtualization_horizontal_style_width_attribute;
 
         //for (let i = 0; i < f.INTS[f.fEDI_ArrayFrom_textElement_children_length]; i++) {
         //    EDI_ringBuffer_text[i].style.width = virtualization_horizontal_style_width_attribute;
