@@ -49,6 +49,8 @@ class Explorer {
     }
 }
 
+export const explorer = new Explorer();
+
 /** Pixels */
 export const CONST_EXPLORER_offsetPerDepth = 8;
 

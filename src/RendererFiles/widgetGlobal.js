@@ -12,10 +12,10 @@ const WIDGETrenderKind = Object.freeze({
 
 class Widget {
     constructor() {
-        let isRenderPending = false;
-        let widgetKind_drawn = 0;
-        let queueHead = 0;
-        let queueTail = 0;
+        this.isRenderPending = false;
+        this.widgetKind_drawn = 0;
+        this.queueHead = 0;
+        this.queueTail = 0;
 
         /**
          * start it at 1 because you thought about starting it at 0 then using a prefix incrementation to ensure the 0 state is never used as a means of detecting an empty state
@@ -31,13 +31,15 @@ class Widget {
          * 
          * okay yeah it is a ticket dispenser we're good
          */
-        let ticketId_counter = 1;
+        this.ticketId_counter = 1;
 
-        let ticketId_drawn = 0;
+        this.ticketId_drawn = 0;
 
-        let renderKind_Show_countOfPendingRequests = 0;
+        this.renderKind_Show_countOfPendingRequests = 0;
     }
 }
+
+export const widget = new Widget();
 
 /**
  * @callback WIDGET_Callback
@@ -73,30 +75,30 @@ let WIDGET_request = null;
 //WIDGET_element.addEventListener('focusout', () => WIDGET_hide());
 
 function WIDGET_render_request(renderKind) {
-    if (f.BYTES[byteWIDGET_queueHead] !== f.BYTES[byteWIDGET_queueTail]) {
-        const lastAbsoluteIndex = f.OFFSET_WIDGET + ((f.BYTES[byteWIDGET_queueTail] - 1) & f.UI_SLOT_MASK);
+    if (widget.queueHead !== widget.queueTail) {
+        const lastAbsoluteIndex = f.OFFSET_WIDGET + ((widget.queueTail - 1) & f.UI_SLOT_MASK);
         if (f.MASTER_RENDER_BUFFER[lastAbsoluteIndex] === renderKind) {
             return;
         }
     }
 
-    const absoluteIndex = f.OFFSET_WIDGET + (f.BYTES[byteWIDGET_queueTail] & f.UI_SLOT_MASK);
+    const absoluteIndex = f.OFFSET_WIDGET + (widget.queueTail & f.UI_SLOT_MASK);
     f.MASTER_RENDER_BUFFER[absoluteIndex] = renderKind;
     if (renderKind === WIDGETrenderKind_Show) f.INTS[fWIDGETrenderKind_Show_countOfPendingRequests]++;
-    f.BYTES[byteWIDGET_queueTail]++;
+    widget.queueTail++;
     
-    if (f.BYTES[byteWIDGET_isRenderPending] === 0) {
-        f.BYTES[byteWIDGET_isRenderPending] = 1;
+    if (widget.isRenderPending === 0) {
+        widget.isRenderPending = 1;
         requestAnimationFrame(WIDGET_render_do);
     }
 }
 
 function WIDGET_render_do() {
-    while (f.BYTES[byteWIDGET_queueHead] !== f.BYTES[byteWIDGET_queueTail]) {
+    while (widget.queueHead !== widget.queueTail) {
         // Uses the exact same masking logic, but reads from the higher memory region
-        const absoluteIndex = f.OFFSET_WIDGET + (f.BYTES[byteWIDGET_queueHead] & f.UI_SLOT_MASK);
+        const absoluteIndex = f.OFFSET_WIDGET + (widget.queueHead & f.UI_SLOT_MASK);
         const renderKind = f.MASTER_RENDER_BUFFER[absoluteIndex];
-        f.BYTES[byteWIDGET_queueHead]++; 
+        widget.queueHead++; 
 
         switch (renderKind) {
             case WIDGETrenderKind_Show:
@@ -108,13 +110,13 @@ function WIDGET_render_do() {
                 break;
         }
     }
-    f.BYTES[byteWIDGET_isRenderPending] = 0;
+    widget.isRenderPending = 0;
 }
 
 function WIDGET_render_do_Show() {
 
     let WIDGET_element = document.getElementById('WIDGET');
-    if (f.BYTES[byteWIDGET_WidgetKind_drawn] !== WidgetKind_None) {
+    if (widget.WidgetKind_drawn !== WidgetKind_None) {
         WIDGET_element = null;
         WIDGET_render_do_Hide();
     }
@@ -125,7 +127,7 @@ function WIDGET_render_do_Show() {
         document.body.appendChild(WIDGET_element);
     }
 
-    f.BYTES[byteWIDGET_WidgetKind_drawn] = WIDGET_request.widgetKind;
+    widget.WidgetKind_drawn = WIDGET_request.widgetKind;
 
     if (!WIDGET_request.elementToFocusOnCompleted) {
         WIDGET_request.elementToFocusOnCompleted = document.activeElement;
@@ -134,7 +136,7 @@ function WIDGET_render_do_Show() {
     // TODO: Move this to after the '..._Create()' invocations
     f.INTS[fWIDGET_ticketId_drawn] = WIDGET_request.ticket;
 
-    switch (f.BYTES[byteWIDGET_WidgetKind_drawn]) {
+    switch (widget.WidgetKind_drawn) {
         case WidgetKind_InputText:
             WidgetKind_InputText_Create();
             break;
@@ -207,7 +209,7 @@ async function WIDGET_show(widgetKind, left, top, placeholder, value, target, el
 function WIDGET_render_do_Hide() {
     const WIDGET_element = document.getElementById('WIDGET');
 
-    switch (f.BYTES[byteWIDGET_WidgetKind_drawn]) {
+    switch (widget.WidgetKind_drawn) {
         case WidgetKind_InputText:
             WidgetKind_InputText_Delete(WIDGET_element);
             break;
@@ -215,7 +217,7 @@ function WIDGET_render_do_Hide() {
             WidgetKind_YesCancel_Delete(WIDGET_element);
             break;
     }
-    f.BYTES[byteWIDGET_WidgetKind_drawn] = WidgetKind_None;
+    widget.WidgetKind_drawn = WidgetKind_None;
     f.INTS[fWIDGET_ticketId_drawn] = 0;
     WIDGET_element.remove();
 }

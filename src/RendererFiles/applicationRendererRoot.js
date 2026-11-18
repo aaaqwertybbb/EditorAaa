@@ -15,6 +15,8 @@ class EditorAaaApp {
     }
 }
 
+export const editorAaaApp = new EditorAaaApp();
+
 /**
  * Connect to the single threaded C# console app (custom language server)
  * 
@@ -428,7 +430,7 @@ function APP_measureLineHeightAndCharacterWidth() {
     textNode.replaceData(0, textNode.length, "-"); // This permits me to in 'explorer.js' set the first span of every "tree-view-node" to be the same width, regardless of whether its content is '-', '+', or '' (an empty string). (1 of 2)
     let rect = measureElement.getBoundingClientRect();
     // line height is read here
-    f.fAPP_lineHeight = Math.ceil(rect.height); // get line height too while I'm here.
+    editorAaaApp.lineHeight = Math.ceil(rect.height); // get line height too while I'm here.
     const minusWidth = Math.ceil(rect.width);
     
     textNode.replaceData(0, textNode.length, "+"); // This permits me to in 'explorer.js' set the first span of every "tree-view-node" to be the same width, regardless of whether its content is '-', '+', or '' (an empty string). (2 of 2)
@@ -441,7 +443,7 @@ function APP_measureLineHeightAndCharacterWidth() {
     wrapper.removeChild(measureElement);
     document.body.removeChild(wrapper);
 
-    APP_lineHeightStringWithPx = f.fAPP_lineHeight + 'px';
+    APP_lineHeightStringWithPx = editorAaaApp.lineHeight + 'px';
 }
 
 //async function window_myAPI_onMessage(data) {

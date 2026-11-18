@@ -25,7 +25,7 @@ class DIALOG_FindAll_TreeViewDirector {
             return;
         }
 
-        this.component.setItems(this, f.fAPP_lineHeight, f.fAPP_lineHeight + 'px');
+        this.component.setItems(this, editorAaaApp.lineHeight, editorAaaApp.lineHeight + 'px');
 
         for (let i = 0; i < actualData.length; i++) {
             let nodeKind = TreeViewNodeKind.isExpandable_NOTisExpanded;
@@ -329,7 +329,7 @@ function DIALOG_FindAll_Create() {
     // TODO: Remove 'searchResultsDiv'? It is pointlessly wrapping.
     let searchResultsDiv = document.createElement('div');
     searchResultsDiv.id = 'DIALOG_FindAll_searchResultsDiv';
-    const searchResultsDivHeightString = `calc(100% - ${2 * f.fAPP_lineHeight}px - 2px)`;
+    const searchResultsDivHeightString = `calc(100% - ${2 * editorAaaApp.lineHeight}px - 2px)`;
     searchResultsDiv.style.height = searchResultsDivHeightString;
     searchResultsDiv.style.lineHeight = searchResultsDivHeightString;
     dialogBody.appendChild(searchResultsDiv);
@@ -502,7 +502,7 @@ function DIALOG_DocumentSymbol_Create() {
     if (EDI_documentSymbolResult) {
         let div = document.createElement('div');
         div.textContent = 'EDI_documentSymbolResult.length: ' + EDI_documentSymbolResult.length;
-        div.style.height = f.fAPP_lineHeight + 'px';
+        div.style.height = editorAaaApp.lineHeight + 'px';
         div.style.whiteSpace = 'nowrap';
         dialogBody.appendChild(div);
         EDI_listComponent.rootElement.style.height = `calc(100% - ${div.style.height})`;

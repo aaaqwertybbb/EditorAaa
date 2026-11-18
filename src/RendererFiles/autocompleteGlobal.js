@@ -20,41 +20,43 @@ const AUTOCOMPLETErenderKind = Object.freeze({
 
 class Autocomplete {
     constructor() {
-        let exists = false;
-        let isRenderPending = false;
-        let rect_isNull = true;
-        let isCheckingTrailingEdge = false;
-        let scrollIsFetchingData = false;
-        let queueHead = 0;
-        let queueTail = 0;
+        this.exists = false;
+        this.isRenderPending = false;
+        this.rect_isNull = true;
+        this.isCheckingTrailingEdge = false;
+        this.scrollIsFetchingData = false;
+        this.queueHead = 0;
+        this.queueTail = 0;
 
         // I don't think 'slice' is in LSP specification but I need to start like this cause it is only way I'll get something "initially working".
         /** TODO: This isn't used only set */
-        let items_slice_start = 0;
+        this.items_slice_start = 0;
         /** TODO: This isn't used only set */
-        let items_slice_end = 0;
-        let items_totalLength = 0;
+        this.items_slice_end = 0;
+        this.items_totalLength = 0;
 
-        let cursorIndex = 0;
+        this.cursorIndex = 0;
 
-        let rectHeight = 0;
-        let rectLeft = 0;
+        this.rectHeight = 0;
+        this.rectLeft = 0;
         /** TODO: This isn't used only set, but it probably will be used for mouse events just that they're not written yet? */
-        let rectTop = 0;
+        this.rectTop = 0;
 
-        let sliceVirtualIndex_SLICE = 0;
-        let sliceVirtualCount_SLICE = 0;
-        let sliceRingBufferIndexZero_SLICE = 0;
+        this.sliceVirtualIndex_SLICE = 0;
+        this.sliceVirtualCount_SLICE = 0;
+        this.sliceRingBufferIndexZero_SLICE = 0;
 
-        let virtualCount = 0;
-        let virtualIndex = 0;
-        let ringBufferIndexZero = 0;
+        this.virtualCount = 0;
+        this.virtualIndex = 0;
+        this.ringBufferIndexZero = 0;
 
-        let scrollTop = 0;
+        this.scrollTop = 0;
 
-        let isCheckingTrailingEdgeTimeoutId = 0;
+        this.isCheckingTrailingEdgeTimeoutId = 0;
     }
 }
+
+export const autocomplete = new Autocomplete();
 
 let AUTOCOMPLETEElement = null;
 let AUTOCOMPLETE_scroll_viewport = null;
@@ -67,29 +69,29 @@ let AUTOCOMPLETE_lastSeenFilter = null;
 let AUTOCOMPLETE_lastSeen_totalLength_SLICE = 0;
 
 function AUTOCOMPLETE_render_request(renderKind) {
-    if (f.BYTES[byteAUTOCOMPLETE_queueHead] !== f.BYTES[byteAUTOCOMPLETE_queueTail]) {
-        const lastAbsoluteIndex = f.OFFSET_AUTOCOMPLETE + ((f.BYTES[byteAUTOCOMPLETE_queueTail] - 1) & f.UI_SLOT_MASK);
+    if (autocomplete.queueHead !== autocomplete.queueTail) {
+        const lastAbsoluteIndex = f.OFFSET_AUTOCOMPLETE + ((autocomplete.queueTail - 1) & f.UI_SLOT_MASK);
         if (f.MASTER_RENDER_BUFFER[lastAbsoluteIndex] === renderKind) {
             return;
         }
     }
 
-    const absoluteIndex = f.OFFSET_AUTOCOMPLETE + (f.BYTES[byteAUTOCOMPLETE_queueTail] & f.UI_SLOT_MASK);
+    const absoluteIndex = f.OFFSET_AUTOCOMPLETE + (autocomplete.queueTail & f.UI_SLOT_MASK);
     f.MASTER_RENDER_BUFFER[absoluteIndex] = renderKind;
-    f.BYTES[byteAUTOCOMPLETE_queueTail]++;
+    autocomplete.queueTail++;
     
-    if (f.BYTES[byteAUTOCOMPLETE_isRenderPending] === 0) {
-        f.BYTES[byteAUTOCOMPLETE_isRenderPending] = 1;
+    if (autocomplete.isRenderPending === 0) {
+        autocomplete.isRenderPending = 1;
         requestAnimationFrame(AUTOCOMPLETE_render_do);
     }
 }
 
 function AUTOCOMPLETE_render_do() {
-    while (f.BYTES[byteAUTOCOMPLETE_queueHead] !== f.BYTES[byteAUTOCOMPLETE_queueTail]) {
+    while (autocomplete.queueHead !== autocomplete.queueTail) {
         // Uses the exact same masking logic, but reads from the higher memory region
-        const absoluteIndex = f.OFFSET_AUTOCOMPLETE + (f.BYTES[byteAUTOCOMPLETE_queueHead] & f.UI_SLOT_MASK);
+        const absoluteIndex = f.OFFSET_AUTOCOMPLETE + (autocomplete.queueHead & f.UI_SLOT_MASK);
         const renderKind = f.MASTER_RENDER_BUFFER[absoluteIndex];
-        f.BYTES[byteAUTOCOMPLETE_queueHead]++; 
+        autocomplete.queueHead++; 
 
         switch (renderKind) {
             case AUTOCOMPLETErenderKind_Show:
@@ -109,7 +111,7 @@ function AUTOCOMPLETE_render_do() {
                 break;
         }
     }
-    f.BYTES[byteAUTOCOMPLETE_isRenderPending] = 0;
+    autocomplete.isRenderPending = 0;
 }
 
 function AUTOCOMPLETE_render_create_lines(AUTOCOMPLETE_itemList) {
@@ -120,14 +122,14 @@ function AUTOCOMPLETE_render_create_lines(AUTOCOMPLETE_itemList) {
     }
 
     // TODO: minus CONST_AUTOCOMPLETE_topPadding
-    fAUTOCOMPLETE_virtualCount = Math.floor(fAUTOCOMPLETE_rectHeight / f.fAPP_lineHeight);
+    fAUTOCOMPLETE_virtualCount = Math.floor(fAUTOCOMPLETE_rectHeight / editorAaaApp.lineHeight);
     fAUTOCOMPLETE_virtualIndex = 0;
     fAUTOCOMPLETE_ringBufferIndexZero = 0;
     fAUTOCOMPLETE_scrollTop = 0;
 
     fAUTOCOMPLETE_cursorIndex = 0;
 
-    let appHeightCssAttributeValue = `${f.fAPP_lineHeight}px`;
+    let appHeightCssAttributeValue = `${editorAaaApp.lineHeight}px`;
 
     AUTOCOMPLETE_itemList.innerHTML = '';
 
@@ -154,7 +156,7 @@ function AUTOCOMPLETE_render_create_lines(AUTOCOMPLETE_itemList) {
         AUTOCOMPLETE_itemList.append(div);
 
         div.style.top = `${verticalOffset}px`;
-        verticalOffset += f.fAPP_lineHeight;
+        verticalOffset += editorAaaApp.lineHeight;
     }
 
     AUTOCOMPLETE_ringBuffer = Array.from(AUTOCOMPLETE_itemList.children);
@@ -170,7 +172,7 @@ function AUTOCOMPLETE_render_RESET_lines(AUTOCOMPLETE_itemList) {
     AUTOCOMPLETE_ensure_boundingClientRect();
 
     // TODO: minus CONST_AUTOCOMPLETE_topPadding
-    fAUTOCOMPLETE_virtualCount = Math.floor(fAUTOCOMPLETE_rectHeight / f.fAPP_lineHeight);
+    fAUTOCOMPLETE_virtualCount = Math.floor(fAUTOCOMPLETE_rectHeight / editorAaaApp.lineHeight);
     fAUTOCOMPLETE_virtualIndex = 0;
     fAUTOCOMPLETE_ringBufferIndexZero = 0;
     fAUTOCOMPLETE_scrollTop = 0;
@@ -193,7 +195,7 @@ function AUTOCOMPLETE_render_RESET_lines(AUTOCOMPLETE_itemList) {
         // for the nodes, it needs to even if 0 so the browser receives explicit instructions rather than trying to static place and it "happens" to end up at 0,0.
 
         div.style.top = `${verticalOffset}px`;
-        verticalOffset += f.fAPP_lineHeight;
+        verticalOffset += editorAaaApp.lineHeight;
     }
 }
 
@@ -203,13 +205,13 @@ function AUTOCOMPLETE_render_do_show() {
     // so this continues failing to avoid race condition, but now if the lsp throws an error you don't get locked out forever.
     // (the reason specfically I think relates to when you change a file i.e.: changing a file can race condition regardless of this being forced to false)
     // (UGH not changing a file I'm gonna pass out I'm almost done but I mean the changing the autocomplete menu or some such)
-    f.BYTES[byteAUTOCOMPLETE_scrollIsFetchingData] = 0;
+    autocomplete.scrollIsFetchingData = 0;
 
     let local_AUTOCOMPLETEElement;
     let AUTOCOMPLETE_itemList;
     let AUTOCOMPLETE_scrollbar_space_generator;
 
-    if (f.BYTES[byteAUTOCOMPLETE_exists]) {
+    if (autocomplete.exists) {
         local_AUTOCOMPLETEElement = document.getElementById('AUTOCOMPLETE');
 
         AUTOCOMPLETE_itemList = document.getElementById('AUTOCOMPLETE_itemList');
@@ -228,7 +230,7 @@ function AUTOCOMPLETE_render_do_show() {
         // And then if it is truly meaningful from an optimization standpoint such as the scrolling of the editor
         // I take on the state corruption risk, otherwise I just defensively handle it.
         if (!local_AUTOCOMPLETEElement) {
-            f.BYTES[byteAUTOCOMPLETE_exists] = 0;
+            autocomplete.exists = 0;
             AUTOCOMPLETE_render_do_show();
             return;
         }
@@ -276,7 +278,7 @@ function AUTOCOMPLETE_render_do_show() {
         fAUTOCOMPLETE_rectHeight = Math.floor(rect.height);
         fAUTOCOMPLETE_rectLeft = rect.left;
         fAUTOCOMPLETE_rectTop = rect.top;
-        f.BYTES[byteAUTOCOMPLETE_rect_isNull] = 0;
+        autocomplete.rect_isNull = 0;
 
         AUTOCOMPLETE_render_create_lines(AUTOCOMPLETE_itemList);
 
@@ -295,10 +297,10 @@ function AUTOCOMPLETE_render_do_show() {
     fAUTOCOMPLETE_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING = 0;
 
     // TODO: This doesn't need mail.ceil but perhaps add it to ensure things?
-    let itemHeightTotalNumber = fAUTOCOMPLETE_items_totalLength * f.fAPP_lineHeight + CONST_AUTOCOMPLETE_topPadding;
+    let itemHeightTotalNumber = fAUTOCOMPLETE_items_totalLength * editorAaaApp.lineHeight + CONST_AUTOCOMPLETE_topPadding;
     AUTOCOMPLETE_scrollbar_space_generator.style.height = itemHeightTotalNumber + 'px';
 
-    f.BYTES[byteAUTOCOMPLETE_exists] = 1;
+    autocomplete.exists = 1;
 
     //local_AUTOCOMPLETEElement.focus();
 
@@ -316,7 +318,7 @@ function AUTOCOMPLETE_show(lspResult) {
 
 function AUTOCOMPLETE_slice(lspResult) {
 
-    f.BYTES[byteAUTOCOMPLETE_scrollIsFetchingData] = 0;
+    autocomplete.scrollIsFetchingData = 0;
     if (fAUTOCOMPLETE_sliceVirtualIndex_SLICE != fAUTOCOMPLETE_virtualIndex ||
         fAUTOCOMPLETE_sliceVirtualCount_SLICE != fAUTOCOMPLETE_virtualCount ||
         fAUTOCOMPLETE_sliceRingBufferIndexZero_SLICE != fAUTOCOMPLETE_ringBufferIndexZero) {
@@ -379,7 +381,7 @@ function AUTOCOMPLETE_slice(lspResult) {
     if (AUTOCOMPLETE_lastSeen_totalLength_SLICE !== lspResult.totalLength) {
         AUTOCOMPLETE_lastSeen_totalLength_SLICE = lspResult.totalLength;
         // TODO: This doesn't need mail.ceil but perhaps add it to ensure things?
-        let itemHeightTotalNumber = AUTOCOMPLETE_lastSeen_totalLength_SLICE * f.fAPP_lineHeight + CONST_AUTOCOMPLETE_topPadding;
+        let itemHeightTotalNumber = AUTOCOMPLETE_lastSeen_totalLength_SLICE * editorAaaApp.lineHeight + CONST_AUTOCOMPLETE_topPadding;
         AUTOCOMPLETE_scrollbar_space_generator.style.height = itemHeightTotalNumber + 'px';
     }
 }
@@ -397,7 +399,7 @@ function AUTOCOMPLETE_render_do_hide() {
         AUTOCOMPLETE_ringBuffer = null;
     }
 
-    f.BYTES[byteAUTOCOMPLETE_exists] = 0;
+    autocomplete.exists = 0;
 }
 
 function AUTOCOMPLETE_hide() {
@@ -406,24 +408,24 @@ function AUTOCOMPLETE_hide() {
 }
 
 function AUTOCOMPLETE_cursor_render_set() {
-    if (!f.BYTES[byteAUTOCOMPLETE_exists]) return;
+    if (!autocomplete.exists) return;
     
     let cursorElement = document.getElementById('AUTOCOMPLETE_cursor');
 
     // Determine the number without modifying styles so you can use this variable to determine the need to scroll into view without synchronous layout.
-    let cursorTranslateYNumber = CONST_AUTOCOMPLETE_topPadding + (f.fAPP_lineHeight * fAUTOCOMPLETE_cursorIndex);
+    let cursorTranslateYNumber = CONST_AUTOCOMPLETE_topPadding + (editorAaaApp.lineHeight * fAUTOCOMPLETE_cursorIndex);
 
     // Preferably this hasn't changed thus the function immediately just returns.
-    if (f.BYTES[byteAUTOCOMPLETE_rect_isNull])
+    if (autocomplete.rect_isNull)
         AUTOCOMPLETE_ensure_boundingClientRect();
     
     // If no UI modifications were made prior that are still pending this might avoid a synchronous layout.
     // TODO: If you touch the transform style first... I don't know what would happen it is a GPU related style... so I'm unsure.
     //
-    if (cursorTranslateYNumber + (2 * f.fAPP_lineHeight) > fAUTOCOMPLETE_scrollTop + fAUTOCOMPLETE_rectHeight) {
+    if (cursorTranslateYNumber + (2 * editorAaaApp.lineHeight) > fAUTOCOMPLETE_scrollTop + fAUTOCOMPLETE_rectHeight) {
         let currentBottom = fAUTOCOMPLETE_scrollTop + fAUTOCOMPLETE_rectHeight;
         let changeToMakeBottomTouch = cursorTranslateYNumber - currentBottom;
-        let entireValueToScrollBy = changeToMakeBottomTouch + (2 * f.fAPP_lineHeight);
+        let entireValueToScrollBy = changeToMakeBottomTouch + (2 * editorAaaApp.lineHeight);
         AUTOCOMPLETE_scroll_viewport.scrollBy(0, entireValueToScrollBy);
     }
     else if (cursorTranslateYNumber < fAUTOCOMPLETE_scrollTop) {
@@ -450,12 +452,12 @@ function AUTOCOMPLETE_cursor_validate(cursorIndex) {
 }
 
 function AUTOCOMPLETE_ensure_boundingClientRect() {
-    if (f.BYTES[byteAUTOCOMPLETE_rect_isNull] && f.BYTES[byteAUTOCOMPLETE_exists]) {
+    if (autocomplete.rect_isNull && autocomplete.exists) {
         let rect = AUTOCOMPLETEElement.getBoundingClientRect();
         fAUTOCOMPLETE_rectHeight = rect.height;
         fAUTOCOMPLETE_rectLeft = rect.left;
         fAUTOCOMPLETE_rectTop = rect.top;
-        f.BYTES[byteAUTOCOMPLETE_rect_isNull] = 0;
+        autocomplete.rect_isNull = 0;
     }
 }
 
@@ -474,7 +476,7 @@ function AUTOCOMPLETE_events_remove(AUTOCOMPLETEElement) {
 }
 
 function AUTOCOMPLETE_events_resize() {
-    f.BYTES[byteAUTOCOMPLETE_rect_isNull] = 1;
+    autocomplete.rect_isNull = 1;
 }
 
 function AUTOCOMPLETE_events_blur_receive() {
@@ -501,7 +503,7 @@ function AUTOCOMPLETE_events_scroll_render() {
     AUTOCOMPLETE_text.style.transform = `translate3d(-${AUTOCOMPLETE_scrollLeft}px, -${fAUTOCOMPLETE_scrollTop}px, 0)`;
 
     // TODO: minus CONST_AUTOCOMPLETE_topPadding
-    let currVli = Math.floor(fAUTOCOMPLETE_scrollTop / f.fAPP_lineHeight);
+    let currVli = Math.floor(fAUTOCOMPLETE_scrollTop / editorAaaApp.lineHeight);
 
     fAUTOCOMPLETE_virtualIndex = currVli;
 
@@ -543,7 +545,7 @@ function AUTOCOMPLETE_events_scroll_render() {
         ringBufferIndex = fAUTOCOMPLETE_ringBufferIndexZero;
     }
 
-    let verticalOffset = CONST_AUTOCOMPLETE_topPadding + (lowerBound * f.fAPP_lineHeight);
+    let verticalOffset = CONST_AUTOCOMPLETE_topPadding + (lowerBound * editorAaaApp.lineHeight);
 
     ringBufferIndex--; // The 0th loop will increment somewhat awkwardly. This decrement avoids that.
 
@@ -562,16 +564,16 @@ function AUTOCOMPLETE_events_scroll_render() {
         }
         
         div.style.top = `${verticalOffset}px`;
-        verticalOffset += f.fAPP_lineHeight;
+        verticalOffset += editorAaaApp.lineHeight;
     }
 }
 
 function AUTOCOMPLETE_events_scroll_render_trailingEdgeDo(filter) {
-    if (!f.BYTES[byteAUTOCOMPLETE_scrollIsFetchingData]) {
+    if (!autocomplete.scrollIsFetchingData) {
         fAUTOCOMPLETE_sliceVirtualIndex_SLICE = fAUTOCOMPLETE_virtualIndex;
         fAUTOCOMPLETE_sliceVirtualCount_SLICE = fAUTOCOMPLETE_virtualCount;
         fAUTOCOMPLETE_sliceRingBufferIndexZero_SLICE = fAUTOCOMPLETE_ringBufferIndexZero;
-        f.BYTES[byteAUTOCOMPLETE_scrollIsFetchingData] = 1;
+        autocomplete.scrollIsFetchingData = 1;
 
         if (filter === undefined) {
             if (AUTOCOMPLETE_lastSeenFilter === null && editor.cursor_textInsertionBufferCount > 0) {

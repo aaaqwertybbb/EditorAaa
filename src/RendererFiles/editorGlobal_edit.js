@@ -9456,7 +9456,7 @@ async function EDI_onKeyDown_keyLengthEqualsOne_ctrlKey(event) {
             break;
         case 'r':
 
-            if (f.BYTES[byteAUTOCOMPLETE_exists]) {
+            if (autocomplete.exists) {
                 AUTOCOMPLETE_events_scroll_render_trailingEdgeDo(EDI_autocomplete_get_filter());
             }
 
