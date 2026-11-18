@@ -160,9 +160,9 @@ function EXPLORER_renderLines(lineIndexLower, lineIndexUpper, ringBufferIndex, d
         if (i >= decodingBoundLower && i < decodingBoundUpper) {
             if (i < COUNT_ABSTRACT) {
                 EXPLORER_treeViewComponent.getElementAt(i);
-                const key = f.fTreeView_poolret_pooledNode_key;
-                const depth = f.fTreeView_poolret_pooledNode_depth;
-                const nodeKind = f.byteTreeView_byteret_pooledNode_nodeKind;
+                const key = treeViewComponent_staticRunner.fTreeView_poolret_pooledNode_key;
+                const depth = treeViewComponent_staticRunner.fTreeView_poolret_pooledNode_depth;
+                const nodeKind = treeViewComponent_staticRunner.byteTreeView_byteret_pooledNode_nodeKind;
 
                 let name = STRINGS_MAP_BY_PATH_ID.get(key) ?? `unknown_${i}`;
                 let chevronRepresentation = ' ';
@@ -200,9 +200,9 @@ function EXPLORER_renderLines(lineIndexLower, lineIndexUpper, ringBufferIndex, d
 
 async function EXPLORER_expandCollapseIconWasClicked(divItem, indexItem, ringBufferIndexItem) {
     EXPLORER_treeViewComponent.getElementAt(indexItem);
-    const key = f.fTreeView_poolret_pooledNode_key;
-    const depth = f.fTreeView_poolret_pooledNode_depth;
-    const nodeKind = f.byteTreeView_byteret_pooledNode_nodeKind;
+    const key = treeViewComponent_staticRunner.fTreeView_poolret_pooledNode_key;
+    const depth = treeViewComponent_staticRunner.fTreeView_poolret_pooledNode_depth;
+    const nodeKind = treeViewComponent_staticRunner.byteTreeView_byteret_pooledNode_nodeKind;
 
     if (nodeKind === TreeViewNodeKind.isExpandable_NOTisExpanded) {
         EXPLORER_treeViewComponent.setNodeKind(indexItem, TreeViewNodeKind.isExpandable_isExpanded);
@@ -254,8 +254,8 @@ async function EXPLORER_expandCollapseIconWasClicked(divItem, indexItem, ringBuf
 
 async function EXPLORER_dblClick_or_space_or_enter(eventKey, indexItem, ringBufferIndexItem) {
     EXPLORER_treeViewComponent.getElementAt(indexItem);
-    let key = f.fTreeView_poolret_pooledNode_key;
-    let nodeKind = f.byteTreeView_byteret_pooledNode_nodeKind;
+    let key = treeViewComponent_staticRunner.fTreeView_poolret_pooledNode_key;
+    let nodeKind = treeViewComponent_staticRunner.byteTreeView_byteret_pooledNode_nodeKind;
 
     if (nodeKind === TreeViewNodeKind.NOTisExpandable_NOTisExpanded) {
         // TODO: open the file by id in one ipc call
@@ -277,9 +277,9 @@ function EXPLORER_oncontextmenu(divItem, indexItem, event_button, event_clientX,
 
     // TODO: !!!! You might need to be careful with async and the TreeView_pooledNode; I'm not certain whether you do or don't have to be careful, and I don't feel like looking into it at the moment.
     EXPLORER_treeViewComponent.getElementAt(indexItem);
-    let key = f.fTreeView_poolret_pooledNode_key;
-    let depth = f.fTreeView_poolret_pooledNode_depth;
-    let nodeKind = f.byteTreeView_byteret_pooledNode_nodeKind;
+    let key = treeViewComponent_staticRunner.fTreeView_poolret_pooledNode_key;
+    let depth = treeViewComponent_staticRunner.fTreeView_poolret_pooledNode_depth;
+    let nodeKind = treeViewComponent_staticRunner.byteTreeView_byteret_pooledNode_nodeKind;
 
     let target = {
         id: key,
@@ -317,8 +317,8 @@ function EXPLORER_oncontextmenu(divItem, indexItem, event_button, event_clientX,
  */
 function EXPLORER_removeFromNodeList(indexItem) {
     EXPLORER_treeViewNodes.getElementAt(indexItem);
-    let depth = f.fTreeView_poolret_pooledNode_depth;
-    let nodeKind = f.byteTreeView_byteret_pooledNode_nodeKind;
+    let depth = treeViewComponent_staticRunner.fTreeView_poolret_pooledNode_depth;
+    let nodeKind = treeViewComponent_staticRunner.byteTreeView_byteret_pooledNode_nodeKind;
 
     if (nodeKind === TreeViewNodeKind.NOTisExpandable_isExpanded) {
         alert("TODO: if (nodeKind === ...TreeViewNodeKind.NOTisExpandable_isExpanded())");
@@ -598,8 +598,8 @@ async function EXPLORER_MenuOnClick(isCancelled, menuOption, menuRequest) {
 
 async function CommandKind_Paste_MenuOnClick_Paste(entry, menuRequest) {
     EXPLORER_treeViewNodes.getElementAt(menuRequest.target.indexItem);
-    let nodeKind = f.byteTreeView_byteret_pooledNode_nodeKind;
-    let depthOfTheParent = f.fTreeView_poolret_pooledNode_depth;
+    let nodeKind = treeViewComponent_staticRunner.byteTreeView_byteret_pooledNode_nodeKind;
+    let depthOfTheParent = treeViewComponent_staticRunner.fTreeView_poolret_pooledNode_depth;
     let isCollapsed = nodeKind === TreeViewNodeKind.isExpandable_NOTisExpanded || nodeKind === TreeViewNodeKind.NOTisExpandable_NOTisExpanded;
 
     let local_EXPLORER_menuOptionCut_object = EXPLORER_menuOptionCut_object;
@@ -626,10 +626,10 @@ async function CommandKind_Paste_MenuOnClick_Paste(entry, menuRequest) {
     //
     for (let i_targetDepth = 0; i_targetDepth < pasteResult.indexOf; i_targetDepth++) {
         EXPLORER_treeViewNodes.getElementAt(someIndex);
-        let nodeKind = f.byteTreeView_byteret_pooledNode_nodeKind;
+        let nodeKind = treeViewComponent_staticRunner.byteTreeView_byteret_pooledNode_nodeKind;
         let isCollapsed = nodeKind === TreeViewNodeKind.isExpandable_NOTisExpanded || nodeKind === TreeViewNodeKind.NOTisExpandable_NOTisExpanded;
 
-        let d_of_presumed_correct_depth = f.fTreeView_poolret_pooledNode_depth;
+        let d_of_presumed_correct_depth = treeViewComponent_staticRunner.fTreeView_poolret_pooledNode_depth;
         if (d_of_presumed_correct_depth !== targetDepth) {
             // Validate the target you paste into's child count
             break;
@@ -684,8 +684,8 @@ async function NewFile_Directory_WIDGET_InputText_callback(widgetResult) {
     const target = widgetResult.request.target;
 
     EXPLORER_treeViewNodes.getElementAt(target.indexItem);
-    let nodeKind = f.byteTreeView_byteret_pooledNode_nodeKind;
-    let depthOfTheParent = f.fTreeView_poolret_pooledNode_depth;
+    let nodeKind = treeViewComponent_staticRunner.byteTreeView_byteret_pooledNode_nodeKind;
+    let depthOfTheParent = treeViewComponent_staticRunner.fTreeView_poolret_pooledNode_depth;
     let isCollapsed = nodeKind === TreeViewNodeKind.isExpandable_NOTisExpanded || nodeKind === TreeViewNodeKind.NOTisExpandable_NOTisExpanded;
 
     const newFileResult = await window.myAPI.newFile(entry.absolutePath, widgetResult.resultData, /*isDirectory*/ true);
@@ -705,10 +705,10 @@ async function NewFile_Directory_WIDGET_InputText_callback(widgetResult) {
         //
         for (let i_targetDepth = 0; i_targetDepth < newFileResult.indexOf; i_targetDepth++) {
             EXPLORER_treeViewNodes.getElementAt(someIndex);
-            let nodeKind = f.byteTreeView_byteret_pooledNode_nodeKind;
+            let nodeKind = treeViewComponent_staticRunner.byteTreeView_byteret_pooledNode_nodeKind;
             let isCollapsed = nodeKind === TreeViewNodeKind.isExpandable_NOTisExpanded || nodeKind === TreeViewNodeKind.NOTisExpandable_NOTisExpanded;
 
-            let d_of_presumed_correct_depth = f.fTreeView_poolret_pooledNode_depth;
+            let d_of_presumed_correct_depth = treeViewComponent_staticRunner.fTreeView_poolret_pooledNode_depth;
             if (d_of_presumed_correct_depth !== targetDepth) {
                 // Validate the target you paste into's child count
                 break;
@@ -747,8 +747,8 @@ async function NewFile_File_WIDGET_InputText_callback(widgetResult) {
     const target = widgetResult.request.target;
     
     EXPLORER_treeViewNodes.getElementAt(target.indexItem);
-    let nodeKind = f.byteTreeView_byteret_pooledNode_nodeKind;
-    let depthOfTheParent = f.fTreeView_poolret_pooledNode_depth;
+    let nodeKind = treeViewComponent_staticRunner.byteTreeView_byteret_pooledNode_nodeKind;
+    let depthOfTheParent = treeViewComponent_staticRunner.fTreeView_poolret_pooledNode_depth;
     let isCollapsed = nodeKind === TreeViewNodeKind.isExpandable_NOTisExpanded || nodeKind === TreeViewNodeKind.NOTisExpandable_NOTisExpanded;
 
     const newFileResult = await window.myAPI.newFile(entry.absolutePath, widgetResult.resultData, /*isDirectory*/ false);
@@ -766,10 +766,10 @@ async function NewFile_File_WIDGET_InputText_callback(widgetResult) {
     //
     for (let i_targetDepth = 0; i_targetDepth < newFileResult.indexOf; i_targetDepth++) {
         EXPLORER_treeViewNodes.getElementAt(someIndex);
-        let nodeKind = f.byteTreeView_byteret_pooledNode_nodeKind;
+        let nodeKind = treeViewComponent_staticRunner.byteTreeView_byteret_pooledNode_nodeKind;
         let isCollapsed = nodeKind === TreeViewNodeKind.isExpandable_NOTisExpanded || nodeKind === TreeViewNodeKind.NOTisExpandable_NOTisExpanded;
 
-        let d_of_presumed_correct_depth = f.fTreeView_poolret_pooledNode_depth;
+        let d_of_presumed_correct_depth = treeViewComponent_staticRunner.fTreeView_poolret_pooledNode_depth;
         if (d_of_presumed_correct_depth !== targetDepth) {
             // Validate the target you paste into's child count
             break;

@@ -1,5 +1,5 @@
 import {APP_lineHeightStringWithPx} from "./applicationRendererRoot.js"
-import {TreeViewNodeKind} from "./treeViewComponent.js"
+import {TreeViewNodeKind, treeViewComponent_staticRunner} from "./treeViewComponent.js"
 import {CONST_EDI_ASCII_TAB, CONST_EDI_ASCII_SPACE} from './editorGlobal_edit.js'
 
 class DIALOG_FindAll_TreeViewDirector {
@@ -97,9 +97,9 @@ class DIALOG_FindAll_TreeViewDirector {
             }
             else {
                 this.nodeList.getElementAt(indexItem);
-                let key = f.fTreeView_poolret_pooledNode_key;
-                depth = f.fTreeView_poolret_pooledNode_depth;
-                nodeKind = f.byteTreeView_byteret_pooledNode_nodeKind;
+                let key = treeViewComponent_staticRunner.fTreeView_poolret_pooledNode_key;
+                depth = treeViewComponent_staticRunner.fTreeView_poolret_pooledNode_depth;
+                nodeKind = treeViewComponent_staticRunner.byteTreeView_byteret_pooledNode_nodeKind;
 
                 let textNode = divItem.lastChild;
                 if (textNode.nodeType !== Node.TEXT_NODE) throw new Error('if (textNode.nodeType !== Node.TEXT_NODE)');
@@ -159,9 +159,9 @@ class DIALOG_FindAll_TreeViewDirector {
     
     async tvd_ondblclick_async(divItem, indexItem) {
         this.nodeList.getElementAt(indexItem);
-        let key = f.fTreeView_poolret_pooledNode_key;
-        let depth = f.fTreeView_poolret_pooledNode_depth;
-        let nodeKind = f.byteTreeView_byteret_pooledNode_nodeKind;
+        let key = treeViewComponent_staticRunner.fTreeView_poolret_pooledNode_key;
+        let depth = treeViewComponent_staticRunner.fTreeView_poolret_pooledNode_depth;
+        let nodeKind = treeViewComponent_staticRunner.byteTreeView_byteret_pooledNode_nodeKind;
 
         if (nodeKind === TreeViewNodeKind.NOTisExpandable_NOTisExpanded) {
 
@@ -205,9 +205,9 @@ class DIALOG_FindAll_TreeViewDirector {
      */
     async tvd_expandCollapseIconWasClicked_async(divItem, indexItem) {
         this.nodeList.getElementAt(indexItem);
-        let key = f.fTreeView_poolret_pooledNode_key;
-        let depth = f.fTreeView_poolret_pooledNode_depth;
-        let nodeKind = f.byteTreeView_byteret_pooledNode_nodeKind;
+        let key = treeViewComponent_staticRunner.fTreeView_poolret_pooledNode_key;
+        let depth = treeViewComponent_staticRunner.fTreeView_poolret_pooledNode_depth;
+        let nodeKind = treeViewComponent_staticRunner.byteTreeView_byteret_pooledNode_nodeKind;
 
         if (nodeKind === TreeViewNodeKind.isExpandable_NOTisExpanded) {
 

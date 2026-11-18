@@ -23,10 +23,6 @@ export const TreeViewNodeKind = Object.freeze({
     NOTisExpandable_NOTisExpanded: 4,
 });
 
-// ====
-export const byteTreeView_byteret_pooledNode_nodeKind = 0;
-// ====
-
 class TreeViewComponent_staticRunner {
     constructor() {
         this.queueHead = 0;
@@ -42,6 +38,12 @@ class TreeViewComponent_staticRunner {
 
         // Bind once in constructor so rAF doesn't allocate a closure per frame
         this.renderLoop = this.TreeViewComponent_render_do.bind(this);
+
+        // ====
+        this.byteTreeView_byteret_pooledNode_nodeKind = 0;
+        this.fTreeView_poolret_pooledNode_key = 0;
+        this.fTreeView_poolret_pooledNode_depth = 0;
+        // ====
     }
 
     TreeViewComponent_render_request(renderKind, runnerId) {
@@ -493,8 +495,8 @@ export class TreeViewComponent {
         if (ringBufferIndexItem < 0) return;
 
         this.getElementAt(this.cursorIndex);
-        let depth = f.fTreeView_poolret_pooledNode_depth;
-        let nodeKind = f.byteTreeView_byteret_pooledNode_nodeKind;
+        let depth = treeViewComponent_staticRunner.fTreeView_poolret_pooledNode_depth;
+        let nodeKind = treeViewComponent_staticRunner.byteTreeView_byteret_pooledNode_nodeKind;
         
         if (nodeKind === TreeViewNodeKind.isExpandable_isExpanded) {
             if (this.cursorIndex + 1 < this.countAbstract) {
@@ -519,8 +521,8 @@ export class TreeViewComponent {
         if (ringBufferIndexItem < 0) return;
 
         this.getElementAt(this.cursorIndex);
-        let depth = f.fTreeView_poolret_pooledNode_depth;
-        let nodeKind = f.byteTreeView_byteret_pooledNode_nodeKind;
+        let depth = treeViewComponent_staticRunner.fTreeView_poolret_pooledNode_depth;
+        let nodeKind = treeViewComponent_staticRunner.byteTreeView_byteret_pooledNode_nodeKind;
         
         if (nodeKind === TreeViewNodeKind.isExpandable_isExpanded) {
             this.expandCollapseIconWasClicked(undefined /*divItem*/, this.cursorIndex, ringBufferIndexItem);
@@ -653,9 +655,9 @@ export class TreeViewComponent {
      */
     getElementAt(index_abstract) {
         let index_literal = index_abstract * this.fieldCount;
-        f.byteTreeView_byteret_pooledNode_nodeKind = this.dataLiteral[index_literal + this.nodeKindOffset];
-        f.fTreeView_poolret_pooledNode_key = this.dataLiteral[index_literal + this.keyOffset];
-        f.fTreeView_poolret_pooledNode_depth = this.dataLiteral[index_literal + this.depthOffset];
+        treeViewComponent_staticRunner.byteTreeView_byteret_pooledNode_nodeKind = this.dataLiteral[index_literal + this.nodeKindOffset];
+        treeViewComponent_staticRunner.fTreeView_poolret_pooledNode_key = this.dataLiteral[index_literal + this.keyOffset];
+        treeViewComponent_staticRunner.fTreeView_poolret_pooledNode_depth = this.dataLiteral[index_literal + this.depthOffset];
     }
 
     getKey(index_abstract) {
