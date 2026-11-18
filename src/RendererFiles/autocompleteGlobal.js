@@ -72,18 +72,18 @@ export const OFFSET_AUTOCOMPLETE = 32; // Slots 32 to 63 // Define the unique by
 
 function AUTOCOMPLETE_render_request(renderKind) {
     if (autocomplete.queueHead !== autocomplete.queueTail) {
-        const lastAbsoluteIndex = f.OFFSET_AUTOCOMPLETE + ((autocomplete.queueTail - 1) & f.UI_SLOT_MASK);
+        const lastAbsoluteIndex = OFFSET_AUTOCOMPLETE + ((autocomplete.queueTail - 1) & f.UI_SLOT_MASK);
         if (f.MASTER_RENDER_BUFFER[lastAbsoluteIndex] === renderKind) {
             return;
         }
     }
 
-    const absoluteIndex = f.OFFSET_AUTOCOMPLETE + (autocomplete.queueTail & f.UI_SLOT_MASK);
+    const absoluteIndex = OFFSET_AUTOCOMPLETE + (autocomplete.queueTail & f.UI_SLOT_MASK);
     f.MASTER_RENDER_BUFFER[absoluteIndex] = renderKind;
     autocomplete.queueTail++;
     
-    if (autocomplete.isRenderPending === 0) {
-        autocomplete.isRenderPending = 1;
+    if (!autocomplete.isRenderPending) {
+        autocomplete.isRenderPending = true;
         requestAnimationFrame(AUTOCOMPLETE_render_do);
     }
 }
@@ -91,7 +91,7 @@ function AUTOCOMPLETE_render_request(renderKind) {
 function AUTOCOMPLETE_render_do() {
     while (autocomplete.queueHead !== autocomplete.queueTail) {
         // Uses the exact same masking logic, but reads from the higher memory region
-        const absoluteIndex = f.OFFSET_AUTOCOMPLETE + (autocomplete.queueHead & f.UI_SLOT_MASK);
+        const absoluteIndex = OFFSET_AUTOCOMPLETE + (autocomplete.queueHead & f.UI_SLOT_MASK);
         const renderKind = f.MASTER_RENDER_BUFFER[absoluteIndex];
         autocomplete.queueHead++; 
 
@@ -113,7 +113,7 @@ function AUTOCOMPLETE_render_do() {
                 break;
         }
     }
-    autocomplete.isRenderPending = 0;
+    autocomplete.isRenderPending = false;
 }
 
 function AUTOCOMPLETE_render_create_lines(AUTOCOMPLETE_itemList) {

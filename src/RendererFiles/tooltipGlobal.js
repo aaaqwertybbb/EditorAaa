@@ -40,7 +40,7 @@ function TOOLTIP_renderDo() {
         throw new Error();
     }
     
-    tooltip.isRenderPending = 0; // Reset the paint lock
+    tooltip.isRenderPending = false; // Reset the paint lock
 };
 
 function TOOLTIP_render_do_show() {

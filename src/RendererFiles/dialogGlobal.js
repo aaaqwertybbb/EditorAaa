@@ -81,8 +81,8 @@ function DIALOG_render_request(renderKind) {
     f.MASTER_RENDER_BUFFER[absoluteIndex] = renderKind;
     dialog.queueTail++;
     
-    if (dialog.isRenderPending === 0) {
-        dialog.isRenderPending = 1;
+    if (!dialog.isRenderPending) {
+        dialog.isRenderPending = true;
         requestAnimationFrame(DIALOG_render_do);
     }
 }
@@ -106,7 +106,7 @@ function DIALOG_render_do() {
                 break;
         }
     }
-    dialog.isRenderPending = 0;
+    dialog.isRenderPending = false;
 }
 
 function DIALOG_render_do_DimensionsChanged() {

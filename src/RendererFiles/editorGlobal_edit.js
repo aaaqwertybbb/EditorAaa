@@ -168,7 +168,7 @@ class TextEditor {
 
         this.queueHead = 0;
         this.queueTail = 0;
-        this.isRenderPending = 0;
+        this.isRenderPending = false;
 
         this.cursorBlinkingTrailingEdgeTimeoutId = 0;
 
@@ -4681,7 +4681,7 @@ function EDI_render_do() {
         }
     }
     
-    editor.isRenderPending = 0;
+    editor.isRenderPending = false;
 }
 
 /**
@@ -4716,8 +4716,8 @@ export function EDI_render_request(renderKind) {
     EDI_renderKindBuffer[editor.queueTail & f.BUFFER_MASK] = renderKind;
     editor.queueTail++;
     
-    if (editor.isRenderPending === 0) {
-        editor.isRenderPending = 1;
+    if (!editor.isRenderPending) {
+        editor.isRenderPending = true;
         requestAnimationFrame(EDI_render_do);
     }
 }

@@ -78,19 +78,19 @@ let WIDGET_request = null;
 
 function WIDGET_render_request(renderKind) {
     if (widget.queueHead !== widget.queueTail) {
-        const lastAbsoluteIndex = f.OFFSET_WIDGET + ((widget.queueTail - 1) & f.UI_SLOT_MASK);
+        const lastAbsoluteIndex = OFFSET_WIDGET + ((widget.queueTail - 1) & f.UI_SLOT_MASK);
         if (f.MASTER_RENDER_BUFFER[lastAbsoluteIndex] === renderKind) {
             return;
         }
     }
 
-    const absoluteIndex = f.OFFSET_WIDGET + (widget.queueTail & f.UI_SLOT_MASK);
+    const absoluteIndex = OFFSET_WIDGET + (widget.queueTail & f.UI_SLOT_MASK);
     f.MASTER_RENDER_BUFFER[absoluteIndex] = renderKind;
     if (renderKind === WIDGETrenderKind_Show) f.INTS[fWIDGETrenderKind_Show_countOfPendingRequests]++;
     widget.queueTail++;
     
-    if (widget.isRenderPending === 0) {
-        widget.isRenderPending = 1;
+    if (!widget.isRenderPending) {
+        widget.isRenderPending = true;
         requestAnimationFrame(WIDGET_render_do);
     }
 }
@@ -98,7 +98,7 @@ function WIDGET_render_request(renderKind) {
 function WIDGET_render_do() {
     while (widget.queueHead !== widget.queueTail) {
         // Uses the exact same masking logic, but reads from the higher memory region
-        const absoluteIndex = f.OFFSET_WIDGET + (widget.queueHead & f.UI_SLOT_MASK);
+        const absoluteIndex = OFFSET_WIDGET + (widget.queueHead & f.UI_SLOT_MASK);
         const renderKind = f.MASTER_RENDER_BUFFER[absoluteIndex];
         widget.queueHead++; 
 
@@ -112,7 +112,7 @@ function WIDGET_render_do() {
                 break;
         }
     }
-    widget.isRenderPending = 0;
+    widget.isRenderPending = false;
 }
 
 function WIDGET_render_do_Show() {

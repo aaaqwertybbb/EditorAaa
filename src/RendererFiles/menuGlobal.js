@@ -78,19 +78,19 @@ let MENU_request = null;
 
 function MENU_render_request(renderKind) {
     if (menu.queueHead !== menu.queueTail) {
-        const lastAbsoluteIndex = f.OFFSET_MENU + ((menu.queueTail - 1) & f.UI_SLOT_MASK);
+        const lastAbsoluteIndex = OFFSET_MENU + ((menu.queueTail - 1) & f.UI_SLOT_MASK);
         if (f.MASTER_RENDER_BUFFER[lastAbsoluteIndex] === renderKind) {
             return;
         }
     }
 
-    const absoluteIndex = f.OFFSET_MENU + (menu.queueTail & f.UI_SLOT_MASK);
+    const absoluteIndex = OFFSET_MENU + (menu.queueTail & f.UI_SLOT_MASK);
     f.MASTER_RENDER_BUFFER[absoluteIndex] = renderKind;
     if (renderKind === MENUrenderKind.Set) menu.renderKind_Set_countOfPendingRequests++;
     menu.queueTail++;
     
-    if (menu.isRenderPending === 0) {
-        menu.isRenderPending = 1;
+    if (!menu.isRenderPending) {
+        menu.isRenderPending = true;
         requestAnimationFrame(MENU_render_do);
     }
 }
@@ -98,7 +98,7 @@ function MENU_render_request(renderKind) {
 function MENU_render_do() {
     while (menu.queueHead !== menu.queueTail) {
         // Uses the exact same masking logic, but reads from the higher memory region
-        const absoluteIndex = f.OFFSET_MENU + (menu.queueHead & f.UI_SLOT_MASK);
+        const absoluteIndex = OFFSET_MENU + (menu.queueHead & f.UI_SLOT_MASK);
         const renderKind = f.MASTER_RENDER_BUFFER[absoluteIndex];
         menu.queueHead++;
 
@@ -110,12 +110,12 @@ function MENU_render_do() {
                 if (menu.renderKind_Set_countOfPendingRequests-- > 1) break;
                 MENU_render_do_Set();
                 break;
-            case MENUrenderKind_Hide:
+            case MENUrenderKind.Hide:
                 MENU_render_do_Hide();
                 break;
         }
     }
-    menu.isRenderPending = 0;
+    menu.isRenderPending = false;
 }
 
 function MENU_render_do_Set() {
@@ -250,7 +250,7 @@ function MENU_render_do_Hide() {
 function MENU_hide() {
     MENU_request = null;
     MENU_removeEvents();
-    MENU_render_request(MENUrenderKind_Hide);
+    MENU_render_request(MENUrenderKind.Hide);
 }
 
 /**
