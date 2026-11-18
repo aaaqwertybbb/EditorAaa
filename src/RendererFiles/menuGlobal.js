@@ -1,26 +1,30 @@
 import * as f from './fieldBuffer.js'
 import {APP_lineHeightStringWithPx} from "./applicationRendererRoot.js"
 
-export const CommandKind_None = 0;
-export const CommandKind_Submenu = 1;
-export const CommandKind_Copy = 2;
-export const CommandKind_CopyAbsolutePath = 3;
-export const CommandKind_Cut = 4;
-export const CommandKind_Paste = 5;
-export const CommandKind_NewFile_Directory = 6;
-export const CommandKind_NewFile_File = 7;
-export const CommandKind_DeleteFile_Directory = 8;
-export const CommandKind_DeleteFile_File = 9;
-export const CommandKind_RenameFile_Directory = 10;
-export const CommandKind_RenameFile_File = 11;
-export const CommandKind_Find = 12;
-export const CommandKind_SelectFolder = 13;
-export const CommandKind_SelectWorkspace = 14;
+const CommandKind = Object.freeze({
+    None: 0,
+    Submenu: 1,
+    Copy: 2,
+    CopyAbsolutePath: 3,
+    Cut: 4,
+    Paste: 5,
+    NewFile_Directory: 6,
+    NewFile_File: 7,
+    DeleteFile_Directory: 8,
+    DeleteFile_File: 9,
+    RenameFile_Directory: 10,
+    RenameFile_File: 11,
+    Find: 12,
+    SelectFolder: 13,
+    SelectWorkspace: 14,
+});
 
-const MENUrenderKind_None = 0;
-const MENUrenderKind_Cursor = 1;
-const MENUrenderKind_Set = 2;
-const MENUrenderKind_Hide = 3;
+const MENUrenderKind = Object.freeze({
+    None: 0,
+    Cursor: 1,
+    Set: 2,
+    Hide: 3,
+});
 
 /**
  * @callback MENU_OnCompleteAction

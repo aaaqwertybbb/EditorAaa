@@ -6,12 +6,14 @@ let AUTOCOMPLETE_pending_lspResult = null;
 // I don't think 'slice' is in LSP specification but I need to start like this cause it is only way I'll get something "initially working".
 let AUTOCOMPLETE_items_slice = null;
 
-const AUTOCOMPLETErenderKind_None = 0;
-const AUTOCOMPLETErenderKind_Show = 1;
-const AUTOCOMPLETErenderKind_Hide = 2;
-const AUTOCOMPLETErenderKind_CursorSet = 3;
-const AUTOCOMPLETErenderKind_CreateLines = 4;
-const AUTOCOMPLETErenderKind_Scroll = 5;
+const AUTOCOMPLETErenderKind = Object.freeze({
+    None: 0,
+    Show: 1,
+    Hide: 2,
+    CursorSet: 3,
+    CreateLines: 4,
+    Scroll: 5,
+});
 
 let AUTOCOMPLETEElement = null;
 let AUTOCOMPLETE_scroll_viewport = null;

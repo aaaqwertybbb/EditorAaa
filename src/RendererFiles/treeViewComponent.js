@@ -3,21 +3,25 @@ import * as f from './fieldBuffer.js'
 export const fTreeView_poolret_pooledNode_key = 28;
 export const fTreeView_poolret_pooledNode_depth = 29;
 
-const TREEVIEWrenderKind_None = 0;
-const TREEVIEWrenderKind_Cursor = 1;
-const TREEVIEWrenderKind_Create = 2;
-const TREEVIEWrenderKind_Batch = 3;
-const TREEVIEWrenderKind_Scroll = 4;
-const TREEVIEWrenderKind_SetItems = 5;
-const TREEVIEWrenderKind_FullReset = 6;
-const TREEVIEWrenderKind_Scroll_PullDataDrawResult = 7;
-const TREEVIEWrenderKind_Resize = 8;
+const TREEVIEWrenderKind = Object.freeze({
+    None: 0,
+    Cursor: 1,
+    Create: 2,
+    Batch: 3,
+    Scroll: 4,
+    SetItems: 5,
+    FullReset: 6,
+    Scroll_PullDataDrawResult: 7,
+    Resize: 8,
+});
 
-export const TreeViewNodeKind_None = 0;
-export const TreeViewNodeKind_isExpandable_isExpanded = 1;
-export const TreeViewNodeKind_isExpandable_NOTisExpanded = 2;
-export const TreeViewNodeKind_NOTisExpandable_isExpanded = 3;
-export const TreeViewNodeKind_NOTisExpandable_NOTisExpanded = 4;
+const TreeViewNodeKind = Object.freeze({
+    None: 0,
+    isExpandable_isExpanded: 1,
+    isExpandable_NOTisExpanded: 2,
+    NOTisExpandable_isExpanded: 3,
+    NOTisExpandable_NOTisExpanded: 4,
+});
 
 class TreeViewComponent_staticRunner {
     constructor() {

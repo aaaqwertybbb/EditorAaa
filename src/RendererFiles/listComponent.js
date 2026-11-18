@@ -1,6 +1,8 @@
-const LISTrenderKind_None = 0;
-const LISTrenderKind_Cursor = 1;
-const LISTrenderKind_Scroll = 2;
+const LISTrenderKind = Object.freeze({
+    None: 0,
+    Cursor: 1,
+    Scroll: 2,
+});
 
 class ListComponent {
     constructor() {

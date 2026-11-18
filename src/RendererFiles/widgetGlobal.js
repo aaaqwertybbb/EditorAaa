@@ -1,10 +1,14 @@
-const WidgetKind_None = 0;
-const WidgetKind_InputText = 1;
-const WidgetKind_YesCancel = 2;
+const WidgetKind = Object.freeze({
+    None: 0,
+    InputText: 1,
+    YesCancel: 2,
+});
 
-const WIDGETrenderKind_None = 0;
-const WIDGETrenderKind_Show = 1;
-const WIDGETrenderKind_Hide = 2;
+const WIDGETrenderKind = Object.freeze({
+    None: 0,
+    Show: 1,
+    Hide: 2,
+});
 
 /**
  * @callback WIDGET_Callback

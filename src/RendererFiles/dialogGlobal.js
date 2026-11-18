@@ -1,15 +1,19 @@
 import "./fieldBuffer.js"
 
-const DialogKind_None = 0;
-const DialogKind_FindAll = 1;
-const DialogKind_Settings = 2;
-const DialogKind_DocumentSymbol = 3;
-const DialogKind_Debug = 4;
+const DialogKind = Object.freeze({
+    None: 0,
+    FindAll: 1,
+    Settings: 2,
+    DocumentSymbol: 3,
+    Debug: 4,
+});
 
-const DIALOGrenderKind_None = 0;
-const DIALOGrenderKind_Show = 1;
-const DIALOGrenderKind_Hide = 2;
-const DIALOGrenderKind_DimensionsChanged = 3;
+const DIALOGrenderKind = Object.freeze({
+    None: 0,
+    Show: 1,
+    Hide: 2,
+    DimensionsChanged: 3,
+});
 
 export const CONST_DIALOG_minTop = 8;
 export const CONST_DIALOG_minLeft = 8;
