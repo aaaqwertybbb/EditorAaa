@@ -5239,12 +5239,12 @@ function EDI_render_do_Scroll() {
         }
         else if (diff > 0) {
             new_lowerBound = local_prevVli + local_ArrayFrom_textElement_children_length;
-            f.fEDI_ringBuffer_indexZero = (f.INTS[f.fEDI_ringBuffer_indexZero] + diff) % local_ArrayFrom_textElement_children_length;
+            f.fEDI_ringBuffer_indexZero = (f.fEDI_ringBuffer_indexZero + diff) % local_ArrayFrom_textElement_children_length;
         }
         else {
             new_lowerBound = local_currVli;
             diff *= -1;
-            f.INTS[f.fEDI_ringBuffer_indexZero] = (f.INTS[f.fEDI_ringBuffer_indexZero] - diff + local_ArrayFrom_textElement_children_length) % local_ArrayFrom_textElement_children_length;
+            f.fEDI_ringBuffer_indexZero = (f.fEDI_ringBuffer_indexZero - diff + local_ArrayFrom_textElement_children_length) % local_ArrayFrom_textElement_children_length;
         }
     }
     else {
@@ -5254,9 +5254,9 @@ function EDI_render_do_Scroll() {
     }
 
     const local_EDI_lineEndPositionList_data = EDI_lineEndPositionList_data;
-    const local_EDI_lineEndPositionList_count = f.INTS[f.fEDI_lineEndPositionList_count];
+    const local_EDI_lineEndPositionList_count = f.fEDI_lineEndPositionList_count;
 
-    // If you intend to use the variables 'new_lineStart' or 'new_lineEnd': Important detail to consider: the lines that are >= f.INTS[f.fEDI_lineEndPositionList_count] will continually increment new_lineStart by 1 So if you expect this to accurately represent the EOF position when it is in view, it probably does NOT.
+    // If you intend to use the variables 'new_lineStart' or 'new_lineEnd': Important detail to consider: the lines that are >= f.fEDI_lineEndPositionList_count will continually increment new_lineStart by 1 So if you expect this to accurately represent the EOF position when it is in view, it probably does NOT.
     let new_lineStart = 0;
     let new_lineEnd = -1;
     if (new_lowerBound < local_EDI_lineEndPositionList_count && new_lowerBound !== 0) {
@@ -5271,8 +5271,8 @@ function EDI_render_do_Scroll() {
 
     const ctxText = f.EDI_text_canvas.getContext('2d');
     
-    const view_startLineIndex = f.INTS[f.fEDI_virtualIndexLine];
-    const view_upperLineIndexExclusive = view_startLineIndex + f.INTS[f.fEDI_virtualCount];
+    const view_startLineIndex = f.fEDI_virtualIndexLine;
+    const view_upperLineIndexExclusive = view_startLineIndex + f.fEDI_virtualCount;
 
     const topPadding = f.EDI_textTopPadding;
 
@@ -5295,7 +5295,7 @@ function EDI_render_do_Scroll() {
 
     ctxText.clearRect(0, 0, f.EDI_text_canvas.width, f.EDI_text_canvas.height);
 
-    let ringBufferIndex = f.INTS[f.fEDI_ringBuffer_indexZero] - 1;
+    let ringBufferIndex = f.fEDI_ringBuffer_indexZero - 1;
 
     // 2. Define your right margin (e.g., 8px or 12px away from the editor border)
     const rightPadding = 10;
@@ -5379,7 +5379,7 @@ function EDI_render_do_Scroll() {
             // Fast cell tracking: add characters multiplied by character width
             currentX += span.text.length * EDI_characterWidth;
 
-            if (currentX > f.INTS[f.fEDI_lastReadNumber_offsetWidth]) {
+            if (currentX > f.fEDI_lastReadNumber_offsetWidth) {
                 break;
             }
         }
@@ -5405,9 +5405,9 @@ function EDI_render_do_Scroll() {
 
     // --- STEP 2: RENDER ACTIVE SOLID CURSOR LINE ---
     ctx.fillStyle = '#f2a72f'; // Solid cursor accent color
-    const cursorLine = f.INTS[f.fEDI_cursor_indexLine];
+    const cursorLine = f.fEDI_cursor_indexLine;
     if (cursorLine >= view_startLineIndex && cursorLine < view_upperLineIndexExclusive) {
-        const cursorX = (f.INTS[f.fEDI_cursorVisualColumnIndex] * EDI_characterWidth) - EDI_lastReadNumber_scrollLeft;
+        const cursorX = (f.fEDI_cursorVisualColumnIndex * EDI_characterWidth) - EDI_lastReadNumber_scrollLeft;
         const cursorY = -(EDI_lastReadNumber_scrollTop % local_lineHeight) + ((cursorLine - view_startLineIndex) * local_lineHeight);
         
         set_EDI_cursor_cursorTranslateXValue(cursorX);
@@ -5416,7 +5416,7 @@ function EDI_render_do_Scroll() {
 }
 
 /*function EDI_render_Gutter(ringBufferIndex) {
-    const local_lineHeight = f.INTS[f.fEDI_lineHeight];
+    const local_lineHeight = f.fEDI_lineHeight;
 
     // 3. Let your context handle the scroll natively inside the static window
     const ctxGutter = f.EDI_gutter_canvas.getContext('2d');
@@ -5426,19 +5426,19 @@ function EDI_render_do_Scroll() {
     ctxGutter.fillRect(0, 0, f.EDI_gutter_canvas.width, f.EDI_gutter_canvas.height); 
     ctxGutter.fillStyle = '#858585';
 
-    let lineIndex = f.INTS[f.fEDI_virtualIndexLine];
+    let lineIndex = f.fEDI_virtualIndexLine;
     
     // This remainder calculation handles the smooth pixel-by-pixel shift 
     // without moving the physical HTML canvas element!
     let vertical = -(EDI_lastReadNumber_scrollTop % local_lineHeight);
 
-    const lineCount = f.INTS[f.fEDI_lineEndPositionList_count];
-    const upperLineIndexExclusive = lineIndex + f.INTS[f.fEDI_virtualCount];
+    const lineCount = f.fEDI_lineEndPositionList_count;
+    const upperLineIndexExclusive = lineIndex + f.fEDI_virtualCount;
     const splitIndex = Math.min(upperLineIndexExclusive, lineCount);
     const local_EDI_textTopPadding = f.EDI_textTopPadding;
 
     //const original_ringBufferIndex = ringBufferIndex;
-    //const local_ArrayFrom_textElement_children_length = f.INTS[f.fEDI_ArrayFrom_textElement_children_length];
+    //const local_ArrayFrom_textElement_children_length = f.fEDI_ArrayFrom_textElement_children_length;
 
     // Render pure line numbers
     for (let i = lineIndex; i < splitIndex; i++) {
@@ -5468,11 +5468,11 @@ function EDI_render_do_Scroll() {
     const ctxText = f.EDI_text_canvas.getContext('2d');
     ctxText.clearRect(0, 0, f.EDI_text_canvas.width, f.EDI_text_canvas.height);
 
-    const local_lineHeight = f.INTS[f.fEDI_lineHeight];
-    const lineCount = f.INTS[f.fEDI_lineEndPositionList_count];
+    const local_lineHeight = f.fEDI_lineHeight;
+    const lineCount = f.fEDI_lineEndPositionList_count;
     
-    const startLineIndex = f.INTS[f.fEDI_virtualIndexLine];
-    const upperLineIndexExclusive = Math.min(startLineIndex + f.INTS[f.fEDI_virtualCount], lineCount);
+    const startLineIndex = f.fEDI_virtualIndexLine;
+    const upperLineIndexExclusive = Math.min(startLineIndex + f.fEDI_virtualCount, lineCount);
 
     let viewportY = -(EDI_lastReadNumber_scrollTop % local_lineHeight);
     const topPadding = f.EDI_textTopPadding;
@@ -5486,7 +5486,7 @@ function EDI_render_do_Scroll() {
     let virtualIndex = -1;
 
     const original_ringBufferIndex = ringBufferIndex;
-    const local_ArrayFrom_textElement_children_length = f.INTS[f.fEDI_ArrayFrom_textElement_children_length];
+    const local_ArrayFrom_textElement_children_length = f.fEDI_ArrayFrom_textElement_children_length;
 
     // calculate the text of the newly scrolled into view lines
     const local_loopLimit = loopLimit;
@@ -5560,7 +5560,7 @@ function EDI_render_do_Scroll() {
         lineEnd = local_EDI_lineEndPositionList_data[startLineIndex - 1];
     }
 
-    ringBufferIndex = f.INTS[f.fEDI_ringBuffer_indexZero] - 1;
+    ringBufferIndex = f.fEDI_ringBuffer_indexZero - 1;
 
     for (let i = startLineIndex; i < upperLineIndexExclusive; i++) {
         
@@ -5611,31 +5611,31 @@ function EDI_render_do_SetText() {
     EDI_render_do_Clear();
 
     update_verticalVirtualizationBoundary();
-    EDI_drawGutter_Width(f.INTS[f.fEDI_lineEndPositionList_count]);
+    EDI_drawGutter_Width(f.fEDI_lineEndPositionList_count);
     EDI_drawHorizontalScrollbar();
     EDI_render_force_fullscreen_redraw();
 }
 
 function EDI_render_do_IndentMore() {
     
-    if (f.INTS[f.fEDI_cursor_editKind] !== f.EditKind_IndentMore) {
+    if (f.fEDI_cursor_editKind !== f.EditKind_IndentMore) {
         return;
     }
 
-    if (f.INTS[f.fEDI_cursor_edit_eventCount_drawn] >= f.INTS[f.fEDI_cursor_edit_eventCount_occurred]) {
+    if (f.fEDI_cursor_edit_eventCount_drawn >= f.fEDI_cursor_edit_eventCount_occurred) {
         return;
     }
 
-    let startingIndex = f.INTS[f.fEDI_indent_startingIndex];
-    let SMALL_lineAndColumnIndices_indexLine = f.INTS[f.fEDI_indent_SMALL_lineAndColumnIndices_indexLine];
+    let startingIndex = f.fEDI_indent_startingIndex;
+    let SMALL_lineAndColumnIndices_indexLine = f.fEDI_indent_SMALL_lineAndColumnIndices_indexLine;
 
     // TODO: Consider having this string available rather than making it everytime this function is invoked.
     //let EDI_on_tab_string = EDI_decoder.decode(EDI_on_tab_bytes);
     let EDI_on_tab_string = '    '; // you need spaces for the UI to render correctly, regardless of if user has tabs or spaces
 
     // TODO: create 'EDI_on_tab_string' based on the amount of remaining eventCount to be drawn.
-    while (f.INTS[f.fEDI_cursor_edit_eventCount_drawn] < f.INTS[f.fEDI_cursor_edit_eventCount_occurred]) {
-        f.INTS[f.fEDI_cursor_edit_eventCount_drawn]++;
+    while (f.fEDI_cursor_edit_eventCount_drawn < f.fEDI_cursor_edit_eventCount_occurred) {
+        f.fEDI_cursor_edit_eventCount_drawn++;
         // TODO: For a large viewport you're iterations checking lines that aren't even in view i.e.: consider ctrl+a
         for (var lineI = startingIndex; lineI >= SMALL_lineAndColumnIndices_indexLine; lineI--) {
 
@@ -5643,9 +5643,9 @@ function EDI_render_do_IndentMore() {
             // TODO: Use NEXT if the lines are one after another?
             
             // See comment "Awkward explicit inlining of 'EDI_indexLineTo_ringBufferIndex'" for more information.
-            let ringBufferIndex = lineI - f.INTS[f.fEDI_virtualIndexLine];
-            if (ringBufferIndex >= f.INTS[f.fEDI_ArrayFrom_textElement_children_length] || ringBufferIndex < 0) ringBufferIndex = -1;
-            else ringBufferIndex = (ringBufferIndex + f.INTS[f.fEDI_ringBuffer_indexZero]) % f.INTS[f.fEDI_virtualCount];
+            let ringBufferIndex = lineI - f.fEDI_virtualIndexLine;
+            if (ringBufferIndex >= f.fEDI_ArrayFrom_textElement_children_length || ringBufferIndex < 0) ringBufferIndex = -1;
+            else ringBufferIndex = (ringBufferIndex + f.fEDI_ringBuffer_indexZero) % f.fEDI_virtualCount;
 
             if (ringBufferIndex >= 0) {
                 EDI_lineStringCache[ringBufferIndex].unshift({ text: EDI_on_tab_string, color: EDI_tokenColors[0] });
@@ -5663,15 +5663,15 @@ function EDI_render_do_IndentMore() {
 }
 
 function EDI_render_do_IndentLess() {
-    let startingIndex = f.INTS[f.fEDI_indent_startingIndex];
-    let SMALL_lineAndColumnIndices_indexLine = f.INTS[f.fEDI_indent_SMALL_lineAndColumnIndices_indexLine];
+    let startingIndex = f.fEDI_indent_startingIndex;
+    let SMALL_lineAndColumnIndices_indexLine = f.fEDI_indent_SMALL_lineAndColumnIndices_indexLine;
 
-    if (f.INTS[f.fEDI_cursor_editKind] !== f.EditKind_IndentLess) {
+    if (f.fEDI_cursor_editKind !== f.EditKind_IndentLess) {
         return;
     }
 
-    while (f.INTS[f.fEDI_cursor_edit_eventCount_drawn] < f.INTS[f.fEDI_cursor_edit_eventCount_occurred]) {
-        f.INTS[f.fEDI_cursor_edit_eventCount_drawn]++;
+    while (f.fEDI_cursor_edit_eventCount_drawn < f.fEDI_cursor_edit_eventCount_occurred) {
+        f.fEDI_cursor_edit_eventCount_drawn++;
 
         /////////////////////// P_1
         let textSelectionDiv;
@@ -5700,7 +5700,7 @@ function EDI_render_do_IndentLess() {
         for (var lineI = startingIndex; lineI >= SMALL_lineAndColumnIndices_indexLine; lineI--) {
             let innerRemoveCount = 0;
             EDI_ret_getLineBoundaryPositions_raw(lineI);
-            const line_start = f.INTS[f.fEDI_ret_getLineBoundaryPositions_start];
+            const line_start = f.fEDI_ret_getLineBoundaryPositions_start;
             let lastValidIndexColumn = EDI_getLastValidIndexColumn_raw(lineI);
             let upperLimitIndexColumn;
             if (lastValidIndexColumn > 4) {
@@ -5763,9 +5763,9 @@ function EDI_render_do_IndentLess() {
             const activeLine = lineI;
 
             // See comment "Awkward explicit inlining of 'EDI_indexLineTo_ringBufferIndex'" for more information.
-            let ringBufferIndex = activeLine - f.INTS[f.fEDI_virtualIndexLine];
-            if (ringBufferIndex >= f.INTS[f.fEDI_ArrayFrom_textElement_children_length] || ringBufferIndex < 0) ringBufferIndex = -1;
-            else ringBufferIndex = (ringBufferIndex + f.INTS[f.fEDI_ringBuffer_indexZero]) % f.INTS[f.fEDI_virtualCount];
+            let ringBufferIndex = activeLine - f.fEDI_virtualIndexLine;
+            if (ringBufferIndex >= f.fEDI_ArrayFrom_textElement_children_length || ringBufferIndex < 0) ringBufferIndex = -1;
+            else ringBufferIndex = (ringBufferIndex + f.fEDI_ringBuffer_indexZero) % f.fEDI_virtualCount;
             if (ringBufferIndex < 0) {
                 continue;
             }
@@ -5814,8 +5814,8 @@ function EDI_render_do_IndentLess() {
             }
 
             while (remainingCharacterRemovals > 0) {
-                //f.INTS[f.fEDI_cursor_edit_eventCount_drawn] = f.INTS[f.fEDI_cursor_edit_eventCount_occurred];
-                // you can't do the f.INTS[f.fEDI_cursor_edit_eventCount_drawn] immediately cause you need to determine how much of the current span can actually be deleted then move to the next span etc...
+                //f.fEDI_cursor_edit_eventCount_drawn = f.fEDI_cursor_edit_eventCount_occurred;
+                // you can't do the f.fEDI_cursor_edit_eventCount_drawn immediately cause you need to determine how much of the current span can actually be deleted then move to the next span etc...
                 
                 if (isAtEndOfLine) {
                     throw new Error();
@@ -5850,8 +5850,8 @@ function EDI_render_do_IndentLess() {
         }
 
         /////////////////////// P_3
-        f.INTS[f.fEDI_cursor_DRAWN_selectionAnchor] = f.INTS[f.fEDI_cursor_selectionAnchor];
-        f.INTS[f.fEDI_cursor_DRAWN_selectionEnd] = f.INTS[f.fEDI_cursor_selectionEnd];
+        f.fEDI_cursor_DRAWN_selectionAnchor = f.fEDI_cursor_selectionAnchor;
+        f.fEDI_cursor_DRAWN_selectionEnd = f.fEDI_cursor_selectionEnd;
         /////////////////////// P_3
     }
 
@@ -5863,52 +5863,52 @@ function EDI_render_do_IndentLess() {
 
 function EDI_render_do_DuplicateOrPaste() {
 
-    if (f.INTS[f.fEDI_cursor_editKind] !== f.EditKind_Duplicate && f.INTS[f.fEDI_cursor_editKind] !== f.EditKind_Paste) {
+    if (f.fEDI_cursor_editKind !== f.EditKind_Duplicate && f.fEDI_cursor_editKind !== f.EditKind_Paste) {
         return;
     }
 
-    while (f.INTS[f.fEDI_cursor_edit_eventCount_drawn] < f.INTS[f.fEDI_cursor_edit_eventCount_occurred]) {
-        f.INTS[f.fEDI_cursor_edit_eventCount_drawn]++;
+    while (f.fEDI_cursor_edit_eventCount_drawn < f.fEDI_cursor_edit_eventCount_occurred) {
+        f.fEDI_cursor_edit_eventCount_drawn++;
 
         let byteArray = null;
         let insert_character_count = 0;
         let linesInsertedCount = 0;
 
-        if (f.INTS[f.fEDI_cursor_editKind] === f.EditKind_Duplicate) {
-            f.INTS[f.fEDI_cursor_edit_eventCount_drawn]++;
+        if (f.fEDI_cursor_editKind === f.EditKind_Duplicate) {
+            f.fEDI_cursor_edit_eventCount_drawn++;
             byteArray = EDI_cursor_EDI_duplication_bytes;
             insert_character_count = byteArray.length;
-            linesInsertedCount = f.INTS[f.fEDI_cursor_EDI_duplication_totalLineEndCount];
+            linesInsertedCount = f.fEDI_cursor_EDI_duplication_totalLineEndCount;
             // TODO: for duplicate: (this never would cache too cause finalize clear edit state is if (true) for duplicate to clear state.)
             // EDI_cursor_EDI_duplicationORpaste_cacheEachLineSubstringDecodedArray = new Array(EDI_cursor_EDI_paste_clipboardContent_arrayLinePositions_OFFSETS.length);
         }
-        else if (f.INTS[f.fEDI_cursor_editKind] === f.EditKind_Paste) {
-            f.INTS[f.fEDI_cursor_edit_eventCount_drawn]++;
+        else if (f.fEDI_cursor_editKind === f.EditKind_Paste) {
+            f.fEDI_cursor_edit_eventCount_drawn++;
             byteArray = EDI_cursor_EDI_paste_clipboardContent_bytes;
             insert_character_count = EDI_cursor_EDI_paste_clipboardContent_string.length;
-            linesInsertedCount = f.INTS[f.fEDI_cursor_EDI_paste_clipboardContent_totalLineEndCount];
+            linesInsertedCount = f.fEDI_cursor_EDI_paste_clipboardContent_totalLineEndCount;
             if (EDI_cursor_EDI_duplicationORpaste_cacheEachLineSubstringDecodedArray === null) {
                 EDI_cursor_EDI_duplicationORpaste_cacheEachLineSubstringDecodedArray = new Array(EDI_cursor_EDI_paste_clipboardContent_arrayLinePositions_OFFSETS.length);
             }
         }
 
         // 1. Target the specific line row index where the typing is taking place
-        let activeLine = f.INTS[f.fEDI_cursor_indexLine];
+        let activeLine = f.fEDI_cursor_indexLine;
 
         // See comment "Awkward explicit inlining of 'EDI_indexLineTo_ringBufferIndex'" for more information.
-        let activeLine_ringBufferIndex = activeLine - f.INTS[f.fEDI_virtualIndexLine];
-        if (activeLine_ringBufferIndex >= f.INTS[f.fEDI_ArrayFrom_textElement_children_length] || activeLine_ringBufferIndex < 0) activeLine_ringBufferIndex = -1;
-        else activeLine_ringBufferIndex = (activeLine_ringBufferIndex + f.INTS[f.fEDI_ringBuffer_indexZero]) % f.INTS[f.fEDI_virtualCount];
+        let activeLine_ringBufferIndex = activeLine - f.fEDI_virtualIndexLine;
+        if (activeLine_ringBufferIndex >= f.fEDI_ArrayFrom_textElement_children_length || activeLine_ringBufferIndex < 0) activeLine_ringBufferIndex = -1;
+        else activeLine_ringBufferIndex = (activeLine_ringBufferIndex + f.fEDI_ringBuffer_indexZero) % f.fEDI_virtualCount;
         if (activeLine_ringBufferIndex < 0) { return; } // line is not in viewport
 
         let lineSpans = EDI_lineStringCache[activeLine_ringBufferIndex];
 
         // 2. Determine the column position where the *first character of this edit burst* began
         // We use indexColumn minus the absolute total length of characters typed in this current edit session
-        let editStartColumn = f.INTS[f.fEDI_cursorVisualColumnIndex];// - f.INTS[f.fEDI_cursor_editLength_characters];
+        let editStartColumn = f.fEDI_cursorVisualColumnIndex;// - f.fEDI_cursor_editLength_characters;
         
         // Find the precise column location of the characters we are about to insert right now
-        let currentEditColumn = editStartColumn;// + f.INTS[f.fEDI_cursor_edit_eventCount_drawingStateContinuationValue];
+        let currentEditColumn = editStartColumn;// + f.fEDI_cursor_edit_eventCount_drawingStateContinuationValue;
 
         let runningColumnIdx = 0;
         let targetedSpan = null;
@@ -5932,7 +5932,7 @@ function EDI_render_do_DuplicateOrPaste() {
         }
 
         // 5. Commit the continuation value forward so the next frame knows where to pick up
-        f.INTS[f.fEDI_cursor_edit_eventCount_drawingStateContinuationValue] = f.INTS[f.fEDI_cursor_editLength_characters];
+        f.fEDI_cursor_edit_eventCount_drawingStateContinuationValue = f.fEDI_cursor_editLength_characters;
 
         if (targetedSpan === null) {
             // TODO: silent error bad
@@ -5946,9 +5946,9 @@ function EDI_render_do_DuplicateOrPaste() {
 
 
         // See comment "Awkward explicit inlining of 'EDI_indexLineTo_ringBufferIndex'" for more information.
-        let ringBufferIndex = activeLine - f.INTS[f.fEDI_virtualIndexLine];
-        if (ringBufferIndex >= f.INTS[f.fEDI_ArrayFrom_textElement_children_length] || ringBufferIndex < 0) ringBufferIndex = -1;
-        else ringBufferIndex = (ringBufferIndex + f.INTS[f.fEDI_ringBuffer_indexZero]) % f.INTS[f.fEDI_virtualCount];
+        let ringBufferIndex = activeLine - f.fEDI_virtualIndexLine;
+        if (ringBufferIndex >= f.fEDI_ArrayFrom_textElement_children_length || ringBufferIndex < 0) ringBufferIndex = -1;
+        else ringBufferIndex = (ringBufferIndex + f.fEDI_ringBuffer_indexZero) % f.fEDI_virtualCount;
         if (ringBufferIndex < 0) { return; } // line is not in viewport
 
 
@@ -5970,8 +5970,8 @@ function EDI_render_do_DuplicateOrPaste() {
         for (let n_index = ringBufferIndex;;) {
             availableRingBufferNodesVisuallyAfterExpandedOne++;
             n_index = n_index + 1;
-            if (n_index >= f.INTS[f.fEDI_ArrayFrom_textElement_children_length]) {
-                n_index -= f.INTS[f.fEDI_ArrayFrom_textElement_children_length];
+            if (n_index >= f.fEDI_ArrayFrom_textElement_children_length) {
+                n_index -= f.fEDI_ArrayFrom_textElement_children_length;
             }
             if (n_index === final_ringBufferIndexItem) {
                 break;
@@ -5979,8 +5979,8 @@ function EDI_render_do_DuplicateOrPaste() {
         }
 
         const next_ringBufferIndex = ringBufferIndex + 1;
-        if (next_ringBufferIndex >= f.INTS[f.fEDI_ArrayFrom_textElement_children_length]) {
-            next_ringBufferIndex -= f.INTS[f.fEDI_ArrayFrom_textElement_children_length];
+        if (next_ringBufferIndex >= f.fEDI_ArrayFrom_textElement_children_length) {
+            next_ringBufferIndex -= f.fEDI_ArrayFrom_textElement_children_length;
         }
 
         if (insertionCount > 0) {
@@ -5997,8 +5997,8 @@ function EDI_render_do_DuplicateOrPaste() {
                     EDI_lineStringCache[n_ringBufferIndex].length = 1;
                     EDI_lineStringCache[n_ringBufferIndex][0].text = '';
                     n_ringBufferIndex = n_ringBufferIndex + 1;
-                    if (n_ringBufferIndex >= f.INTS[f.fEDI_ArrayFrom_textElement_children_length]) {
-                        n_ringBufferIndex -= f.INTS[f.fEDI_ArrayFrom_textElement_children_length];
+                    if (n_ringBufferIndex >= f.fEDI_ArrayFrom_textElement_children_length) {
+                        n_ringBufferIndex -= f.fEDI_ArrayFrom_textElement_children_length;
                     }
                 }
                 EDI_render_request(f.RenderKind_Scroll);
@@ -6028,7 +6028,7 @@ function EDI_render_do_DuplicateOrPaste() {
         let linefeedLength = 0;
 
         /** TODO: All this variable needs to be is a boolean for whether you're at the end of the line or not. */
-        let last_valid_indexColumn_currentLine_isAt = f.INTS[f.fEDI_cursor_indexColumn] === EDI_getLastValidIndexColumn_raw(f.INTS[f.fEDI_cursor_indexLine]);
+        let last_valid_indexColumn_currentLine_isAt = f.fEDI_cursor_indexColumn === EDI_getLastValidIndexColumn_raw(f.fEDI_cursor_indexLine);
 
         // TODO: An optimization to check whether you even need to redraw any lines perhaps is possible but it would add too much complexity at the moment and so it isn't being considered...
         // ...i.e.: if you're inserting so many lines that you know you'll scroll or that only a small amount of lines need to be redrawn due to predicting a scroll event.
@@ -6072,32 +6072,32 @@ function EDI_render_do_DuplicateOrPaste() {
                     
                 
 
-                    f.INTS[f.fEDI_cursor_indexColumn] = 0;
-                    f.INTS[f.fEDI_cursorVisualColumnIndex] = 0;
-                    f.INTS[f.fEDI_w_indexColumn_SpanTextContentRelative] = 0;
+                    f.fEDI_cursor_indexColumn = 0;
+                    f.fEDI_cursorVisualColumnIndex = 0;
+                    f.fEDI_w_indexColumn_SpanTextContentRelative = 0;
 
 
                     // you're only gonna need the lastSplitText for the final line
 
                     // 1. Target the specific line row index where the typing is taking place
                     // TODO: Ensure that this isn't used in the finalize, (it shouldn't be but just double check)
-                    f.INTS[f.fEDI_cursor_indexLine] += 1;
-                    activeLine = f.INTS[f.fEDI_cursor_indexLine];
+                    f.fEDI_cursor_indexLine += 1;
+                    activeLine = f.fEDI_cursor_indexLine;
 
                     // See comment "Awkward explicit inlining of 'EDI_indexLineTo_ringBufferIndex'" for more information.
-                    let activeLine_ringBufferIndex = activeLine - f.INTS[f.fEDI_virtualIndexLine];
-                    if (activeLine_ringBufferIndex >= f.INTS[f.fEDI_ArrayFrom_textElement_children_length] || activeLine_ringBufferIndex < 0) activeLine_ringBufferIndex = -1;
-                    else activeLine_ringBufferIndex = (activeLine_ringBufferIndex + f.INTS[f.fEDI_ringBuffer_indexZero]) % f.INTS[f.fEDI_virtualCount];
+                    let activeLine_ringBufferIndex = activeLine - f.fEDI_virtualIndexLine;
+                    if (activeLine_ringBufferIndex >= f.fEDI_ArrayFrom_textElement_children_length || activeLine_ringBufferIndex < 0) activeLine_ringBufferIndex = -1;
+                    else activeLine_ringBufferIndex = (activeLine_ringBufferIndex + f.fEDI_ringBuffer_indexZero) % f.fEDI_virtualCount;
                     if (activeLine_ringBufferIndex < 0) { return; } // line is not in viewport
 
                     let lineSpans = EDI_lineStringCache[activeLine_ringBufferIndex];
 
                     // 2. Determine the column position where the *first character of this edit burst* began
                     // We use indexColumn minus the absolute total length of characters typed in this current edit session
-                    editStartColumn = 0;// - f.INTS[f.fEDI_cursor_editLength_characters];
+                    editStartColumn = 0;// - f.fEDI_cursor_editLength_characters;
                     
                     // Find the precise column location of the characters we are about to insert right now
-                    currentEditColumn = 0;// + f.INTS[f.fEDI_cursor_edit_eventCount_drawingStateContinuationValue];
+                    currentEditColumn = 0;// + f.fEDI_cursor_edit_eventCount_drawingStateContinuationValue;
 
                     let runningColumnIdx = 0;
                     let targetedSpan = null;
@@ -6121,7 +6121,7 @@ function EDI_render_do_DuplicateOrPaste() {
                     }
 
                     // 5. Commit the continuation value forward so the next frame knows where to pick up
-                    f.INTS[f.fEDI_cursor_edit_eventCount_drawingStateContinuationValue] = f.INTS[f.fEDI_cursor_editLength_characters];
+                    f.fEDI_cursor_edit_eventCount_drawingStateContinuationValue = f.fEDI_cursor_editLength_characters;
 
                     if (targetedSpan === null) {
                         // TODO: silent error bad
@@ -6178,12 +6178,12 @@ function EDI_render_do_DuplicateOrPaste() {
         }
 
         if (linesInsertedCount > 0) {
-            update_verticalVirtualizationBoundary(f.INTS[f.fEDI_lineEndPositionList_count] + linesInsertedCount);
-            EDI_lineWasInsertedValidateGutter(f.INTS[f.fEDI_lineEndPositionList_count] + linesInsertedCount);
+            update_verticalVirtualizationBoundary(f.fEDI_lineEndPositionList_count + linesInsertedCount);
+            EDI_lineWasInsertedValidateGutter(f.fEDI_lineEndPositionList_count + linesInsertedCount);
         }
     }
 
-    f.INTS[f.fEDI_cursor_STORED_visualWidth] = f.INTS[f.fEDI_cursorVisualColumnIndex];
+    f.fEDI_cursor_STORED_visualWidth = f.fEDI_cursorVisualColumnIndex;
 
     //// 6. Request a canvas redraw layout frame pass to force the changes onto the screen
     EDI_render_request(f.RenderKind_Scroll);
@@ -6194,8 +6194,8 @@ function EDI_render_do_DuplicateOrPaste() {
 function EDI_handleRingBufferNodesThatAreOffscreen_DuplicateOrPaste(final_ringBufferIndex, final_indexItem, indexItem_of_expanded_node, ringBufferIndex_of_expanded_node, recycleCount) {
     let displaced_itemIndex = indexItem_of_expanded_node + 1;
     let displaced_ringBufferIndex = ringBufferIndex_of_expanded_node + 1;
-    if (displaced_ringBufferIndex >= f.INTS[f.fEDI_virtualCount]) {
-        displaced_ringBufferIndex -= f.INTS[f.fEDI_virtualCount];
+    if (displaced_ringBufferIndex >= f.fEDI_virtualCount) {
+        displaced_ringBufferIndex -= f.fEDI_virtualCount;
     }
 
     // TODO: calculate the earliest recycled node faster than just "looping a minus 1 over and over"
@@ -6205,7 +6205,7 @@ function EDI_handleRingBufferNodesThatAreOffscreen_DuplicateOrPaste(final_ringBu
         recycle_itemIndex--;
         recycle_ringBufferIndex--;
         if (recycle_ringBufferIndex < 0) {
-            recycle_ringBufferIndex = f.INTS[f.fEDI_virtualCount] - 1;
+            recycle_ringBufferIndex = f.fEDI_virtualCount - 1;
         }
     }
 
@@ -6217,7 +6217,7 @@ function EDI_handleRingBufferNodesThatAreOffscreen_DuplicateOrPaste(final_ringBu
     
     const endOfDisplacedBlock = inclusive_earliest_recycle_ringBufferIndex - 1;
     if (endOfDisplacedBlock < 0) {
-        endOfDisplacedBlock = f.INTS[f.fEDI_virtualCount] - 1;
+        endOfDisplacedBlock = f.fEDI_virtualCount - 1;
     }
 
     EDI_reverseBufferSegment(displaced_ringBufferIndex, endOfDisplacedBlock);                   // Reverse Displaced(s)
@@ -6228,8 +6228,8 @@ function EDI_handleRingBufferNodesThatAreOffscreen_DuplicateOrPaste(final_ringBu
     // Since everything was reversed in earlier steps this is the way to do exactly that.
     for (let i = 0; i < recycleCount; i++) {
         displaced_ringBufferIndex++;
-        if (displaced_ringBufferIndex >= f.INTS[f.fEDI_virtualCount]) {
-            displaced_ringBufferIndex -= f.INTS[f.fEDI_virtualCount]
+        if (displaced_ringBufferIndex >= f.fEDI_virtualCount) {
+            displaced_ringBufferIndex -= f.fEDI_virtualCount
         }
         displaced_itemIndex++;
     }
@@ -6240,7 +6240,7 @@ function EDI_handleRingBufferNodesThatAreOffscreen_DuplicateOrPaste(final_ringBu
         //    depth = EXPLORER_treeViewNodes.getDepth(displaced_itemIndex);
         //}
 
-        //EXPLORER_ringBuffer[displaced_ringBufferIndex].style.transform = `translate(${CONST_EXPLORER_offsetPerDepth * depth}px, ${f.INTS[f.fEXPLORER_itemHeightNumber] * displaced_itemIndex}px)`;
+        //EXPLORER_ringBuffer[displaced_ringBufferIndex].style.transform = `translate(${CONST_EXPLORER_offsetPerDepth * depth}px, ${f.fEXPLORER_itemHeightNumber * displaced_itemIndex}px)`;
 
         if (displaced_ringBufferIndex === final_ringBufferIndex) {
             break;
@@ -6249,8 +6249,8 @@ function EDI_handleRingBufferNodesThatAreOffscreen_DuplicateOrPaste(final_ringBu
         displaced_itemIndex++;
 
         displaced_ringBufferIndex++;
-        if (displaced_ringBufferIndex >= f.INTS[f.fEDI_virtualCount]) {
-            displaced_ringBufferIndex -= f.INTS[f.fEDI_virtualCount]
+        if (displaced_ringBufferIndex >= f.fEDI_virtualCount) {
+            displaced_ringBufferIndex -= f.fEDI_virtualCount
         }
     }
 }
@@ -6268,8 +6268,8 @@ function EDI_duplicate_and_paste_writeWord(word, functionState) {
     //// Decode only the new slice of un-drawn keys typed during this frame frame burst
     //const freshlyTypedString = EDI_decoder.decode(
     //    EDI_cursor_textInsertionBuffer.subarray(
-    //        f.INTS[f.fEDI_cursor_edit_eventCount_drawingStateContinuationValue], 
-    //        f.INTS[f.fEDI_cursor_editLength_characters]
+    //        f.fEDI_cursor_edit_eventCount_drawingStateContinuationValue, 
+    //        f.fEDI_cursor_editLength_characters
     //    )
     //);
 //
@@ -6283,50 +6283,50 @@ function EDI_duplicate_and_paste_writeWord(word, functionState) {
     // Tab expansion
         
     //targetedSpan.text = ;
-    //w_div.firstChild.insertData(f.INTS[f.fEDI_w_indexColumn_SpanTextContentRelative], word);
+    //w_div.firstChild.insertData(f.fEDI_w_indexColumn_SpanTextContentRelative, word);
 
-    f.INTS[f.fEDI_cursor_indexColumn] += wordLength;
-    f.INTS[f.fEDI_cursorVisualColumnIndex] += wordLength;
-    f.INTS[f.fEDI_w_indexColumn_SpanTextContentRelative] += wordLength;
+    f.fEDI_cursor_indexColumn += wordLength;
+    f.fEDI_cursorVisualColumnIndex += wordLength;
+    f.fEDI_w_indexColumn_SpanTextContentRelative += wordLength;
 }
 
 function EDI_render_do_TabKey() {
-    if (f.INTS[f.fEDI_cursor_editKind] !== f.EditKind_Tab) {
+    if (f.fEDI_cursor_editKind !== f.EditKind_Tab) {
         return;
     }
 
-    if (f.INTS[f.fEDI_cursor_edit_eventCount_drawn] >= f.INTS[f.fEDI_cursor_edit_eventCount_occurred]) {
+    if (f.fEDI_cursor_edit_eventCount_drawn >= f.fEDI_cursor_edit_eventCount_occurred) {
         return;
     }
 
     // You need spaces when updating the cache otherwise they won't render correctly.
     const EDI_on_tab_string = '    ';
 
-    while (f.INTS[f.fEDI_cursor_edit_eventCount_drawn] < f.INTS[f.fEDI_cursor_edit_eventCount_occurred]) {
-        f.INTS[f.fEDI_cursor_edit_eventCount_drawn]++;
+    while (f.fEDI_cursor_edit_eventCount_drawn < f.fEDI_cursor_edit_eventCount_occurred) {
+        f.fEDI_cursor_edit_eventCount_drawn++;
 
         // 1. Target the specific line row index where the typing is taking place
-        const activeLine = f.INTS[f.fEDI_cursor_indexLine];
+        const activeLine = f.fEDI_cursor_indexLine;
 
         // See comment "Awkward explicit inlining of 'EDI_indexLineTo_ringBufferIndex'" for more information.
-        let activeLine_ringBufferIndex = activeLine - f.INTS[f.fEDI_virtualIndexLine];
-        if (activeLine_ringBufferIndex >= f.INTS[f.fEDI_ArrayFrom_textElement_children_length] || activeLine_ringBufferIndex < 0) activeLine_ringBufferIndex = -1;
-        else activeLine_ringBufferIndex = (activeLine_ringBufferIndex + f.INTS[f.fEDI_ringBuffer_indexZero]) % f.INTS[f.fEDI_virtualCount];
+        let activeLine_ringBufferIndex = activeLine - f.fEDI_virtualIndexLine;
+        if (activeLine_ringBufferIndex >= f.fEDI_ArrayFrom_textElement_children_length || activeLine_ringBufferIndex < 0) activeLine_ringBufferIndex = -1;
+        else activeLine_ringBufferIndex = (activeLine_ringBufferIndex + f.fEDI_ringBuffer_indexZero) % f.fEDI_virtualCount;
         if (activeLine_ringBufferIndex < 0) { return; } // line is not in viewport
         
         let lineSpans = EDI_lineStringCache[activeLine_ringBufferIndex];
 
         // 2. Determine the column position where the *first character of this edit burst* began
         // We use indexColumn minus the absolute total length of characters typed in this current edit session
-        //const editStartColumn = f.INTS[f.fEDI_cursor_indexColumn] - f.INTS[f.fEDI_cursor_editLength_characters];
-        const editStartColumn = f.INTS[f.fEDI_cursorVisualColumnIndex] - f.INTS[f.fEDI_cursor_editLengthVisual];// - f.INTS[f.fEDI_cursor_editLength_characters];
+        //const editStartColumn = f.fEDI_cursor_indexColumn - f.fEDI_cursor_editLength_characters;
+        const editStartColumn = f.fEDI_cursorVisualColumnIndex - f.fEDI_cursor_editLengthVisual;// - f.fEDI_cursor_editLength_characters;
 
-        if (f.INTS[f.fEDI_cursor_edit_eventCount_occurred] > 1) {
-            editStartColumn -= (4 * (f.INTS[f.fEDI_cursor_edit_eventCount_occurred] - 1));
+        if (f.fEDI_cursor_edit_eventCount_occurred > 1) {
+            editStartColumn -= (4 * (f.fEDI_cursor_edit_eventCount_occurred - 1));
         }
         
         // Find the precise column location of the characters we are about to insert right now
-        const currentEditColumn = editStartColumn;// + f.INTS[f.fEDI_cursor_edit_eventCount_drawingStateContinuationValue];
+        const currentEditColumn = editStartColumn;// + f.fEDI_cursor_edit_eventCount_drawingStateContinuationValue;
 
         let runningColumnIdx = 0;
         let targetedSpan = null;
@@ -6352,8 +6352,8 @@ function EDI_render_do_TabKey() {
         // 4. If we successfully isolated the text slice segment inside the cache, modify it
         if (targetedSpan !== null) {
             // Decode only the new slice of un-drawn keys typed during this frame frame burst
-            const freshlyTypedString = f.INTS[f.fEDI_cursor_edit_eventCount_drawn] === 1
-                ? (f.INTS[f.fEDI_cursor_editLengthVisual] === 4 ? EDI_on_tab_string : ' '.repeat(f.INTS[f.fEDI_cursor_editLengthVisual]))
+            const freshlyTypedString = f.fEDI_cursor_edit_eventCount_drawn === 1
+                ? (f.fEDI_cursor_editLengthVisual === 4 ? EDI_on_tab_string : ' '.repeat(f.fEDI_cursor_editLengthVisual))
                 : EDI_on_tab_string;
 
             // Splice the text inline directly into the string reference inside the cache array frame
@@ -6364,7 +6364,7 @@ function EDI_render_do_TabKey() {
         }
 
         // 5. Commit the continuation value forward so the next frame knows where to pick up
-        f.INTS[f.fEDI_cursor_edit_eventCount_drawingStateContinuationValue] = f.INTS[f.fEDI_cursor_editLength_characters];
+        f.fEDI_cursor_edit_eventCount_drawingStateContinuationValue = f.fEDI_cursor_editLength_characters;
 
         // 6. Request a canvas redraw layout frame pass to force the changes onto the screen
         EDI_render_request(f.RenderKind_Scroll);
@@ -6377,15 +6377,15 @@ function EDI_render_do_EnterKey() {
     // TODO: This is wrong because you haven't inserted the lines yet so you just redraw the exact same height more or less (it does "work somewhat" cause you can miss and then at some point you'll probably hit enter again and see it fix something but that's still wrong.).
     update_verticalVirtualizationBoundary();
 
-    if (f.INTS[f.fEDI_cursor_editKind] !== f.EditKind_Enter) {
+    if (f.fEDI_cursor_editKind !== f.EditKind_Enter) {
         return;
     }
 
-    // TODO: instead of a loop, handle the rendering in a more optimized bulk operation that renders the remaining 'f.INTS[f.fEDI_cursor_editLineFeedCount] - f.INTS[f.fEDI_cursor_edit_eventCount_drawn]'
-    while (f.INTS[f.fEDI_cursor_edit_eventCount_drawn] < f.INTS[f.fEDI_cursor_edit_eventCount_occurred]) {
-        f.INTS[f.fEDI_cursor_edit_eventCount_drawn]++;
+    // TODO: instead of a loop, handle the rendering in a more optimized bulk operation that renders the remaining 'f.fEDI_cursor_editLineFeedCount - f.fEDI_cursor_edit_eventCount_drawn'
+    while (f.fEDI_cursor_edit_eventCount_drawn < f.fEDI_cursor_edit_eventCount_occurred) {
+        f.fEDI_cursor_edit_eventCount_drawn++;
 
-        const local_EDI_lineEndPositionList_count = f.INTS[f.fEDI_lineEndPositionList_count] + f.INTS[f.fEDI_cursor_edit_eventCount_drawn] - 1;
+        const local_EDI_lineEndPositionList_count = f.fEDI_lineEndPositionList_count + f.fEDI_cursor_edit_eventCount_drawn - 1;
         
         // TODO: Rewrite this comment in a way that isn't rambling:
         //
@@ -6411,15 +6411,15 @@ function EDI_render_do_EnterKey() {
         //if (isASingledOutCase) { throw new Error(); } // "isASingledOutCase case"
 
         // See comment "Awkward explicit inlining of 'EXPLORER_indexItemTo_ringBufferIndexItem'" for more information.
-        let current_ringBufferIndex = f.INTS[f.fEDI_cursor_editIndexLine] - f.INTS[f.fEDI_virtualIndexLine];
-        if (current_ringBufferIndex >= f.INTS[f.fEDI_ArrayFrom_textElement_children_length] || current_ringBufferIndex < 0) current_ringBufferIndex = -1;
-        else current_ringBufferIndex = (current_ringBufferIndex + f.INTS[f.fEDI_ringBuffer_indexZero]) % f.INTS[f.fEDI_virtualCount];
+        let current_ringBufferIndex = f.fEDI_cursor_editIndexLine - f.fEDI_virtualIndexLine;
+        if (current_ringBufferIndex >= f.fEDI_ArrayFrom_textElement_children_length || current_ringBufferIndex < 0) current_ringBufferIndex = -1;
+        else current_ringBufferIndex = (current_ringBufferIndex + f.fEDI_ringBuffer_indexZero) % f.fEDI_virtualCount;
         if (current_ringBufferIndex < 0) { return; } // TODO: line is not in viewport (for enter key it still needs to be handled maybe probably)
 
         // See comment "Awkward explicit inlining of 'EXPLORER_indexItemTo_ringBufferIndexItem'" for more information.
-        let final_ringBufferIndex = f.INTS[f.fEDI_ArrayFrom_textElement_children_length] - 1;
-        if (final_ringBufferIndex >= f.INTS[f.fEDI_ArrayFrom_textElement_children_length] || final_ringBufferIndex < 0) final_ringBufferIndex = -1;
-        else final_ringBufferIndex = (final_ringBufferIndex + f.INTS[f.fEDI_ringBuffer_indexZero]) % f.INTS[f.fEDI_virtualCount];
+        let final_ringBufferIndex = f.fEDI_ArrayFrom_textElement_children_length - 1;
+        if (final_ringBufferIndex >= f.fEDI_ArrayFrom_textElement_children_length || final_ringBufferIndex < 0) final_ringBufferIndex = -1;
+        else final_ringBufferIndex = (final_ringBufferIndex + f.fEDI_ringBuffer_indexZero) % f.fEDI_virtualCount;
         if (final_ringBufferIndex < 0) { return; } // ???
 
         // TODO: (when holding enter key) Among a line, where you have indentation will recreate the same 'spanText' over and over, very wasteful. This includes the wasteful steps of substringing...
@@ -6431,7 +6431,7 @@ function EDI_render_do_EnterKey() {
 
         // TODO: EDI_cursor_cached_indentation_string ensure post rewrite that it is in each conditional branch (as of writing this comment I know it isn't)
 
-        if (f.INTS[f.fEDI_cursor_editIndexColumn] === 0) { // start of line
+        if (f.fEDI_cursor_editIndexColumn === 0) { // start of line
             // pending line feeds use them for the line numbers eventually
 
             let loop_ringBufferIndex = final_ringBufferIndex;
@@ -6440,7 +6440,7 @@ function EDI_render_do_EnterKey() {
             while (true) {
                 let previous_ringBufferIndex = loop_ringBufferIndex - 1;
                 if (previous_ringBufferIndex < 0) {
-                    previous_ringBufferIndex = f.INTS[f.fEDI_ArrayFrom_textElement_children_length] - 1;
+                    previous_ringBufferIndex = f.fEDI_ArrayFrom_textElement_children_length - 1;
                 }
 
                 EDI_lineStringCache[loop_ringBufferIndex] = EDI_lineStringCache[previous_ringBufferIndex];
@@ -6464,25 +6464,25 @@ function EDI_render_do_EnterKey() {
                 currentLineSpans.push({ text: spanText, color: EDI_tokenColors[0] });
             }
             //EDI_shiftLinesOfText_ToALarger_IndexLine_byOne(ringBufferIndex_last, ringBufferIndex_current);
-            //EDI_lineWasInsertedValidateGutter(f.INTS[f.fEDI_lineEndPositionList_count] + f.INTS[f.fEDI_cursor_editLineFeedCount]);
+            //EDI_lineWasInsertedValidateGutter(f.fEDI_lineEndPositionList_count + f.fEDI_cursor_editLineFeedCount);
         }
         else {
-            let lastValidIndexColumn = EDI_getLastValidIndexColumn_raw(f.INTS[f.fEDI_cursor_editIndexLine]);
+            let lastValidIndexColumn = EDI_getLastValidIndexColumn_raw(f.fEDI_cursor_editIndexLine);
 
-            if (lastValidIndexColumn === f.INTS[f.fEDI_cursor_editIndexColumn]) { // end of line
+            if (lastValidIndexColumn === f.fEDI_cursor_editIndexColumn) { // end of line
                 let loop_ringBufferIndex = final_ringBufferIndex;
 
                 let final_lineSpans = EDI_lineStringCache[final_ringBufferIndex];
 
                 let next_ringBufferIndex = current_ringBufferIndex + 1;
-                if (next_ringBufferIndex >= f.INTS[f.fEDI_ArrayFrom_textElement_children_length]) {
-                    next_ringBufferIndex -= f.INTS[f.fEDI_ArrayFrom_textElement_children_length];
+                if (next_ringBufferIndex >= f.fEDI_ArrayFrom_textElement_children_length) {
+                    next_ringBufferIndex -= f.fEDI_ArrayFrom_textElement_children_length;
                 }
 
                 while (loop_ringBufferIndex !== next_ringBufferIndex) {
                     let previous_ringBufferIndex = loop_ringBufferIndex - 1;
                     if (previous_ringBufferIndex < 0) {
-                        previous_ringBufferIndex = f.INTS[f.fEDI_ArrayFrom_textElement_children_length] - 1;
+                        previous_ringBufferIndex = f.fEDI_ArrayFrom_textElement_children_length - 1;
                     }
 
                     EDI_lineStringCache[loop_ringBufferIndex] = EDI_lineStringCache[previous_ringBufferIndex];
@@ -6505,18 +6505,18 @@ function EDI_render_do_EnterKey() {
             else { // among a line
 
                 // among a line uses 'walkLineUntilIndexColumn', this function takes a cursor and accesses the fields: 'indexLine', and 'indexColumn'.
-                // This is problematic because one needs to use f.INTS[f.fEDI_cursor_editIndexColumn] for this renderKind.
+                // This is problematic because one needs to use f.fEDI_cursor_editIndexColumn for this renderKind.
                 // Since only this case needs the logic I'm going to isolate it to here.
                 //
                 // Remember 'indexLine', and 'indexColumn'.
                 // Set them to the edit respective fields.
                 //
                 // Prior to returning from this function restore the original 'indexLine', and 'indexColumn'. (1 of 2)
-                let remember_cursorIndexLine = f.INTS[f.fEDI_cursor_indexLine];
-                let remember_cursorIndexColumn = f.INTS[f.fEDI_cursor_indexColumn];
+                let remember_cursorIndexLine = f.fEDI_cursor_indexLine;
+                let remember_cursorIndexColumn = f.fEDI_cursor_indexColumn;
 
-                f.INTS[f.fEDI_cursor_indexLine] = f.INTS[f.fEDI_cursor_editIndexLine];
-                f.INTS[f.fEDI_cursor_indexColumn] = f.INTS[f.fEDI_cursor_editIndexColumn];
+                f.fEDI_cursor_indexLine = f.fEDI_cursor_editIndexLine;
+                f.fEDI_cursor_indexColumn = f.fEDI_cursor_editIndexColumn;
 
                 
                 let relativeInsertIndex = 0;
@@ -6525,7 +6525,7 @@ function EDI_render_do_EnterKey() {
                 let targetedSpanIndex = 0;
 
                 // 1. Target the specific line row index where the typing is taking place
-                const activeLine = f.INTS[f.fEDI_cursor_indexLine];
+                const activeLine = f.fEDI_cursor_indexLine;
 
                 let lineSpans = EDI_lineStringCache[current_ringBufferIndex];
 
@@ -6536,10 +6536,10 @@ function EDI_render_do_EnterKey() {
 
                     // 2. Determine the column position where the *first character of this edit burst* began
                     // We use indexColumn minus the absolute total length of characters typed in this current edit session
-                    const editStartColumn = f.INTS[f.fEDI_cursor_indexColumn];// - f.INTS[f.fEDI_cursor_editLength_characters];
+                    const editStartColumn = f.fEDI_cursor_indexColumn;// - f.fEDI_cursor_editLength_characters;
                     
                     // Find the precise column location of the characters we are about to insert right now
-                    const currentEditColumn = editStartColumn;// + f.INTS[f.fEDI_cursor_edit_eventCount_drawingStateContinuationValue];
+                    const currentEditColumn = editStartColumn;// + f.fEDI_cursor_edit_eventCount_drawingStateContinuationValue;
 
                     let runningColumnIdx = 0;
 
@@ -6563,8 +6563,8 @@ function EDI_render_do_EnterKey() {
                 }
 
                 let next_ringBufferIndex = current_ringBufferIndex + 1;
-                if (next_ringBufferIndex >= f.INTS[f.fEDI_ArrayFrom_textElement_children_length]) {
-                    next_ringBufferIndex -= f.INTS[f.fEDI_ArrayFrom_textElement_children_length];
+                if (next_ringBufferIndex >= f.fEDI_ArrayFrom_textElement_children_length) {
+                    next_ringBufferIndex -= f.fEDI_ArrayFrom_textElement_children_length;
                 }
 
                 let final_lineSpans = EDI_lineStringCache[final_ringBufferIndex];
@@ -6574,7 +6574,7 @@ function EDI_render_do_EnterKey() {
                 while (loop_ringBufferIndex !== next_ringBufferIndex) {
                     let previous_ringBufferIndex = loop_ringBufferIndex - 1;
                     if (previous_ringBufferIndex < 0) {
-                        previous_ringBufferIndex = f.INTS[f.fEDI_ArrayFrom_textElement_children_length] - 1;
+                        previous_ringBufferIndex = f.fEDI_ArrayFrom_textElement_children_length - 1;
                     }
 
                     EDI_lineStringCache[loop_ringBufferIndex] = EDI_lineStringCache[previous_ringBufferIndex];
@@ -6611,8 +6611,8 @@ function EDI_render_do_EnterKey() {
 
 
                 // Prior to returning from this function restore the original 'indexLine', and 'indexColumn'. (2 of 2)
-                f.INTS[f.fEDI_cursor_indexLine] = remember_cursorIndexLine;
-                f.INTS[f.fEDI_cursor_indexColumn] = remember_cursorIndexColumn;
+                f.fEDI_cursor_indexLine = remember_cursorIndexLine;
+                f.fEDI_cursor_indexColumn = remember_cursorIndexColumn;
             }
         }
     }
@@ -6624,39 +6624,39 @@ function EDI_render_do_EnterKey() {
 }
 
 function EDI_render_do_RemoveSelection() {
-    if (f.INTS[f.fEDI_cursor_editKind] !== f.EditKind_RemoveTextNoBatching) {
+    if (f.fEDI_cursor_editKind !== f.EditKind_RemoveTextNoBatching) {
         return;
     }
 
-    if (f.INTS[f.fEDI_cursor_edit_eventCount_drawn] >= f.INTS[f.fEDI_cursor_edit_eventCount_occurred]) {
+    if (f.fEDI_cursor_edit_eventCount_drawn >= f.fEDI_cursor_edit_eventCount_occurred) {
         return;
     }
 
     // RemoveSelection doesn't batch at the moment thus the equals rather than incrementing.
     // Although it doesn't "matter" cause they'd only ever be off by 1 but this way makes me feel less anxious nevertheless.
-    f.INTS[f.fEDI_cursor_edit_eventCount_drawn] = f.INTS[f.fEDI_cursor_edit_eventCount_occurred];
+    f.fEDI_cursor_edit_eventCount_drawn = f.fEDI_cursor_edit_eventCount_occurred;
     
-    let smallPosition = f.INTS[f.fEDI_editret_RemoveSelection_smallPosition];
-    let largePosition = f.INTS[f.fEDI_editret_RemoveSelection_largePosition];
+    let smallPosition = f.fEDI_editret_RemoveSelection_smallPosition;
+    let largePosition = f.fEDI_editret_RemoveSelection_largePosition;
 
     let editLength = largePosition - smallPosition;
 
-    let smallLineAndColumnIndices_indexLine = f.INTS[f.fEDI_editret_RemoveSelection_smallLineAndColumnIndices_small_indexLine];
-    let smallLineAndColumnIndices_indexColumn = f.INTS[f.fEDI_editret_RemoveSelection_smallLineAndColumnIndices_small_indexColumn];
+    let smallLineAndColumnIndices_indexLine = f.fEDI_editret_RemoveSelection_smallLineAndColumnIndices_small_indexLine;
+    let smallLineAndColumnIndices_indexColumn = f.fEDI_editret_RemoveSelection_smallLineAndColumnIndices_small_indexColumn;
 
     ///////////
     ///////////
 
-    let original_edit_length = f.INTS[f.fEDI_cursor_editLength_characters];
-    f.INTS[f.fEDI_cursor_editLength_characters] = 0;
+    let original_edit_length = f.fEDI_cursor_editLength_characters;
+    f.fEDI_cursor_editLength_characters = 0;
 
     let linesRemovedCount = 0;
     // -1 since you can't remove EOF
-    for (var iVarDependent = f.INTS[f.fEDI_cursor_indexLine]; iVarDependent < f.INTS[f.fEDI_lineEndPositionList_count] - 1; iVarDependent++) {
+    for (var iVarDependent = f.fEDI_cursor_indexLine; iVarDependent < f.fEDI_lineEndPositionList_count - 1; iVarDependent++) {
         let lineEnding = EDI_lineEndPositionList_data[iVarDependent];
-        if (lineEnding >= f.INTS[f.fEDI_cursor_editPosition] && lineEnding < f.INTS[f.fEDI_cursor_editPosition] + editLength) {
+        if (lineEnding >= f.fEDI_cursor_editPosition && lineEnding < f.fEDI_cursor_editPosition + editLength) {
             linesRemovedCount++;
-            f.INTS[f.fEDI_cursor_editLineFeedCount]++;
+            f.fEDI_cursor_editLineFeedCount++;
             EDI_lineEndPositionList_PENDING.insert(EDI_lineEndPositionList_PENDING.count, lineEnding);
         }
         else {
@@ -6670,26 +6670,26 @@ function EDI_render_do_RemoveSelection() {
 
     if (linesRemovedCount === 0) {
         //
-        // 'f.INTS[f.fEDI_cursor_selectionIndexAnchorColumnVISUAL]' is 0???
+        // 'f.fEDI_cursor_selectionIndexAnchorColumnVISUAL' is 0???
         //
-        //f.INTS[f.fEDI_cursor_editLengthVisual] = Math.abs(f.INTS[f.fEDI_cursor_selectionIndexEndColumnVISUAL] - f.INTS[f.fEDI_cursor_selectionIndexAnchorColumnVISUAL]);
+        //f.fEDI_cursor_editLengthVisual = Math.abs(f.fEDI_cursor_selectionIndexEndColumnVISUAL - f.fEDI_cursor_selectionIndexAnchorColumnVISUAL);
 
         EDI_ret_getLineAndColumnIndices_raw(largePosition);
-        let largeLineAndColumnIndices_indexLine = f.INTS[f.fEDI_ret_getLineAndColumnIndices_indexLine];
-        let largeLineAndColumnIndices_indexColumn = f.INTS[f.fEDI_ret_getLineAndColumnIndices_indexColumn];
+        let largeLineAndColumnIndices_indexLine = f.fEDI_ret_getLineAndColumnIndices_indexLine;
+        let largeLineAndColumnIndices_indexColumn = f.fEDI_ret_getLineAndColumnIndices_indexColumn;
 
         EDI_ret_getLineBoundaryPositions_raw(smallLineAndColumnIndices_indexLine);
-        let lineStart = f.INTS[f.fEDI_ret_getLineBoundaryPositions_start];
-        let lineEnd = f.INTS[f.fEDI_ret_getLineBoundaryPositions_end];
+        let lineStart = f.fEDI_ret_getLineBoundaryPositions_start;
+        let lineEnd = f.fEDI_ret_getLineBoundaryPositions_end;
 
         EDI_ret_getIndexFromColumn_RESET(smallLineAndColumnIndices_indexColumn, lineStart, lineEnd);
-        let small_columnVisual = f.INTS[f.fEDI_ret_getIndexFromX_visualColumns];
+        let small_columnVisual = f.fEDI_ret_getIndexFromX_visualColumns;
 
         // TODO: You don't have to RESET here but... this answer is ultimately going to be scrapped for something more correct so it isn't worth the time.
         EDI_ret_getIndexFromColumn_RESET(largeLineAndColumnIndices_indexColumn, lineStart, lineEnd);
-        let large_columnVisual = f.INTS[f.fEDI_ret_getIndexFromX_visualColumns];
+        let large_columnVisual = f.fEDI_ret_getIndexFromX_visualColumns;
 
-        f.INTS[f.fEDI_cursor_editLengthVisual] += large_columnVisual - small_columnVisual;
+        f.fEDI_cursor_editLengthVisual += large_columnVisual - small_columnVisual;
         //f.INTS[f.fEDI_cursorVisualColumnIndex] = small_columnVisual;
 
         //EDI_ret_getIndexFromColumn_RESET();
