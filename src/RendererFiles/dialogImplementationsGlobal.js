@@ -1,4 +1,10 @@
 import {APP_lineHeightStringWithPx} from "./applicationRendererRoot.js"
+import {
+    TreeViewNodeKind_isExpandable_isExpanded,
+    TreeViewNodeKind_isExpandable_NOTisExpanded,
+    TreeViewNodeKind_NOTisExpandable_isExpanded,
+    TreeViewNodeKind_NOTisExpandable_NOTisExpanded
+} from "./treeViewComponent.js"
 
 class DIALOG_FindAll_TreeViewDirector {
 
@@ -95,9 +101,9 @@ class DIALOG_FindAll_TreeViewDirector {
             }
             else {
                 this.nodeList.getElementAt(indexItem);
-                let key = f.INTS[fTreeView_poolret_pooledNode_key];
-                depth = f.INTS[fTreeView_poolret_pooledNode_depth];
-                nodeKind = f.BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+                let key = f.INTS[f.fTreeView_poolret_pooledNode_key];
+                depth = f.INTS[f.fTreeView_poolret_pooledNode_depth];
+                nodeKind = f.BYTES[f.byteTreeView_byteret_pooledNode_nodeKind];
 
                 let textNode = divItem.lastChild;
                 if (textNode.nodeType !== Node.TEXT_NODE) throw new Error('if (textNode.nodeType !== Node.TEXT_NODE)');
@@ -157,9 +163,9 @@ class DIALOG_FindAll_TreeViewDirector {
     
     async tvd_ondblclick_async(divItem, indexItem) {
         this.nodeList.getElementAt(indexItem);
-        let key = f.INTS[fTreeView_poolret_pooledNode_key];
-        let depth = f.INTS[fTreeView_poolret_pooledNode_depth];
-        let nodeKind = f.BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+        let key = f.INTS[f.fTreeView_poolret_pooledNode_key];
+        let depth = f.INTS[f.fTreeView_poolret_pooledNode_depth];
+        let nodeKind = f.BYTES[f.byteTreeView_byteret_pooledNode_nodeKind];
 
         if (nodeKind === TreeViewNodeKind_NOTisExpandable_NOTisExpanded) {
 
@@ -203,9 +209,9 @@ class DIALOG_FindAll_TreeViewDirector {
      */
     async tvd_expandCollapseIconWasClicked_async(divItem, indexItem) {
         this.nodeList.getElementAt(indexItem);
-        let key = f.INTS[fTreeView_poolret_pooledNode_key];
-        let depth = f.INTS[fTreeView_poolret_pooledNode_depth];
-        let nodeKind = f.BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+        let key = f.INTS[f.fTreeView_poolret_pooledNode_key];
+        let depth = f.INTS[f.fTreeView_poolret_pooledNode_depth];
+        let nodeKind = f.BYTES[f.byteTreeView_byteret_pooledNode_nodeKind];
 
         if (nodeKind === TreeViewNodeKind_isExpandable_NOTisExpanded) {
 

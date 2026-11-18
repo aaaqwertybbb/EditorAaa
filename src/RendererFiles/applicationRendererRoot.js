@@ -5,6 +5,9 @@ import {EDI_init} from './editorGlobal_edit.js'
 export let APP_lineHeightStringWithPx = '';
 
 export let shouldUseCSharpToSaveFileWhenPossible = false;
+export function set_shouldUseCSharpToSaveFileWhenPossible(value) {
+    shouldUseCSharpToSaveFileWhenPossible = value;
+}
 
 /**
  * Connect to the single threaded C# console app (custom language server)

@@ -1,3 +1,5 @@
+import * as f from './fieldBuffer.js'
+
 const TREEVIEWrenderKind_None = 0;
 const TREEVIEWrenderKind_Cursor = 1;
 const TREEVIEWrenderKind_Create = 2;
@@ -8,11 +10,11 @@ const TREEVIEWrenderKind_FullReset = 6;
 const TREEVIEWrenderKind_Scroll_PullDataDrawResult = 7;
 const TREEVIEWrenderKind_Resize = 8;
 
-const TreeViewNodeKind_None = 0;
-const TreeViewNodeKind_isExpandable_isExpanded = 1;
-const TreeViewNodeKind_isExpandable_NOTisExpanded = 2;
-const TreeViewNodeKind_NOTisExpandable_isExpanded = 3;
-const TreeViewNodeKind_NOTisExpandable_NOTisExpanded = 4;
+export const TreeViewNodeKind_None = 0;
+export const TreeViewNodeKind_isExpandable_isExpanded = 1;
+export const TreeViewNodeKind_isExpandable_NOTisExpanded = 2;
+export const TreeViewNodeKind_NOTisExpandable_isExpanded = 3;
+export const TreeViewNodeKind_NOTisExpandable_NOTisExpanded = 4;
 
 class TreeViewComponent_staticRunner {
     constructor() {
@@ -480,8 +482,8 @@ export class TreeViewComponent {
         if (ringBufferIndexItem < 0) return;
 
         this.getElementAt(this.cursorIndex);
-        let depth = f.INTS[fTreeView_poolret_pooledNode_depth];
-        let nodeKind = f.BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+        let depth = f.INTS[f.fTreeView_poolret_pooledNode_depth];
+        let nodeKind = f.BYTES[f.byteTreeView_byteret_pooledNode_nodeKind];
         
         if (nodeKind === TreeViewNodeKind_isExpandable_isExpanded) {
             if (this.cursorIndex + 1 < this.countAbstract) {
@@ -506,8 +508,8 @@ export class TreeViewComponent {
         if (ringBufferIndexItem < 0) return;
 
         this.getElementAt(this.cursorIndex);
-        let depth = f.INTS[fTreeView_poolret_pooledNode_depth];
-        let nodeKind = f.BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+        let depth = f.INTS[f.fTreeView_poolret_pooledNode_depth];
+        let nodeKind = f.BYTES[f.byteTreeView_byteret_pooledNode_nodeKind];
         
         if (nodeKind === TreeViewNodeKind_isExpandable_isExpanded) {
             this.expandCollapseIconWasClicked(undefined /*divItem*/, this.cursorIndex, ringBufferIndexItem);
@@ -640,9 +642,9 @@ export class TreeViewComponent {
      */
     getElementAt(index_abstract) {
         let index_literal = index_abstract * this.fieldCount;
-        f.BYTES[byteTreeView_byteret_pooledNode_nodeKind] = this.dataLiteral[index_literal + this.nodeKindOffset];
-        f.INTS[fTreeView_poolret_pooledNode_key] = this.dataLiteral[index_literal + this.keyOffset];
-        f.INTS[fTreeView_poolret_pooledNode_depth] = this.dataLiteral[index_literal + this.depthOffset];
+        f.BYTES[f.byteTreeView_byteret_pooledNode_nodeKind] = this.dataLiteral[index_literal + this.nodeKindOffset];
+        f.INTS[f.fTreeView_poolret_pooledNode_key] = this.dataLiteral[index_literal + this.keyOffset];
+        f.INTS[f.fTreeView_poolret_pooledNode_depth] = this.dataLiteral[index_literal + this.depthOffset];
     }
 
     getKey(index_abstract) {
