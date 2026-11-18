@@ -2446,14 +2446,14 @@ function EDI_finalizeEdit_Enter(indexLine_editOccurredOn) {
 
     EDI_textByteList_insertBytes(actualEditPosition, bytes, /*offset*/ 0, length);
     // TODO: ensure 'EDI_styleBuffer' count has 'f.INTS[f.fEDI_cursor_editPosition]' in range / ensure it is equal with 'f.EDI_textByteList' count/capacity?
-    if (f.INTS[f.fEDI_styleBuffer_count] !== 0) {
+    if (f.fEDI_styleBuffer_count !== 0) {
         EDI_styleBuffer_insertBytes(actualEditPosition, new Uint8Array(bytes.length), 0, bytes.length);
     }
 
     sendTransaction_MessageKind_custom_edit_InsertLtr(actualEditPosition, bytes);
 
     // TODO: bulk insertion of lines
-    for (let i = 0; i < f.INTS[f.fEDI_cursor_editLineFeedCount]; i++) {
+    for (let i = 0; i < f.fEDI_cursor_editLineFeedCount; i++) {
         EDI_lineEndPositionList_insert(actualIndexLine, actualLineFeedPosition, actualNewLineVisualWidth);
         actualIndexLine++;
         actualLineFeedPosition += per_edit_insertionCount;
@@ -2462,7 +2462,7 @@ function EDI_finalizeEdit_Enter(indexLine_editOccurredOn) {
     if (f.BYTES[f.byteEDI_cursor_enterKeyEventKind] === f.EnterKeyEventKind_EndOfFile) {
         EDI_trackingUint32MaxHeap.updateLength(specialCase_firstLineIndexInserted, specialCase_number);
         if (EDI_trackingUint32MaxHeap.tryPooledPeek() &&
-            (f.INTS[f.fEDI_longestLine_length] !== EDI_trackingUint32MaxHeap.unpack_pool_length || f.INTS[f.fEDI_longestLine_indexLine] !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
+            (f.fEDI_longestLine_length !== EDI_trackingUint32MaxHeap.unpack_pool_length || f.fEDI_longestLine_indexLine !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
             // "aaa\n" => 'EDI_lineEndPositionList_insert' causes a temporary longest line index is 1 and the longest line length is 0
             // that needs to be overwritten.
             // The example is "as you type it" so the '\n' gets finalized and that's when you see the wrong answer it is only temporary due to 'EDI_lineEndPositionList_insert'.
@@ -2476,15 +2476,15 @@ function EDI_finalizeEdit_Enter(indexLine_editOccurredOn) {
             // So then EDI_lineEndPositionList_insert(...) internally updates the UI and it doesn't see the "specialCase variable's visual length existing in the heap" anymore
             // and it took the line you just added like if both end up 0 it's just w/e the algorithm picked one or the other due to some tiebreaker cause you only had the 2 lines
             //
-            f.INTS[f.fEDI_longestLine_indexLine] = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
-            f.INTS[f.fEDI_longestLine_length] = EDI_trackingUint32MaxHeap.unpack_pool_length;
+            f.fEDI_longestLine_indexLine = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
+            f.fEDI_longestLine_length = EDI_trackingUint32MaxHeap.unpack_pool_length;
             requestAnimationFrame(EDI_drawHorizontalScrollbar);
         }
     }
     else if (f.BYTES[f.byteEDI_cursor_enterKeyEventKind] === f.EnterKeyEventKind_AmongALine) {
         EDI_trackingUint32MaxHeap.updateLength(specialCase_firstLineIndexInserted, specialCase_number);
         if (EDI_trackingUint32MaxHeap.tryPooledPeek() &&
-            (f.INTS[f.fEDI_longestLine_length] !== EDI_trackingUint32MaxHeap.unpack_pool_length || f.INTS[f.fEDI_longestLine_indexLine] !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
+            (f.fEDI_longestLine_length !== EDI_trackingUint32MaxHeap.unpack_pool_length || f.fEDI_longestLine_indexLine !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
             // "gets finalized and that's when you see the wrong answer it is only temporary due to 'EDI_lineEndPositionList_insert'."
             // is happening again for this case too...
             //
@@ -2494,8 +2494,8 @@ function EDI_finalizeEdit_Enter(indexLine_editOccurredOn) {
             // But for some reason the horizontal scrollbar was slightly longer than it should've been and then I inserted 1 character and finalized to cause it to redraw
             // and then it drew properly then ?
             // 
-            f.INTS[f.fEDI_longestLine_indexLine] = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
-            f.INTS[f.fEDI_longestLine_length] = EDI_trackingUint32MaxHeap.unpack_pool_length;
+            f.fEDI_longestLine_indexLine = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
+            f.fEDI_longestLine_length = EDI_trackingUint32MaxHeap.unpack_pool_length;
             requestAnimationFrame(EDI_drawHorizontalScrollbar);
         }
     }
@@ -2506,7 +2506,7 @@ function EDI_finalizeEdit_Enter(indexLine_editOccurredOn) {
 }
 
 function EDI_finalizeEdit_Tab(indexLine_editOccurredOn) {
-    if (f.INTS[f.fEDI_cursor_edit_eventCount_drawn] < f.INTS[f.fEDI_cursor_edit_eventCount_occurred]) {
+    if (f.fEDI_cursor_edit_eventCount_drawn < f.fEDI_cursor_edit_eventCount_occurred) {
         EDI_render_do_TabKey();
     }
 
@@ -2514,8 +2514,8 @@ function EDI_finalizeEdit_Tab(indexLine_editOccurredOn) {
     const per_edit_length = bytes.length;
     let length = per_edit_length;
 
-    if (f.INTS[f.fEDI_cursor_edit_eventCount_occurred] > 1) {
-        length *= f.INTS[f.fEDI_cursor_edit_eventCount_occurred];
+    if (f.fEDI_cursor_edit_eventCount_occurred > 1) {
+        length *= f.fEDI_cursor_edit_eventCount_occurred;
         const src_bytes = bytes;
         bytes = new Uint8Array(length);
         // TODO: typed array function usage
@@ -2526,34 +2526,34 @@ function EDI_finalizeEdit_Tab(indexLine_editOccurredOn) {
         }
     }
 
-    EDI_textByteList_insertBytes(f.INTS[f.fEDI_cursor_editPosition], bytes, /*offset*/ 0, /*length*/ length);
-    // TODO: ensure 'EDI_styleBuffer' count has 'f.INTS[f.fEDI_cursor_editPosition]' in range / ensure it is equal with 'f.EDI_textByteList' count/capacity?
-    if (f.INTS[f.fEDI_styleBuffer_count] !== 0) {
-        EDI_styleBuffer_insertBytes(f.INTS[f.fEDI_cursor_editPosition], new Uint8Array(bytes.length), 0, bytes.length);
+    EDI_textByteList_insertBytes(f.fEDI_cursor_editPosition, bytes, /*offset*/ 0, /*length*/ length);
+    // TODO: ensure 'EDI_styleBuffer' count has 'f.fEDI_cursor_editPosition' in range / ensure it is equal with 'f.EDI_textByteList' count/capacity?
+    if (f.fEDI_styleBuffer_count !== 0) {
+        EDI_styleBuffer_insertBytes(f.fEDI_cursor_editPosition, new Uint8Array(bytes.length), 0, bytes.length);
     }
 
-    for (var i = f.INTS[f.fEDI_cursor_editIndexLine]; i < f.INTS[f.fEDI_lineEndPositionList_count]; i++) {
+    for (var i = f.fEDI_cursor_editIndexLine; i < f.fEDI_lineEndPositionList_count; i++) {
         EDI_lineEndPositionList_data[i] += length;
     }
 
-    sendTransaction_MessageKind_custom_edit_InsertLtr(f.INTS[f.fEDI_cursor_editPosition], bytes);
+    sendTransaction_MessageKind_custom_edit_InsertLtr(f.fEDI_cursor_editPosition, bytes);
 
-    let editLengthVisual = length * f.INTS[f.fEDI_ontab_visualWidth_perCharacter];
-    if (f.INTS[f.fEDI_ontab_visualWidth_perCharacter] === 4) {
+    let editLengthVisual = length * f.fEDI_ontab_visualWidth_perCharacter;
+    if (f.fEDI_ontab_visualWidth_perCharacter === 4) {
         editLengthVisual -= 4;
-        let tabWidthOfFirstTab = f.INTS[f.fEDI_cursor_editLengthVisual];
+        let tabWidthOfFirstTab = f.fEDI_cursor_editLengthVisual;
         editLengthVisual += tabWidthOfFirstTab;
     }
 
-    EDI_trackingUint32MaxHeap.updateLength_diff(f.INTS[f.fEDI_cursor_editIndexLine], editLengthVisual);
+    EDI_trackingUint32MaxHeap.updateLength_diff(f.fEDI_cursor_editIndexLine, editLengthVisual);
     if (EDI_trackingUint32MaxHeap.tryPooledPeek() &&
-        (f.INTS[f.fEDI_longestLine_length] !== EDI_trackingUint32MaxHeap.unpack_pool_length || f.INTS[f.fEDI_longestLine_indexLine] !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
-        f.INTS[f.fEDI_longestLine_indexLine] = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
-        f.INTS[f.fEDI_longestLine_length] = EDI_trackingUint32MaxHeap.unpack_pool_length;
+        (f.fEDI_longestLine_length !== EDI_trackingUint32MaxHeap.unpack_pool_length || f.fEDI_longestLine_indexLine !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
+        f.fEDI_longestLine_indexLine = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
+        f.fEDI_longestLine_length = EDI_trackingUint32MaxHeap.unpack_pool_length;
         requestAnimationFrame(EDI_drawHorizontalScrollbar);
     }
 
-    indexLine_editOccurredOn = f.INTS[f.fEDI_cursor_editIndexLine];
+    indexLine_editOccurredOn = f.fEDI_cursor_editIndexLine;
 
     EDI_finalizeEdit_ClearEditState();
 
@@ -2561,14 +2561,14 @@ function EDI_finalizeEdit_Tab(indexLine_editOccurredOn) {
 }
 
 function EDI_finalizeEdit_IndentMore(indexLine_editOccurredOn) {
-    if (f.INTS[f.fEDI_cursor_edit_eventCount_drawn] < f.INTS[f.fEDI_cursor_edit_eventCount_occurred]) {
+    if (f.fEDI_cursor_edit_eventCount_drawn < f.fEDI_cursor_edit_eventCount_occurred) {
         EDI_render_do_IndentMore();
     }
 
-    let startingIndex = f.INTS[f.fEDI_indent_startingIndex];
-    f.INTS[f.fEDI_indent_startingIndex] = 0;
-    let SMALL_lineAndColumnIndices_indexLine = f.INTS[f.fEDI_indent_SMALL_lineAndColumnIndices_indexLine];
-    f.INTS[f.fEDI_indent_SMALL_lineAndColumnIndices_indexLine] = 0;
+    let startingIndex = f.fEDI_indent_startingIndex;
+    f.fEDI_indent_startingIndex = 0;
+    let SMALL_lineAndColumnIndices_indexLine = f.fEDI_indent_SMALL_lineAndColumnIndices_indexLine;
+    f.fEDI_indent_SMALL_lineAndColumnIndices_indexLine = 0;
 
     let bytes = EDI_on_tab_bytes;
     const per_edit_length = bytes.length;
@@ -2578,10 +2578,10 @@ function EDI_finalizeEdit_IndentMore(indexLine_editOccurredOn) {
 
     let bytesLength = per_edit_length;
 
-    if (f.INTS[f.fEDI_cursor_edit_eventCount_occurred] > 1) {
-        ORIGINAL_incrementBy *= f.INTS[f.fEDI_cursor_edit_eventCount_occurred];
-        incrementBy *= f.INTS[f.fEDI_cursor_edit_eventCount_occurred];
-        bytesLength *= f.INTS[f.fEDI_cursor_edit_eventCount_occurred];
+    if (f.fEDI_cursor_edit_eventCount_occurred > 1) {
+        ORIGINAL_incrementBy *= f.fEDI_cursor_edit_eventCount_occurred;
+        incrementBy *= f.fEDI_cursor_edit_eventCount_occurred;
+        bytesLength *= f.fEDI_cursor_edit_eventCount_occurred;
         const src_bytes = bytes;
         bytes = new Uint8Array(bytesLength);
         // TODO: typed array function usage
@@ -2592,8 +2592,8 @@ function EDI_finalizeEdit_IndentMore(indexLine_editOccurredOn) {
         }
     }
 
-    let startingLinePos_end = f.INTS[f.fEDI_editret_indentLess_startingLinePos_end];
-    f.INTS[f.fEDI_editret_indentLess_startingLinePos_end] = 0;
+    let startingLinePos_end = f.fEDI_editret_indentLess_startingLinePos_end;
+    f.fEDI_editret_indentLess_startingLinePos_end = 0;
 
     // # Determine the total count of text that will be inserted, prior to actually beginning the edit.
     // ...
@@ -2610,12 +2610,12 @@ function EDI_finalizeEdit_IndentMore(indexLine_editOccurredOn) {
     //         # The next iteration is a smaller indexLine so you decrement because you have the insertion of one less line to consider.
     for (var lineI = startingIndex; lineI >= SMALL_lineAndColumnIndices_indexLine; lineI--) {
         EDI_ret_getLineBoundaryPositions_raw(lineI);
-        const line_start = f.INTS[f.fEDI_ret_getLineBoundaryPositions_start];
+        const line_start = f.fEDI_ret_getLineBoundaryPositions_start;
 
         // # Insert the text on the respective line.
         EDI_textByteList_insertBytes(line_start, bytes, 0 /*offset*/, bytesLength /*length*/);
-        // TODO: ensure 'EDI_styleBuffer' count has 'f.INTS[f.fEDI_cursor_editPosition]' in range / ensure it is equal with 'f.EDI_textByteList' count/capacity?
-        if (f.INTS[f.fEDI_styleBuffer_count] !== 0) {
+        // TODO: ensure 'EDI_styleBuffer' count has 'f.fEDI_cursor_editPosition' in range / ensure it is equal with 'f.EDI_textByteList' count/capacity?
+        if (f.fEDI_styleBuffer_count !== 0) {
             EDI_styleBuffer_insertBytes(line_start, perEdit_styleBuffer_changes, 0, bytesLength);
         }
 
@@ -2631,7 +2631,7 @@ function EDI_finalizeEdit_IndentMore(indexLine_editOccurredOn) {
     }
 
     // # Any line that is not part of the selected set of lines, and is at a greater indexLine, needs to have their line end position entry updated.
-    for (var lineI = startingIndex + 1; lineI < f.INTS[f.fEDI_lineEndPositionList_count]; lineI++) {
+    for (var lineI = startingIndex + 1; lineI < f.fEDI_lineEndPositionList_count; lineI++) {
         EDI_lineEndPositionList_data[lineI] += ORIGINAL_incrementBy;
     }
 
@@ -2639,11 +2639,11 @@ function EDI_finalizeEdit_IndentMore(indexLine_editOccurredOn) {
     // This information doesn't matter much here but I'm ensuring an understanding incase the future necessitates it.
     //
     if (startingIndex === SMALL_lineAndColumnIndices_indexLine) {
-        EDI_trackingUint32MaxHeap.updateLength_diff(f.INTS[f.fEDI_cursor_editIndexLine], bytesLength * f.INTS[f.fEDI_ontab_visualWidth_perCharacter]);
+        EDI_trackingUint32MaxHeap.updateLength_diff(f.fEDI_cursor_editIndexLine, bytesLength * f.fEDI_ontab_visualWidth_perCharacter);
         if (EDI_trackingUint32MaxHeap.tryPooledPeek() &&
-            (f.INTS[f.fEDI_longestLine_length] !== EDI_trackingUint32MaxHeap.unpack_pool_length || f.INTS[f.fEDI_longestLine_indexLine] !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
-            f.INTS[f.fEDI_longestLine_indexLine] = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
-            f.INTS[f.fEDI_longestLine_length] = EDI_trackingUint32MaxHeap.unpack_pool_length;
+            (f.fEDI_longestLine_length !== EDI_trackingUint32MaxHeap.unpack_pool_length || f.fEDI_longestLine_indexLine !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
+            f.fEDI_longestLine_indexLine = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
+            f.fEDI_longestLine_length = EDI_trackingUint32MaxHeap.unpack_pool_length;
             requestAnimationFrame(EDI_drawHorizontalScrollbar);
         }
     }
@@ -2654,25 +2654,25 @@ function EDI_finalizeEdit_IndentMore(indexLine_editOccurredOn) {
 }
 
 function EDI_finalizeEdit_IndentLess(indexLine_editOccurredOn) {
-    if (f.INTS[f.fEDI_cursor_edit_eventCount_drawn] < f.INTS[f.fEDI_cursor_edit_eventCount_occurred]) {
+    if (f.fEDI_cursor_edit_eventCount_drawn < f.fEDI_cursor_edit_eventCount_occurred) {
         EDI_render_do_IndentLess();
     }
 
-    let startingIndex = f.INTS[f.fEDI_indent_startingIndex];
-    f.INTS[f.fEDI_indent_startingIndex] = 0;
-    let SMALL_lineAndColumnIndices_indexLine = f.INTS[f.fEDI_indent_SMALL_lineAndColumnIndices_indexLine];
-    f.INTS[f.fEDI_indent_SMALL_lineAndColumnIndices_indexLine] = 0;
+    let startingIndex = f.fEDI_indent_startingIndex;
+    f.fEDI_indent_startingIndex = 0;
+    let SMALL_lineAndColumnIndices_indexLine = f.fEDI_indent_SMALL_lineAndColumnIndices_indexLine;
+    f.fEDI_indent_SMALL_lineAndColumnIndices_indexLine = 0;
 
     // !!!!!! watch out for the big breaks when hitting a tab presuming that_four is 4
     let maxVirtualColumnIndex = 4;
-    maxVirtualColumnIndex *= f.INTS[f.fEDI_cursor_edit_eventCount_occurred];
-    let largestRank = f.INTS[f.fEDI_cursor_edit_eventCount_occurred];
+    maxVirtualColumnIndex *= f.fEDI_cursor_edit_eventCount_occurred;
+    let largestRank = f.fEDI_cursor_edit_eventCount_occurred;
 
     // loop over the lines to sum the "amount" of whitespace being removed
     let DETERMINE_decrementBy = 0;
     for (var lineI = SMALL_lineAndColumnIndices_indexLine; lineI <= startingIndex; lineI++) {
         EDI_ret_getLineBoundaryPositions_raw(lineI);
-        const line_start = f.INTS[f.fEDI_ret_getLineBoundaryPositions_start];
+        const line_start = f.fEDI_ret_getLineBoundaryPositions_start;
         let lastValidIndexColumn = EDI_getLastValidIndexColumn_raw(lineI);
         let upperLimitIndexColumn;
         if (lastValidIndexColumn > maxVirtualColumnIndex) {
@@ -2729,7 +2729,7 @@ function EDI_finalizeEdit_IndentLess(indexLine_editOccurredOn) {
         mostRecent_decrementedVisualWidthAbsolute = 0;
         let innerRemoveCount = 0;
         EDI_ret_getLineBoundaryPositions_raw(lineI);
-        const line_start = f.INTS[f.fEDI_ret_getLineBoundaryPositions_start];
+        const line_start = f.fEDI_ret_getLineBoundaryPositions_start;
         let lastValidIndexColumn = EDI_getLastValidIndexColumn_raw(lineI);
         let upperLimitIndexColumn;
         if (lastValidIndexColumn > maxVirtualColumnIndex) {
@@ -2778,8 +2778,8 @@ function EDI_finalizeEdit_IndentLess(indexLine_editOccurredOn) {
         }
 
         EDI_textByteList_removeAt(line_start, innerRemoveCount);
-        // TODO: ensure 'EDI_styleBuffer' count has 'f.INTS[f.fEDI_cursor_editPosition]' in range / ensure it is equal with 'f.EDI_textByteList' count/capacity?
-        if (f.INTS[f.fEDI_styleBuffer_count] !== 0) {
+        // TODO: ensure 'EDI_styleBuffer' count has 'f.fEDI_cursor_editPosition' in range / ensure it is equal with 'f.EDI_textByteList' count/capacity?
+        if (f.fEDI_styleBuffer_count !== 0) {
             EDI_styleBuffer_removeAt(line_start, innerRemoveCount);
         }
 
@@ -2790,7 +2790,7 @@ function EDI_finalizeEdit_IndentLess(indexLine_editOccurredOn) {
         decrementBy -= innerRemoveCount;
     }
 
-    for (var lineI = startingIndex + 1; lineI < f.INTS[f.fEDI_lineEndPositionList_count]; lineI++) {
+    for (var lineI = startingIndex + 1; lineI < f.fEDI_lineEndPositionList_count; lineI++) {
         EDI_lineEndPositionList_data[lineI] -= ORIGINAL_decrementBy;
     }
 
@@ -2798,11 +2798,11 @@ function EDI_finalizeEdit_IndentLess(indexLine_editOccurredOn) {
     // This information doesn't matter much here but I'm ensuring an understanding incase the future necessitates it.
     //
     if (startingIndex === SMALL_lineAndColumnIndices_indexLine) {
-        EDI_trackingUint32MaxHeap.updateLength_diff(f.INTS[f.fEDI_cursor_editIndexLine], -1 * mostRecent_decrementedVisualWidthAbsolute);
+        EDI_trackingUint32MaxHeap.updateLength_diff(f.fEDI_cursor_editIndexLine, -1 * mostRecent_decrementedVisualWidthAbsolute);
         if (EDI_trackingUint32MaxHeap.tryPooledPeek() &&
-            (f.INTS[f.fEDI_longestLine_length] !== EDI_trackingUint32MaxHeap.unpack_pool_length || f.INTS[f.fEDI_longestLine_indexLine] !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
-            f.INTS[f.fEDI_longestLine_indexLine] = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
-            f.INTS[f.fEDI_longestLine_length] = EDI_trackingUint32MaxHeap.unpack_pool_length;
+            (f.fEDI_longestLine_length !== EDI_trackingUint32MaxHeap.unpack_pool_length || f.fEDI_longestLine_indexLine !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
+            f.fEDI_longestLine_indexLine = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
+            f.fEDI_longestLine_length = EDI_trackingUint32MaxHeap.unpack_pool_length;
             requestAnimationFrame(EDI_drawHorizontalScrollbar);
         }
     }
@@ -2814,41 +2814,41 @@ function EDI_finalizeEdit_IndentLess(indexLine_editOccurredOn) {
 
 /** TODO: the finalize for paste is also very bad, not just the event/render */
 function EDI_finalizeEdit_Paste(indexLine_editOccurredOn) {
-    if (f.INTS[f.fEDI_cursor_edit_eventCount_drawn] < f.INTS[f.fEDI_cursor_edit_eventCount_occurred]) {
+    if (f.fEDI_cursor_edit_eventCount_drawn < f.fEDI_cursor_edit_eventCount_occurred) {
         EDI_render_do_DuplicateOrPaste();
     }
 
     let content = EDI_cursor_EDI_paste_clipboardContent_string;
 
-    let linesInsertedCount = f.INTS[f.fEDI_cursor_EDI_paste_clipboardContent_totalLineEndCount];
+    let linesInsertedCount = f.fEDI_cursor_EDI_paste_clipboardContent_totalLineEndCount;
     let insertionLength = EDI_cursor_EDI_paste_clipboardContent_string.length;
 
     let editLengthVisual = 0;
 
-    EDI_ret_getLineAndColumnIndices_raw(f.INTS[f.fEDI_cursor_editPosition]);
-    EDI_ret_getLineBoundaryPositions_raw(f.INTS[f.fEDI_ret_getLineAndColumnIndices_indexLine]);
-    EDI_ret_getIndexFromColumn_RESET(f.INTS[f.fEDI_cursor_editIndexColumn], f.INTS[f.fEDI_ret_getLineBoundaryPositions_start], f.INTS[f.fEDI_ret_getLineBoundaryPositions_end]);
-    let columnVisual = f.INTS[f.fEDI_ret_getIndexFromX_visualColumns];
+    EDI_ret_getLineAndColumnIndices_raw(f.fEDI_cursor_editPosition);
+    EDI_ret_getLineBoundaryPositions_raw(f.fEDI_ret_getLineAndColumnIndices_indexLine);
+    EDI_ret_getIndexFromColumn_RESET(f.fEDI_cursor_editIndexColumn, f.fEDI_ret_getLineBoundaryPositions_start, f.fEDI_ret_getLineBoundaryPositions_end);
+    let columnVisual = f.fEDI_ret_getIndexFromX_visualColumns;
 
-    EDI_textByteList_insertBytes(f.INTS[f.fEDI_cursor_editPosition], EDI_cursor_EDI_paste_clipboardContent_bytes, 0, EDI_cursor_EDI_paste_clipboardContent_bytes.length);
-    // TODO: ensure 'EDI_styleBuffer' count has 'f.INTS[f.fEDI_cursor_editPosition]' in range / ensure it is equal with 'f.EDI_textByteList' count/capacity?
-    if (f.INTS[f.fEDI_styleBuffer_count] !== 0) {
-        EDI_styleBuffer_insertBytes(f.INTS[f.fEDI_cursor_editPosition], EDI_cursor_EDI_paste_clipboardContent_bytes, 0, EDI_cursor_EDI_paste_clipboardContent_bytes.length);
+    EDI_textByteList_insertBytes(f.fEDI_cursor_editPosition, EDI_cursor_EDI_paste_clipboardContent_bytes, 0, EDI_cursor_EDI_paste_clipboardContent_bytes.length);
+    // TODO: ensure 'EDI_styleBuffer' count has 'f.fEDI_cursor_editPosition' in range / ensure it is equal with 'f.EDI_textByteList' count/capacity?
+    if (f.fEDI_styleBuffer_count !== 0) {
+        EDI_styleBuffer_insertBytes(f.fEDI_cursor_editPosition, EDI_cursor_EDI_paste_clipboardContent_bytes, 0, EDI_cursor_EDI_paste_clipboardContent_bytes.length);
     }
 
-    for (var i = f.INTS[f.fEDI_cursor_editIndexLine] /*+ linesInsertedCount*/; i < f.INTS[f.fEDI_lineEndPositionList_count]; i++) {
+    for (var i = f.fEDI_cursor_editIndexLine /*+ linesInsertedCount*/; i < f.fEDI_lineEndPositionList_count; i++) {
         EDI_lineEndPositionList_data[i] += insertionLength;
     }
 
-    sendTransaction_MessageKind_custom_edit_InsertLtr(f.INTS[f.fEDI_cursor_editPosition], EDI_cursor_EDI_paste_clipboardContent_bytes);
+    sendTransaction_MessageKind_custom_edit_InsertLtr(f.fEDI_cursor_editPosition, EDI_cursor_EDI_paste_clipboardContent_bytes);
 
-    indexLine_editOccurredOn = f.INTS[f.fEDI_cursor_editIndexLine];
+    indexLine_editOccurredOn = f.fEDI_cursor_editIndexLine;
     // TODO: 'EDI_cursor_EDI_paste_clipboardContent_arrayLineVisualLengths[0]' is wrong
     EDI_trackingUint32MaxHeap.updateLength_diff(indexLine_editOccurredOn, EDI_cursor_EDI_paste_clipboardContent_arrayLineVisualLengths[0]);
     if (EDI_trackingUint32MaxHeap.tryPooledPeek() &&
-        (f.INTS[f.fEDI_longestLine_length] !== EDI_trackingUint32MaxHeap.unpack_pool_length || f.INTS[f.fEDI_longestLine_indexLine] !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
-        f.INTS[f.fEDI_longestLine_indexLine] = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
-        f.INTS[f.fEDI_longestLine_length] = EDI_trackingUint32MaxHeap.unpack_pool_length;
+        (f.fEDI_longestLine_length !== EDI_trackingUint32MaxHeap.unpack_pool_length || f.fEDI_longestLine_indexLine !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
+        f.fEDI_longestLine_indexLine = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
+        f.fEDI_longestLine_length = EDI_trackingUint32MaxHeap.unpack_pool_length;
         requestAnimationFrame(EDI_drawHorizontalScrollbar);
     }
 
@@ -2856,9 +2856,9 @@ function EDI_finalizeEdit_Paste(indexLine_editOccurredOn) {
     // I need to get there in phases though
     //
     for (let i = 0; i < EDI_cursor_EDI_paste_clipboardContent_arrayLinePositions_OFFSETS.length - 1; i++) {
-        let linePosition = f.INTS[f.fEDI_cursor_editPosition] + EDI_cursor_EDI_paste_clipboardContent_arrayLinePositions_OFFSETS[i];
+        let linePosition = f.fEDI_cursor_editPosition + EDI_cursor_EDI_paste_clipboardContent_arrayLinePositions_OFFSETS[i];
         let lineVisualLength = EDI_cursor_EDI_paste_clipboardContent_arrayLineVisualLengths[i + 1]; // TODO: 'EDI_cursor_EDI_paste_clipboardContent_arrayLineVisualLengths[0]' is wrong
-        EDI_lineEndPositionList_insert(f.INTS[f.fEDI_cursor_editIndexLine] + i, linePosition, lineVisualLength);
+        EDI_lineEndPositionList_insert(f.fEDI_cursor_editIndexLine + i, linePosition, lineVisualLength);
     }
 
     EDI_finalizeEdit_ClearEditState();
@@ -2867,17 +2867,17 @@ function EDI_finalizeEdit_Paste(indexLine_editOccurredOn) {
 }
 
 function EDI_finalizeEdit_Duplicate(indexLine_editOccurredOn) {
-    if (f.INTS[f.fEDI_cursor_edit_eventCount_drawn] < f.INTS[f.fEDI_cursor_edit_eventCount_occurred]) {
+    if (f.fEDI_cursor_edit_eventCount_drawn < f.fEDI_cursor_edit_eventCount_occurred) {
         EDI_render_do_DuplicateOrPaste();
     }
 
-    let small = f.INTS[f.fEDI_editret_cursor_EDI_duplicate_small];
-    let length = f.INTS[f.fEDI_editret_cursor_EDI_duplicate_length];
+    let small = f.fEDI_editret_cursor_EDI_duplicate_small;
+    let length = f.fEDI_editret_cursor_EDI_duplicate_length;
 
-    f.INTS[f.fEDI_editret_cursor_EDI_duplicate_small] = 0;
-    f.INTS[f.fEDI_editret_cursor_EDI_duplicate_length] = 0;
+    f.fEDI_editret_cursor_EDI_duplicate_small = 0;
+    f.fEDI_editret_cursor_EDI_duplicate_length = 0;
 
-    let linesInsertedCount = f.INTS[f.fEDI_cursor_EDI_duplication_totalLineEndCount];
+    let linesInsertedCount = f.fEDI_cursor_EDI_duplication_totalLineEndCount;
     let insertionLength = EDI_cursor_EDI_duplication_bytes.length;
 
     let editLengthVisual = 0;
@@ -2885,30 +2885,30 @@ function EDI_finalizeEdit_Duplicate(indexLine_editOccurredOn) {
     // it's stored at +1
 
     // TODO: The state that is retrieved via this paragraph of code I think already exists in this function somewhere. i.e.: needs optimization (remove redundancy)
-    EDI_ret_getLineAndColumnIndices_raw(f.INTS[f.fEDI_cursor_editPosition]);
-    EDI_ret_getLineBoundaryPositions_raw(f.INTS[f.fEDI_ret_getLineAndColumnIndices_indexLine]);
-    EDI_ret_getIndexFromColumn_RESET(f.INTS[f.fEDI_cursor_editIndexColumn], f.INTS[f.fEDI_ret_getLineBoundaryPositions_start], f.INTS[f.fEDI_ret_getLineBoundaryPositions_end]);
-    let columnVisual = f.INTS[f.fEDI_ret_getIndexFromX_visualColumns];
+    EDI_ret_getLineAndColumnIndices_raw(f.fEDI_cursor_editPosition);
+    EDI_ret_getLineBoundaryPositions_raw(f.fEDI_ret_getLineAndColumnIndices_indexLine);
+    EDI_ret_getIndexFromColumn_RESET(f.fEDI_cursor_editIndexColumn, f.fEDI_ret_getLineBoundaryPositions_start, f.fEDI_ret_getLineBoundaryPositions_end);
+    let columnVisual = f.fEDI_ret_getIndexFromX_visualColumns;
 
-    EDI_textByteList_duplicateWithin(small, f.INTS[f.fEDI_cursor_editPosition], length);
-    // TODO: ensure 'EDI_styleBuffer' count has 'f.INTS[f.fEDI_cursor_editPosition]' in range / ensure it is equal with 'f.EDI_textByteList' count/capacity?
-    if (f.INTS[f.fEDI_styleBuffer_count] !== 0) {
-        EDI_styleBuffer_insertBytes(f.INTS[f.fEDI_cursor_editPosition], new Uint8Array(length), 0, length);
+    EDI_textByteList_duplicateWithin(small, f.fEDI_cursor_editPosition, length);
+    // TODO: ensure 'EDI_styleBuffer' count has 'f.fEDI_cursor_editPosition' in range / ensure it is equal with 'f.EDI_textByteList' count/capacity?
+    if (f.fEDI_styleBuffer_count !== 0) {
+        EDI_styleBuffer_insertBytes(f.fEDI_cursor_editPosition, new Uint8Array(length), 0, length);
     }
 
-    for (var i = f.INTS[f.fEDI_cursor_editIndexLine] /*+ linesInsertedCount*/; i < f.INTS[f.fEDI_lineEndPositionList_count]; i++) {
+    for (var i = f.fEDI_cursor_editIndexLine /*+ linesInsertedCount*/; i < f.fEDI_lineEndPositionList_count; i++) {
         EDI_lineEndPositionList_data[i] += insertionLength;
     }
 
-    sendTransaction_MessageKind_custom_edit_InsertLtr(f.INTS[f.fEDI_cursor_editPosition], EDI_cursor_EDI_duplication_bytes);
+    sendTransaction_MessageKind_custom_edit_InsertLtr(f.fEDI_cursor_editPosition, EDI_cursor_EDI_duplication_bytes);
 
-    indexLine_editOccurredOn = f.INTS[f.fEDI_cursor_editIndexLine];
+    indexLine_editOccurredOn = f.fEDI_cursor_editIndexLine;
     // TODO: 'EDI_cursor_EDI_duplication_arrayLineVisualLengths[0]' is wrong
     EDI_trackingUint32MaxHeap.updateLength_diff(indexLine_editOccurredOn, EDI_cursor_EDI_duplication_arrayLineVisualLengths[0]);
     if (EDI_trackingUint32MaxHeap.tryPooledPeek() &&
-        (f.INTS[f.fEDI_longestLine_length] !== EDI_trackingUint32MaxHeap.unpack_pool_length || f.INTS[f.fEDI_longestLine_indexLine] !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
-        f.INTS[f.fEDI_longestLine_indexLine] = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
-        f.INTS[f.fEDI_longestLine_length] = EDI_trackingUint32MaxHeap.unpack_pool_length;
+        (f.fEDI_longestLine_length !== EDI_trackingUint32MaxHeap.unpack_pool_length || f.fEDI_longestLine_indexLine !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
+        f.fEDI_longestLine_indexLine = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
+        f.fEDI_longestLine_length = EDI_trackingUint32MaxHeap.unpack_pool_length;
         requestAnimationFrame(EDI_drawHorizontalScrollbar);
     }
 
@@ -2916,9 +2916,9 @@ function EDI_finalizeEdit_Duplicate(indexLine_editOccurredOn) {
     // I need to get there in phases though
     //
     for (let i = 0; i < EDI_cursor_EDI_duplication_arrayLinePositions_OFFSETS.length - 1; i++) {
-        let linePosition = f.INTS[f.fEDI_cursor_editPosition] + EDI_cursor_EDI_duplication_arrayLinePositions_OFFSETS[i];
+        let linePosition = f.fEDI_cursor_editPosition + EDI_cursor_EDI_duplication_arrayLinePositions_OFFSETS[i];
         let lineVisualLength = EDI_cursor_EDI_duplication_arrayLineVisualLengths[i + 1]; // TODO: 'EDI_cursor_EDI_duplication_arrayLineVisualLengths[0]' is wrong
-        EDI_lineEndPositionList_insert(f.INTS[f.fEDI_cursor_editIndexLine] + i, linePosition, lineVisualLength);
+        EDI_lineEndPositionList_insert(f.fEDI_cursor_editIndexLine + i, linePosition, lineVisualLength);
     }
 
     EDI_finalizeEdit_ClearEditState();
@@ -2927,14 +2927,14 @@ function EDI_finalizeEdit_Duplicate(indexLine_editOccurredOn) {
 }
 
 function EDI_finalizeEdit_DeleteLtr_BackspaceRtl_RemoveTextNoBatching(indexLine_editOccurredOn) {
-    if (f.INTS[f.fEDI_cursor_edit_eventCount_drawn] < f.INTS[f.fEDI_cursor_edit_eventCount_occurred]) {
-        if (f.INTS[f.fEDI_cursor_editKind] === f.EditKind_RemoveTextNoBatching) {
+    if (f.fEDI_cursor_edit_eventCount_drawn < f.fEDI_cursor_edit_eventCount_occurred) {
+        if (f.fEDI_cursor_editKind === f.EditKind_RemoveTextNoBatching) {
             EDI_render_do_RemoveSelection();
         }
-        else if (f.INTS[f.fEDI_cursor_editKind] === f.EditKind_DeleteLtr) {
+        else if (f.fEDI_cursor_editKind === f.EditKind_DeleteLtr) {
             EDI_render_do_Delete();
         }
-        else if (f.INTS[f.fEDI_cursor_editKind] === f.EditKind_BackspaceRtl) {
+        else if (f.fEDI_cursor_editKind === f.EditKind_BackspaceRtl) {
             EDI_render_do_Backspace();
         }
     }
@@ -2942,39 +2942,39 @@ function EDI_finalizeEdit_DeleteLtr_BackspaceRtl_RemoveTextNoBatching(indexLine_
     // TODO: surely u'd get this before doing the edit?
     let startLineAndColumnIndices_indexLine;
     let startLineAndColumnIndices_indexColumn;
-    if (f.INTS[f.fEDI_cursor_editKind] === f.EditKind_RemoveTextNoBatching) {
-        startLineAndColumnIndices_indexLine = f.INTS[f.fEDI_cursor_editIndexLine];
-        startLineAndColumnIndices_indexColumn = f.INTS[f.fEDI_cursor_editIndexColumn];
+    if (f.fEDI_cursor_editKind === f.EditKind_RemoveTextNoBatching) {
+        startLineAndColumnIndices_indexLine = f.fEDI_cursor_editIndexLine;
+        startLineAndColumnIndices_indexColumn = f.fEDI_cursor_editIndexColumn;
     }
     else {
-        EDI_ret_getLineAndColumnIndices_raw(f.INTS[f.fEDI_cursor_editPosition]);
-        startLineAndColumnIndices_indexLine = f.INTS[f.fEDI_ret_getLineAndColumnIndices_indexLine];
-        startLineAndColumnIndices_indexColumn = f.INTS[f.fEDI_ret_getLineAndColumnIndices_indexColumn];
+        EDI_ret_getLineAndColumnIndices_raw(f.fEDI_cursor_editPosition);
+        startLineAndColumnIndices_indexLine = f.fEDI_ret_getLineAndColumnIndices_indexLine;
+        startLineAndColumnIndices_indexColumn = f.fEDI_ret_getLineAndColumnIndices_indexColumn;
     }
     let endLineAndColumnIndices_indexLine;
     let endLineAndColumnIndices_indexColumn;
-    if (f.INTS[f.fEDI_cursor_editKind] === f.EditKind_RemoveTextNoBatching) {
-        endLineAndColumnIndices_indexLine = f.INTS[f.fEDI_cursor_END_editIndexLine];
-        endLineAndColumnIndices_indexColumn = f.INTS[f.fEDI_cursor_END_editIndexColumn];
+    if (f.fEDI_cursor_editKind === f.EditKind_RemoveTextNoBatching) {
+        endLineAndColumnIndices_indexLine = f.fEDI_cursor_END_editIndexLine;
+        endLineAndColumnIndices_indexColumn = f.fEDI_cursor_END_editIndexColumn;
     }
     else {
-        EDI_ret_getLineAndColumnIndices_raw(f.INTS[f.fEDI_cursor_editPosition] + f.INTS[f.fEDI_cursor_editLength_characters]);
-        endLineAndColumnIndices_indexLine = f.INTS[f.fEDI_ret_getLineAndColumnIndices_indexLine];
-        endLineAndColumnIndices_indexColumn = f.INTS[f.fEDI_ret_getLineAndColumnIndices_indexColumn];
+        EDI_ret_getLineAndColumnIndices_raw(f.fEDI_cursor_editPosition + f.fEDI_cursor_editLength_characters);
+        endLineAndColumnIndices_indexLine = f.fEDI_ret_getLineAndColumnIndices_indexLine;
+        endLineAndColumnIndices_indexColumn = f.fEDI_ret_getLineAndColumnIndices_indexColumn;
     }
 
-    if (f.INTS[f.fEDI_cursor_editLineFeedCount] > 0) {
+    if (f.fEDI_cursor_editLineFeedCount > 0) {
         let count = 0;
         let lastMatchedIndexLine = 0;
         for (let i = EDI_lineEndPositionList_PENDING.count - 1; i >= 0; i--) {
             let lineEndPos = EDI_lineEndPositionList_PENDING.data[i];
-            if (f.INTS[f.fEDI_cursor_editPosition] <= lineEndPos && f.INTS[f.fEDI_cursor_editPosition] + f.INTS[f.fEDI_cursor_editLength_characters] > lineEndPos) {
+            if (f.fEDI_cursor_editPosition <= lineEndPos && f.fEDI_cursor_editPosition + f.fEDI_cursor_editLength_characters > lineEndPos) {
                 EDI_ret_getLineAndColumnIndices_raw(lineEndPos);
-                lastMatchedIndexLine = f.INTS[f.fEDI_ret_getLineAndColumnIndices_indexLine];
+                lastMatchedIndexLine = f.fEDI_ret_getLineAndColumnIndices_indexLine;
                 count++;
                 EDI_lineEndPositionList_PENDING.removeAt(i, 1);
             }
-            else if (f.INTS[f.fEDI_cursor_editPosition] > lineEndPos) {
+            else if (f.fEDI_cursor_editPosition > lineEndPos) {
                 break;
             }
         }
@@ -2982,12 +2982,12 @@ function EDI_finalizeEdit_DeleteLtr_BackspaceRtl_RemoveTextNoBatching(indexLine_
             EDI_lineEndPositionList_removeAt(lastMatchedIndexLine, count);
         }
     }
-    for (let i = f.INTS[f.fEDI_lineEndPositionList_count] - 1; i >= 0; i--) {
-        if (f.INTS[f.fEDI_cursor_editPosition] < EDI_lineEndPositionList_data[i]) {
-            EDI_lineEndPositionList_data[i] -= f.INTS[f.fEDI_cursor_editLength_characters];
+    for (let i = f.fEDI_lineEndPositionList_count - 1; i >= 0; i--) {
+        if (f.fEDI_cursor_editPosition < EDI_lineEndPositionList_data[i]) {
+            EDI_lineEndPositionList_data[i] -= f.fEDI_cursor_editLength_characters;
         }
         else {
-            if (i === f.INTS[f.fEDI_lineEndPositionList_count] - 1) {
+            if (i === f.fEDI_lineEndPositionList_count - 1) {
                 indexLine_editOccurredOn = i;
             }
             else {
@@ -2997,20 +2997,20 @@ function EDI_finalizeEdit_DeleteLtr_BackspaceRtl_RemoveTextNoBatching(indexLine_
         }
     }
 
-    EDI_textByteList_removeAt(f.INTS[f.fEDI_cursor_editPosition], f.INTS[f.fEDI_cursor_editLength_characters]);
-    // TODO: ensure 'EDI_styleBuffer' count has 'f.INTS[f.fEDI_cursor_editPosition]' in range / ensure it is equal with 'f.EDI_textByteList' count/capacity?
-    if (f.INTS[f.fEDI_styleBuffer_count] !== 0) {
-        EDI_styleBuffer_removeAt(f.INTS[f.fEDI_cursor_editPosition], f.INTS[f.fEDI_cursor_editLength_characters]);
+    EDI_textByteList_removeAt(f.fEDI_cursor_editPosition, f.fEDI_cursor_editLength_characters);
+    // TODO: ensure 'EDI_styleBuffer' count has 'f.fEDI_cursor_editPosition' in range / ensure it is equal with 'f.EDI_textByteList' count/capacity?
+    if (f.fEDI_styleBuffer_count !== 0) {
+        EDI_styleBuffer_removeAt(f.fEDI_cursor_editPosition, f.fEDI_cursor_editLength_characters);
     }
 
-    sendTransaction_MessageKind_custom_edit_Remove(f.INTS[f.fEDI_cursor_editPosition], f.INTS[f.fEDI_cursor_editLength_characters]);
+    sendTransaction_MessageKind_custom_edit_Remove(f.fEDI_cursor_editPosition, f.fEDI_cursor_editLength_characters);
 
     if (startLineAndColumnIndices_indexLine === endLineAndColumnIndices_indexLine) {
-        EDI_trackingUint32MaxHeap.updateLength_diff(f.INTS[f.fEDI_cursor_editIndexLine], -1 * f.INTS[f.fEDI_cursor_editLengthVisual]);
+        EDI_trackingUint32MaxHeap.updateLength_diff(f.fEDI_cursor_editIndexLine, -1 * f.fEDI_cursor_editLengthVisual);
         if (EDI_trackingUint32MaxHeap.tryPooledPeek() &&
-            (f.INTS[f.fEDI_longestLine_length] !== EDI_trackingUint32MaxHeap.unpack_pool_length || f.INTS[f.fEDI_longestLine_indexLine] !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
-            f.INTS[f.fEDI_longestLine_indexLine] = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
-            f.INTS[f.fEDI_longestLine_length] = EDI_trackingUint32MaxHeap.unpack_pool_length;
+            (f.fEDI_longestLine_length !== EDI_trackingUint32MaxHeap.unpack_pool_length || f.fEDI_longestLine_indexLine !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
+            f.fEDI_longestLine_indexLine = EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
+            f.fEDI_longestLine_length = EDI_trackingUint32MaxHeap.unpack_pool_length;
             requestAnimationFrame(EDI_drawHorizontalScrollbar);
         }
     }
@@ -3020,10 +3020,10 @@ function EDI_finalizeEdit_DeleteLtr_BackspaceRtl_RemoveTextNoBatching(indexLine_
     return indexLine_editOccurredOn;
 }
 
-/** This function needs the 'f.INTS[f.fEDI_cursor_editKind]' that was finalized, and will set it to 'f.EditKind_None' internally, so don't do it yourself within a specific finalizeEdit function. */
+/** This function needs the 'f.fEDI_cursor_editKind' that was finalized, and will set it to 'f.EditKind_None' internally, so don't do it yourself within a specific finalizeEdit function. */
 function EDI_finalizeEdit_ClearEditState() {
 
-    if (f.INTS[f.fEDI_cursor_editKind] !== f.EditKind_Paste) {
+    if (f.fEDI_cursor_editKind !== f.EditKind_Paste) {
         // TODO: You can over time have this be a longer living cache but for now just get accuracy while still allowing me to paste, move cursor, paste, move cursor, etc...
         EDI_cursor_EDI_paste_clipboardContent_string = null;
         EDI_cursor_EDI_paste_clipboardContent_bytes = null;
@@ -3037,28 +3037,28 @@ function EDI_finalizeEdit_ClearEditState() {
         f.BYTES[f.byteEDI_duplication_may_have_changed] = 1;
         //EDI_cursor_EDI_duplication_string = null;
         EDI_cursor_EDI_duplication_bytes = null;
-        f.INTS[f.fEDI_cursor_EDI_duplication_totalLineEndCount] = 0;
+        f.fEDI_cursor_EDI_duplication_totalLineEndCount = 0;
         EDI_cursor_EDI_duplication_arrayLinePositions_OFFSETS = null;
         EDI_cursor_EDI_duplication_arrayLineVisualLengths = null;
         //EDI_cursor_EDI_duplicationORpaste_cacheEachLineSubstringDecodedArray = null;
     }
 
-    f.INTS[f.fEDI_cursor_editKind] = f.EditKind_None;
-    f.INTS[f.fEDI_cursor_editLength_characters] = 0;
-    f.INTS[f.fEDI_cursor_editLengthVisual] = 0;
-    f.INTS[f.fEDI_cursor_editPosition] = 0;
-    f.INTS[f.fEDI_cursor_editIndexLine] = 0;
-    f.INTS[f.fEDI_cursor_editIndexColumn] = 0;
+    f.fEDI_cursor_editKind = f.EditKind_None;
+    f.fEDI_cursor_editLength_characters = 0;
+    f.fEDI_cursor_editLengthVisual = 0;
+    f.fEDI_cursor_editPosition = 0;
+    f.fEDI_cursor_editIndexLine = 0;
+    f.fEDI_cursor_editIndexColumn = 0;
 
-    f.INTS[f.fEDI_cursor_edit_eventCount_occurred] = 0;
-    f.INTS[f.fEDI_cursor_edit_eventCount_drawn] = 0;
-    f.INTS[f.fEDI_cursor_edit_eventCount_drawingStateContinuationValue] = 0;
+    f.fEDI_cursor_edit_eventCount_occurred = 0;
+    f.fEDI_cursor_edit_eventCount_drawn = 0;
+    f.fEDI_cursor_edit_eventCount_drawingStateContinuationValue = 0;
 
-    f.INTS[f.fEDI_cursor_END_editIndexLine] = 0;
-    f.INTS[f.fEDI_cursor_END_editIndexColumn] = 0;
-    f.INTS[f.fEDI_cursor_textInsertionBufferCount] = 0;
-    f.INTS[f.fEDI_editret_cursor_gapBufferWriteToSpanElement_SpanTextContentRelativeIndex] = 0;
-    f.INTS[f.fEDI_cursor_editLineFeedCount] = 0;
+    f.fEDI_cursor_END_editIndexLine = 0;
+    f.fEDI_cursor_END_editIndexColumn = 0;
+    f.fEDI_cursor_textInsertionBufferCount = 0;
+    f.fEDI_editret_cursor_gapBufferWriteToSpanElement_SpanTextContentRelativeIndex = 0;
+    f.fEDI_cursor_editLineFeedCount = 0;
     EDI_lineEndPositionList_PENDING.clear();
 
     // TODO: You do indeed have to clear this because of ctrl or shift cases of enter.
@@ -3071,7 +3071,7 @@ function EDI_finalizeEdit_ClearEditState() {
     EDI_cursor_enterKey_newLinePlusIndentation_byteList = null;
     EDI_cursor_cached_indentation_string = null;
 
-    f.INTS[f.fEDI_cursor_edit_flagLineChanged] = 0;
+    f.fEDI_cursor_edit_flagLineChanged = 0;
 }
 //#endregion
 
@@ -3111,13 +3111,13 @@ function EDI_getCharacterCurrent_KIND(indexColumn, positionIndex, lineEnd) {
  * 'ret_' will overwrite one another do not mix the function invocations without having read the values first
  * 
  * Returns 'true' if success otherwise 'false' the "return" values are indexLine, and indexColumn; which are stored in 'fieldBuffer.js'
- * as 'f.INTS[f.fEDI_ret_getLineAndColumnIndices_indexLine] = indexLine;' and 'f.INTS[f.fEDI_ret_getLineAndColumnIndices_indexColumn] = indexColumn;'.
+ * as 'f.fEDI_ret_getLineAndColumnIndices_indexLine = indexLine;' and 'f.fEDI_ret_getLineAndColumnIndices_indexColumn = indexColumn;'.
  * 
  * TODO: Local variables for this looping logic?
  */
 function EDI_ret_getLineAndColumnIndices_raw(positionIndex) {
     let left = 0;
-    let right = f.INTS[f.fEDI_lineEndPositionList_count] - 1;
+    let right = f.fEDI_lineEndPositionList_count - 1;
 
     let indexLine = -1;
     let indexColumn = -1;
@@ -3159,13 +3159,13 @@ function EDI_ret_getLineAndColumnIndices_raw(positionIndex) {
         indexColumn = positionIndex - (local_EDI_lineEndPositionList_data[indexLine - 1] + 1);
     }
 
-    f.INTS[f.fEDI_ret_getLineAndColumnIndices_indexLine] = indexLine;
-    f.INTS[f.fEDI_ret_getLineAndColumnIndices_indexColumn] = indexColumn;
+    f.fEDI_ret_getLineAndColumnIndices_indexLine = indexLine;
+    f.fEDI_ret_getLineAndColumnIndices_indexColumn = indexColumn;
     return true;
 }
 
 export function EDI_getLastValidIndexColumn_raw(indexLine) {
-    if (indexLine < f.INTS[f.fEDI_lineEndPositionList_count]) {
+    if (indexLine < f.fEDI_lineEndPositionList_count) {
         if (indexLine === 0) {
             return EDI_lineEndPositionList_data[indexLine] - 0;
         }
@@ -3179,36 +3179,36 @@ export function EDI_getLastValidIndexColumn_raw(indexLine) {
 /**
  * 'ret_' will overwrite one another do not mix the function invocations without having read the values first
  * 
- * 'f.INTS[f.fEDI_ret_getLineBoundaryPositions_start]' is the position of the first character on that line.
+ * 'f.fEDI_ret_getLineBoundaryPositions_start' is the position of the first character on that line.
  * 
- * 'f.INTS[f.fEDI_ret_getLineBoundaryPositions_end]' is the position of the "line end" (i.e.: ascii code for '\n' or EOF).
+ * 'f.fEDI_ret_getLineBoundaryPositions_end' is the position of the "line end" (i.e.: ascii code for '\n' or EOF).
  * 
  * The inclusivity/exclusivity is in reference to whether the position
  * points to non-line-end-text that exists on the line
  * 
  * NOTE: In performance critical sections this code is explicitly inlined and modified to be as performant as it seemingly can get for that specific section of code.
  * 
- * @returns nothing: the results are stored in 'f.INTS[f.fEDI_ret_getLineBoundaryPositions_start]' inclusive and 'f.INTS[f.fEDI_ret_getLineBoundaryPositions_end]' exclusive.
+ * @returns nothing: the results are stored in 'f.fEDI_ret_getLineBoundaryPositions_start' inclusive and 'f.fEDI_ret_getLineBoundaryPositions_end' exclusive.
  */
 export function EDI_ret_getLineBoundaryPositions_raw(indexLine) {
-    if (indexLine < f.INTS[f.fEDI_lineEndPositionList_count]) {
+    if (indexLine < f.fEDI_lineEndPositionList_count) {
         if (indexLine === 0) {
-            f.INTS[f.fEDI_ret_getLineBoundaryPositions_start] = 0;
-            f.INTS[f.fEDI_ret_getLineBoundaryPositions_end] = EDI_lineEndPositionList_data[indexLine] - 0;
+            f.fEDI_ret_getLineBoundaryPositions_start = 0;
+            f.fEDI_ret_getLineBoundaryPositions_end = EDI_lineEndPositionList_data[indexLine] - 0;
             return;
         }
         else {
-            f.INTS[f.fEDI_ret_getLineBoundaryPositions_start] = EDI_lineEndPositionList_data[indexLine - 1] + 1;
-            f.INTS[f.fEDI_ret_getLineBoundaryPositions_end] = EDI_lineEndPositionList_data[indexLine];
+            f.fEDI_ret_getLineBoundaryPositions_start = EDI_lineEndPositionList_data[indexLine - 1] + 1;
+            f.fEDI_ret_getLineBoundaryPositions_end = EDI_lineEndPositionList_data[indexLine];
             return;
         }
     }
-    f.INTS[f.fEDI_ret_getLineBoundaryPositions_start] = 0;
-    f.INTS[f.fEDI_ret_getLineBoundaryPositions_end] = 0;
+    f.fEDI_ret_getLineBoundaryPositions_start = 0;
+    f.fEDI_ret_getLineBoundaryPositions_end = 0;
 }
 
 function EDI_getLineStart_pos_raw(indexLine) {
-    if (indexLine < f.INTS[f.fEDI_lineEndPositionList_count]) {
+    if (indexLine < f.fEDI_lineEndPositionList_count) {
         if (indexLine === 0) {
             return 0;
         }
@@ -3220,7 +3220,7 @@ function EDI_getLineStart_pos_raw(indexLine) {
 }
 
 function EDI_getLineEnd_pos_raw(indexLine) {
-    if (indexLine < f.INTS[f.fEDI_lineEndPositionList_count]) {
+    if (indexLine < f.fEDI_lineEndPositionList_count) {
         if (indexLine === 0) {
             return EDI_lineEndPositionList_data[indexLine] - 0;
         }
@@ -3239,7 +3239,7 @@ function EDI_getPositionIndex_Overload(indexLine, indexColumn) {
  * @returns 
  */
 export function EDI_getPositionIndex_cursor_raw() {
-    return EDI_getLineStart_pos_raw(f.INTS[f.fEDI_cursor_indexLine]) + f.INTS[f.fEDI_cursor_indexColumn];
+    return EDI_getLineStart_pos_raw(f.fEDI_cursor_indexLine) + f.fEDI_cursor_indexColumn;
 }
 
 /**
@@ -3270,7 +3270,7 @@ function EDI_set_indexColumn_and_visualColumn_relativeTo_storedVisualWidth(lineS
     let visualColumns = 0;
     let positionIndex = lineStart;
     let charWidth = EDI_characterWidth;
-    let rx = f.INTS[f.fEDI_cursor_STORED_visualWidth] * charWidth;
+    let rx = f.fEDI_cursor_STORED_visualWidth * charWidth;
 
     while (positionIndex < lineEnd) {
         let charLength = 1;
@@ -3286,8 +3286,8 @@ function EDI_set_indexColumn_and_visualColumn_relativeTo_storedVisualWidth(lineS
 
         // If the click is before the midpoint of this character/tab, target this index
         if (rx < charMidpointX) {
-            f.INTS[f.fEDI_cursor_indexColumn] = indexColumn;
-            f.INTS[f.fEDI_cursorVisualColumnIndex] = visualColumns;
+            f.fEDI_cursor_indexColumn = indexColumn;
+            f.fEDI_cursorVisualColumnIndex = visualColumns;
             return;
         }
 
@@ -3297,18 +3297,18 @@ function EDI_set_indexColumn_and_visualColumn_relativeTo_storedVisualWidth(lineS
     }
 
     // If clicked past the end of the line text
-    f.INTS[f.fEDI_cursor_indexColumn] = indexColumn;
-    f.INTS[f.fEDI_cursorVisualColumnIndex] = visualColumns;
+    f.fEDI_cursor_indexColumn = indexColumn;
+    f.fEDI_cursorVisualColumnIndex = visualColumns;
 }
 
 /**
  * 'ret_' will overwrite one another do not mix the function invocations without having read the values first
  * 
- * 'f.INTS[f.fEDI_ret_getIndexFromX_indexColumn]'
+ * 'f.fEDI_ret_getIndexFromX_indexColumn'
  * 
- * 'f.INTS[f.fEDI_ret_getIndexFromX_visualColumns]'
+ * 'f.fEDI_ret_getIndexFromX_visualColumns'
  * 
- * @returns nothing: the results are stored in 'f.INTS[f.fEDI_ret_getIndexFromX_indexColumn]' and 'f.INTS[f.fEDI_ret_getIndexFromX_visualColumns]'.
+ * @returns nothing: the results are stored in 'f.fEDI_ret_getIndexFromX_indexColumn' and 'f.fEDI_ret_getIndexFromX_visualColumns'.
  */
 function EDI_ret_getIndexFromColumn_sameLine_newRxIsLarger(targetColumn, lineStart, lineEnd, startColumn, startVisualColumns) {
     let indexColumn = startColumn;
@@ -3330,8 +3330,8 @@ function EDI_ret_getIndexFromColumn_sameLine_newRxIsLarger(targetColumn, lineSta
 
         // If the click is before the midpoint of this character/tab, target this index
         if (targetColumn === indexColumn) {
-            f.INTS[f.fEDI_ret_getIndexFromX_indexColumn] = indexColumn;
-            f.INTS[f.fEDI_ret_getIndexFromX_visualColumns] = visualColumns;
+            f.fEDI_ret_getIndexFromX_indexColumn = indexColumn;
+            f.fEDI_ret_getIndexFromX_visualColumns = visualColumns;
             return;
         }
 
@@ -3341,18 +3341,18 @@ function EDI_ret_getIndexFromColumn_sameLine_newRxIsLarger(targetColumn, lineSta
     }
 
     // If clicked past the end of the line text
-    f.INTS[f.fEDI_ret_getIndexFromX_indexColumn] = indexColumn;
-    f.INTS[f.fEDI_ret_getIndexFromX_visualColumns] = visualColumns;
+    f.fEDI_ret_getIndexFromX_indexColumn = indexColumn;
+    f.fEDI_ret_getIndexFromX_visualColumns = visualColumns;
 }
 
 /**
  * 'ret_' will overwrite one another do not mix the function invocations without having read the values first
  * 
- * 'f.INTS[f.fEDI_ret_getIndexFromX_indexColumn]'
+ * 'f.fEDI_ret_getIndexFromX_indexColumn'
  * 
- * 'f.INTS[f.fEDI_ret_getIndexFromX_visualColumns]'
+ * 'f.fEDI_ret_getIndexFromX_visualColumns'
  * 
- * @returns nothing: the results are stored in 'f.INTS[f.fEDI_ret_getIndexFromX_indexColumn]' and 'f.INTS[f.fEDI_ret_getIndexFromX_visualColumns]'.
+ * @returns nothing: the results are stored in 'f.fEDI_ret_getIndexFromX_indexColumn' and 'f.fEDI_ret_getIndexFromX_visualColumns'.
  */
 function EDI_ret_getIndexFromColumn_RESET(targetColumn, lineStart, lineEnd) {
     let indexColumn = 0;
@@ -3374,8 +3374,8 @@ function EDI_ret_getIndexFromColumn_RESET(targetColumn, lineStart, lineEnd) {
 
         // If the click is before the midpoint of this character/tab, target this index
         if (targetColumn === indexColumn) {
-            f.INTS[f.fEDI_ret_getIndexFromX_indexColumn] = indexColumn;
-            f.INTS[f.fEDI_ret_getIndexFromX_visualColumns] = visualColumns;
+            f.fEDI_ret_getIndexFromX_indexColumn = indexColumn;
+            f.fEDI_ret_getIndexFromX_visualColumns = visualColumns;
             return;
         }
 
@@ -3385,18 +3385,18 @@ function EDI_ret_getIndexFromColumn_RESET(targetColumn, lineStart, lineEnd) {
     }
 
     // If clicked past the end of the line text
-    f.INTS[f.fEDI_ret_getIndexFromX_indexColumn] = indexColumn;
-    f.INTS[f.fEDI_ret_getIndexFromX_visualColumns] = visualColumns;
+    f.fEDI_ret_getIndexFromX_indexColumn = indexColumn;
+    f.fEDI_ret_getIndexFromX_visualColumns = visualColumns;
 }
 
 /**
  * 'ret_' will overwrite one another do not mix the function invocations without having read the values first
  * 
- * 'f.INTS[f.fEDI_ret_getIndexFromX_indexColumn]'
+ * 'f.fEDI_ret_getIndexFromX_indexColumn'
  * 
- * 'f.INTS[f.fEDI_ret_getIndexFromX_visualColumns]'
+ * 'f.fEDI_ret_getIndexFromX_visualColumns'
  * 
- * @returns nothing: the results are stored in 'f.INTS[f.fEDI_ret_getIndexFromX_indexColumn]' and 'f.INTS[f.fEDI_ret_getIndexFromX_visualColumns]'.
+ * @returns nothing: the results are stored in 'f.fEDI_ret_getIndexFromX_indexColumn' and 'f.fEDI_ret_getIndexFromX_visualColumns'.
  */
 export function EDI_ret_getIndexFromX_RESET(rx, lineStart, lineEnd) {
     let indexColumn = 0;
@@ -3418,8 +3418,8 @@ export function EDI_ret_getIndexFromX_RESET(rx, lineStart, lineEnd) {
 
         // If the click is before the midpoint of this character/tab, target this index
         if (rx < charMidpointX) {
-            f.INTS[f.fEDI_ret_getIndexFromX_indexColumn] = indexColumn;
-            f.INTS[f.fEDI_ret_getIndexFromX_visualColumns] = visualColumns;
+            f.fEDI_ret_getIndexFromX_indexColumn = indexColumn;
+            f.fEDI_ret_getIndexFromX_visualColumns = visualColumns;
             return;
         }
 
@@ -3429,8 +3429,8 @@ export function EDI_ret_getIndexFromX_RESET(rx, lineStart, lineEnd) {
     }
 
     // If clicked past the end of the line text
-    f.INTS[f.fEDI_ret_getIndexFromX_indexColumn] = indexColumn;
-    f.INTS[f.fEDI_ret_getIndexFromX_visualColumns] = visualColumns;
+    f.fEDI_ret_getIndexFromX_indexColumn = indexColumn;
+    f.fEDI_ret_getIndexFromX_visualColumns = visualColumns;
 }
 
 /** 'ret_' will overwrite one another do not mix the function invocations without having read the values first */
@@ -3454,8 +3454,8 @@ export function EDI_ret_getIndexFromX_sameLine_newRxIsLarger(goalRx, lineStart, 
 
         // If the click is before the midpoint of this character/tab, target this index
         if (goalRx < charMidpointX) {
-            f.INTS[f.fEDI_ret_getIndexFromX_indexColumn] = indexColumn;
-            f.INTS[f.fEDI_ret_getIndexFromX_visualColumns] = visualColumns;
+            f.fEDI_ret_getIndexFromX_indexColumn = indexColumn;
+            f.fEDI_ret_getIndexFromX_visualColumns = visualColumns;
             return;
         }
 
@@ -3465,18 +3465,18 @@ export function EDI_ret_getIndexFromX_sameLine_newRxIsLarger(goalRx, lineStart, 
     }
 
     // If clicked past the end of the line text
-    f.INTS[f.fEDI_ret_getIndexFromX_indexColumn] = indexColumn;
-    f.INTS[f.fEDI_ret_getIndexFromX_visualColumns] = visualColumns;
+    f.fEDI_ret_getIndexFromX_indexColumn = indexColumn;
+    f.fEDI_ret_getIndexFromX_visualColumns = visualColumns;
 }
 
 /**
  * 'ret_' will overwrite one another do not mix the function invocations without having read the values first
  * 
- * 'f.INTS[f.fEDI_ret_getIndexFromX_indexColumn]'
+ * 'f.fEDI_ret_getIndexFromX_indexColumn'
  * 
- * 'f.INTS[f.fEDI_ret_getIndexFromX_visualColumns]'
+ * 'f.fEDI_ret_getIndexFromX_visualColumns'
  * 
- * @returns nothing: the results are stored in 'f.INTS[f.fEDI_ret_getIndexFromX_indexColumn]' and 'f.INTS[f.fEDI_ret_getIndexFromX_visualColumns]'.
+ * @returns nothing: the results are stored in 'f.fEDI_ret_getIndexFromX_indexColumn' and 'f.fEDI_ret_getIndexFromX_visualColumns'.
  */
 function EDI_ret_getIndexFromX_sameLine_newRxIsSmaller(goalRx, lineStart, startColumn, startVisualColumns) {
     let indexColumn = startColumn;
@@ -3498,8 +3498,8 @@ function EDI_ret_getIndexFromX_sameLine_newRxIsSmaller(goalRx, lineStart, startC
 
         // If the click is before the midpoint of this character/tab, target this index
         if (goalRx >= charMidpointX) {
-            f.INTS[f.fEDI_ret_getIndexFromX_indexColumn] = indexColumn;
-            f.INTS[f.fEDI_ret_getIndexFromX_visualColumns] = visualColumns;
+            f.fEDI_ret_getIndexFromX_indexColumn = indexColumn;
+            f.fEDI_ret_getIndexFromX_visualColumns = visualColumns;
             return;
         }
 
@@ -3509,21 +3509,21 @@ function EDI_ret_getIndexFromX_sameLine_newRxIsSmaller(goalRx, lineStart, startC
     }
 
     // If clicked past the end of the line text
-    f.INTS[f.fEDI_ret_getIndexFromX_indexColumn] = indexColumn;
-    f.INTS[f.fEDI_ret_getIndexFromX_visualColumns] = visualColumns;
+    f.fEDI_ret_getIndexFromX_indexColumn = indexColumn;
+    f.fEDI_ret_getIndexFromX_visualColumns = visualColumns;
 }
 
 /**
  * This clears the cursor's selection.
  */
 function EDI_moveCursor_position(intValue) {
-    if (f.INTS[f.fEDI_cursor_editKind] !== f.EditKind_None) {
+    if (f.fEDI_cursor_editKind !== f.EditKind_None) {
         // TODO: Timing issue, someone typing while they scroll
         EDI_finalizeEdit();
     }
     EDI_ret_getLineAndColumnIndices_raw(intValue);
-    let lineAndColumnIndices_indexLine = f.INTS[f.fEDI_ret_getLineAndColumnIndices_indexLine];
-    let lineAndColumnIndices_indexColumn = f.INTS[f.fEDI_ret_getLineAndColumnIndices_indexColumn];
+    let lineAndColumnIndices_indexLine = f.fEDI_ret_getLineAndColumnIndices_indexLine;
+    let lineAndColumnIndices_indexColumn = f.fEDI_ret_getLineAndColumnIndices_indexColumn;
     EDI_moveCursor_indexLine_indexColumn(lineAndColumnIndices_indexLine, lineAndColumnIndices_indexColumn);
 }
 
@@ -3531,29 +3531,29 @@ function EDI_moveCursor_position(intValue) {
  * This clears the cursor's selection.
  */
 function EDI_moveCursor_indexLine_indexColumn(indexLine, indexColumn) {
-    if (f.INTS[f.fEDI_cursor_editKind] !== f.EditKind_None) {
+    if (f.fEDI_cursor_editKind !== f.EditKind_None) {
         // TODO: Timing issue, someone typing while they scroll
         EDI_finalizeEdit();
     }
     let lastValidIndexColumn = EDI_getLastValidIndexColumn_raw(indexLine);
 
     if (indexColumn > lastValidIndexColumn) {
-        f.INTS[f.fEDI_cursor_indexColumn] = lastValidIndexColumn;
+        f.fEDI_cursor_indexColumn = lastValidIndexColumn;
     }
     else {
-        f.INTS[f.fEDI_cursor_indexColumn] = indexColumn;
+        f.fEDI_cursor_indexColumn = indexColumn;
     }
 
-    f.INTS[f.fEDI_cursor_indexLine] = indexLine;
+    f.fEDI_cursor_indexLine = indexLine;
 
-    EDI_ret_getLineBoundaryPositions_raw(f.INTS[f.fEDI_cursor_indexLine]);
-    const lineStart = f.INTS[f.fEDI_ret_getLineBoundaryPositions_start];
-    const lineEnd = f.INTS[f.fEDI_ret_getLineBoundaryPositions_end];
-    EDI_ret_getIndexFromColumn_RESET(f.INTS[f.fEDI_cursor_indexColumn], lineStart, lineEnd);
-    f.INTS[f.fEDI_cursorVisualColumnIndex] = f.INTS[f.fEDI_ret_getIndexFromX_visualColumns];
+    EDI_ret_getLineBoundaryPositions_raw(f.fEDI_cursor_indexLine);
+    const lineStart = f.fEDI_ret_getLineBoundaryPositions_start;
+    const lineEnd = f.fEDI_ret_getLineBoundaryPositions_end;
+    EDI_ret_getIndexFromColumn_RESET(f.fEDI_cursor_indexColumn, lineStart, lineEnd);
+    f.fEDI_cursorVisualColumnIndex = f.fEDI_ret_getIndexFromX_visualColumns;
 
     // TODO: selectionAnchor = selectionEnd; EDI_drawCursor(/*NOTscrollCursorIntoView*/ false); # being the way to clear a selection should be documented / wrapped by a method for ease of use / readability?
-    f.INTS[f.fEDI_cursor_selectionAnchor] = f.INTS[f.fEDI_cursor_selectionEnd];
+    f.fEDI_cursor_selectionAnchor = f.fEDI_cursor_selectionEnd;
     EDI_render_request(f.RenderKind_Cursor_n);
 }
 
@@ -3565,9 +3565,9 @@ function EDI_moveCursor_indexLine_indexColumn(indexLine, indexColumn) {
  * - EDI_cursor_cached_indentation_string
  */
 function EDI_measureEndExclusiveIndentationIndexColumn() {
-    let upperLimitIndexColumn = EDI_getLastValidIndexColumn_raw(f.INTS[f.fEDI_cursor_indexLine]);
-    EDI_ret_getLineBoundaryPositions_raw(f.INTS[f.fEDI_cursor_indexLine]);
-    const line_start = f.INTS[f.fEDI_ret_getLineBoundaryPositions_start];
+    let upperLimitIndexColumn = EDI_getLastValidIndexColumn_raw(f.fEDI_cursor_indexLine);
+    EDI_ret_getLineBoundaryPositions_raw(f.fEDI_cursor_indexLine);
+    const line_start = f.fEDI_ret_getLineBoundaryPositions_start;
 
     let count = 0;
     let indentation_string_visualWidth = 0;
@@ -3589,7 +3589,7 @@ function EDI_measureEndExclusiveIndentationIndexColumn() {
         }
     }
 
-    f.INTS[f.fEDI_cursor_cached_indentation_string_visualWidth] = indentation_string_visualWidth;
+    f.fEDI_cursor_cached_indentation_string_visualWidth = indentation_string_visualWidth;
 
     return count;
 }
@@ -3679,8 +3679,8 @@ function EDI_getCharacterKind(character) {
 }
 
 function EDI_measureBaseElement() {
-    f.INTS[f.fEDI_lastReadNumber_offsetWidth] = Math.floor(f.EDI_baseElement.offsetWidth);
-    f.INTS[f.fEDI_lastReadNumber_offsetHeight] = Math.floor(f.EDI_baseElement.offsetHeight);
+    f.fEDI_lastReadNumber_offsetWidth = Math.floor(f.EDI_baseElement.offsetWidth);
+    f.fEDI_lastReadNumber_offsetHeight = Math.floor(f.EDI_baseElement.offsetHeight);
 }
 
 /**
@@ -3714,11 +3714,11 @@ function EDI_decode_textonly(start, length) {
  * @param {*} editLength 
  */
 function EDI_startEdit(editKind, editPosition, editLength) {
-    f.INTS[f.fEDI_cursor_editKind] = editKind;
-    f.INTS[f.fEDI_cursor_editPosition] = editPosition;
-    f.INTS[f.fEDI_cursor_editIndexLine] = f.INTS[f.fEDI_cursor_indexLine];
-    f.INTS[f.fEDI_cursor_editIndexColumn] = f.INTS[f.fEDI_cursor_indexColumn];
-    f.INTS[f.fEDI_cursor_editLength_characters] = editLength;
+    f.fEDI_cursor_editKind = editKind;
+    f.fEDI_cursor_editPosition = editPosition;
+    f.fEDI_cursor_editIndexLine = f.fEDI_cursor_indexLine;
+    f.fEDI_cursor_editIndexColumn = f.fEDI_cursor_indexColumn;
+    f.fEDI_cursor_editLength_characters = editLength;
 
     //switch (editKind) {
     //    case f.EditKind_InsertLtr:
@@ -3730,11 +3730,11 @@ function EDI_startEdit(editKind, editPosition, editLength) {
 
 function EDI_autocomplete_get_filter() {
     let wordToLeftOfCursor = '';
-    if (f.INTS[f.fEDI_cursor_editKind] === f.EditKind_None || f.INTS[f.fEDI_cursor_editKind] === f.EditKind_InsertLtr) {
-        // TODO: this is just to say 'f.INTS[f.fEDI_cursor_editIndexColumn]'? (in the case of 'f.EditKind_InsertLtr')
-        let columnNoEdit = f.INTS[f.fEDI_cursor_indexColumn] - f.INTS[f.fEDI_cursor_editLength_characters];
+    if (f.fEDI_cursor_editKind === f.EditKind_None || f.fEDI_cursor_editKind === f.EditKind_InsertLtr) {
+        // TODO: this is just to say 'f.fEDI_cursor_editIndexColumn'? (in the case of 'f.EditKind_InsertLtr')
+        let columnNoEdit = f.fEDI_cursor_indexColumn - f.fEDI_cursor_editLength_characters;
         if (columnNoEdit > 0) {
-            let position = EDI_getPositionIndex_cursor_raw() - f.INTS[f.fEDI_cursor_editLength_characters];
+            let position = EDI_getPositionIndex_cursor_raw() - f.fEDI_cursor_editLength_characters;
             let typeOfLeftCharacter = EDI_getCharacterPrevious_KIND(columnNoEdit, position);
             if (typeOfLeftCharacter === CharacterKind_LetterOrDigit) {
                 let another_column = columnNoEdit - 1;
@@ -3755,7 +3755,7 @@ function EDI_autocomplete_get_filter() {
             }
         }
     }
-    return wordToLeftOfCursor + EDI_decoder.decode(EDI_cursor_textInsertionBuffer.subarray(0, f.INTS[f.fEDI_cursor_textInsertionBufferCount]));
+    return wordToLeftOfCursor + EDI_decoder.decode(EDI_cursor_textInsertionBuffer.subarray(0, f.fEDI_cursor_textInsertionBufferCount));
 }
 
 //#region cursorDrawing
@@ -3774,9 +3774,9 @@ function EDI_render_do_cursor_flag_scrollIntoViewExplicit() {
 }
 
 export function EDI_cursor_hasSelection() {
-    return f.INTS[f.fEDI_cursor_selectionAnchor] >= 0 &&
-        f.INTS[f.fEDI_cursor_selectionEnd] >= 0 &&
-        f.INTS[f.fEDI_cursor_selectionAnchor] != f.INTS[f.fEDI_cursor_selectionEnd];
+    return f.fEDI_cursor_selectionAnchor >= 0 &&
+        f.fEDI_cursor_selectionEnd >= 0 &&
+        f.fEDI_cursor_selectionAnchor != f.fEDI_cursor_selectionEnd;
 }
 
 /**
@@ -3793,42 +3793,42 @@ export function EDI_cursor_hasSelection() {
  * Somewhat duplicated code: This messes with the language features if I invoke clear() in the constructor, it puts "| undefined" on all the types.
  */
 function EDI_cursor_clear() {
-    f.INTS[f.fEDI_cursor_indexLine] = 0;
-    f.INTS[f.fEDI_cursor_indexColumn] = 0;
-    f.INTS[f.fEDI_cursorVisualColumnIndex] = 0;
-    f.INTS[f.fEDI_cursor_STORED_visualWidth] = 0;
+    f.fEDI_cursor_indexLine = 0;
+    f.fEDI_cursor_indexColumn = 0;
+    f.fEDI_cursorVisualColumnIndex = 0;
+    f.fEDI_cursor_STORED_visualWidth = 0;
     // TODO: You can't include 'f.fEDI_cursor_cursorTranslateYValue' or 'EDI_cursor_cursorTranslateXValue' here. Otherwise changing a file won't redraw the cursor at 0,0
-    //f.INTS[f.fEDI_cursor_cursorTranslateYValue] = 0;
+    //f.fEDI_cursor_cursorTranslateYValue = 0;
     //EDI_cursor_cursorTranslateXValue = 0;
-    f.INTS[f.fEDI_cursor_selectionAnchor] = 0;
-    f.INTS[f.fEDI_cursor_selectionEnd] = 0;
-    f.INTS[f.fEDI_cursor_selectionIndexAnchorColumnVISUAL] = 0;
-    f.INTS[f.fEDI_cursor_selectionIndexEndColumnVISUAL] = 0;
-    f.INTS[f.fEDI_cursor_DRAWN_selectionAnchor] = 0;
-    f.INTS[f.fEDI_cursor_DRAWN_selectionEnd] = 0;
-    f.INTS[f.fEDI_cursor_DRAWN_selection_virtualIndexLine] = 0;
-    f.INTS[f.fEDI_cursor_DRAWN_selection_virtualCount] = 0;
-    f.INTS[f.fEDI_cursor_selectionIndexAnchorColumnVISUAL_DRAWN] = 0;
-    f.INTS[f.fEDI_cursor_selectionIndexEndColumnVISUAL_DRAWN] = 0;
-    f.INTS[f.fEDI_cursor_editKind] = f.EditKind_None;
-    f.INTS[f.fEDI_cursor_editLength_characters] = 0;
-    f.INTS[f.fEDI_cursor_editPosition] = 0;
-    f.INTS[f.fEDI_cursor_editIndexLine] = 0;
-    f.INTS[f.fEDI_cursor_editIndexColumn] = 0;
-    f.INTS[f.fEDI_cursor_edit_eventCount_occurred] = 0;
-    f.INTS[f.fEDI_cursor_edit_eventCount_drawn] = 0;
-    f.INTS[f.fEDI_cursor_edit_eventCount_drawingStateContinuationValue] = 0;
-    f.INTS[f.fEDI_cursor_END_editIndexLine] = 0;
-    f.INTS[f.fEDI_cursor_END_editIndexColumn] = 0;
+    f.fEDI_cursor_selectionAnchor = 0;
+    f.fEDI_cursor_selectionEnd = 0;
+    f.fEDI_cursor_selectionIndexAnchorColumnVISUAL = 0;
+    f.fEDI_cursor_selectionIndexEndColumnVISUAL = 0;
+    f.fEDI_cursor_DRAWN_selectionAnchor = 0;
+    f.fEDI_cursor_DRAWN_selectionEnd = 0;
+    f.fEDI_cursor_DRAWN_selection_virtualIndexLine = 0;
+    f.fEDI_cursor_DRAWN_selection_virtualCount = 0;
+    f.fEDI_cursor_selectionIndexAnchorColumnVISUAL_DRAWN = 0;
+    f.fEDI_cursor_selectionIndexEndColumnVISUAL_DRAWN = 0;
+    f.fEDI_cursor_editKind = f.EditKind_None;
+    f.fEDI_cursor_editLength_characters = 0;
+    f.fEDI_cursor_editPosition = 0;
+    f.fEDI_cursor_editIndexLine = 0;
+    f.fEDI_cursor_editIndexColumn = 0;
+    f.fEDI_cursor_edit_eventCount_occurred = 0;
+    f.fEDI_cursor_edit_eventCount_drawn = 0;
+    f.fEDI_cursor_edit_eventCount_drawingStateContinuationValue = 0;
+    f.fEDI_cursor_END_editIndexLine = 0;
+    f.fEDI_cursor_END_editIndexColumn = 0;
 
-    f.INTS[f.fEDI_cursor_textInsertionBufferCount] = 0;
+    f.fEDI_cursor_textInsertionBufferCount = 0;
 
     EDI_cursor_enterKey_newLinePlusIndentation_byteList = null;
     EDI_cursor_cached_indentation_string = null;
     f.BYTES[f.byteEDI_cursor_enterKeyEventKind] = f.EnterKeyEventKind_None;
 
-    f.INTS[f.fEDI_cursor_editLineFeedCount] = 0;
-    f.INTS[f.fEDI_cursor_edit_flagLineChanged] = 0;
+    f.fEDI_cursor_editLineFeedCount = 0;
+    f.fEDI_cursor_edit_flagLineChanged = 0;
 
     EDI_cursor_EDI_paste_clipboardContent_string = null;
     EDI_cursor_EDI_paste_clipboardContent_bytes = null;
@@ -3840,13 +3840,13 @@ function EDI_cursor_clear() {
     f.BYTES[f.byteEDI_duplication_may_have_changed] = 1;
     //EDI_cursor_EDI_duplication_string = null;
     EDI_cursor_EDI_duplication_bytes = null;
-    f.INTS[f.fEDI_cursor_EDI_duplication_totalLineEndCount] = 0;
+    f.fEDI_cursor_EDI_duplication_totalLineEndCount = 0;
     EDI_cursor_EDI_duplication_arrayLinePositions_OFFSETS = null;
     EDI_cursor_EDI_duplication_arrayLineVisualLengths = null;
     // EDI_cursor_EDI_duplicationORpaste_cacheEachLineSubstringDecodedArray = null;
 
-    f.INTS[f.fEDI_editret_cursor_EDI_duplicate_small] = 0;
-    f.INTS[f.fEDI_editret_cursor_EDI_duplicate_length] = 0;
+    f.fEDI_editret_cursor_EDI_duplicate_small = 0;
+    f.fEDI_editret_cursor_EDI_duplicate_length = 0;
 }
 
 export function EDI_cursorBlinkingTrailingEdge() {
