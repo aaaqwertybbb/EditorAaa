@@ -42,6 +42,8 @@ class Menu {
 
 export const menu = new Menu();
 
+export const OFFSET_MENU = 96; // Slots 96 to 127 // Define the unique byte offset where each UI's memory space begins
+
 /**
  * @callback MENU_OnCompleteAction
  * @param {boolean} isCancelled
@@ -75,36 +77,36 @@ export const menu = new Menu();
 let MENU_request = null;
 
 function MENU_render_request(renderKind) {
-    if (f.byteMENU_queueHead !== f.byteMENU_queueTail) {
-        const lastAbsoluteIndex = f.OFFSET_MENU + ((f.byteMENU_queueTail - 1) & f.UI_SLOT_MASK);
+    if (menu.queueHead !== menu.queueTail) {
+        const lastAbsoluteIndex = f.OFFSET_MENU + ((menu.queueTail - 1) & f.UI_SLOT_MASK);
         if (f.MASTER_RENDER_BUFFER[lastAbsoluteIndex] === renderKind) {
             return;
         }
     }
 
-    const absoluteIndex = f.OFFSET_MENU + (f.byteMENU_queueTail & f.UI_SLOT_MASK);
+    const absoluteIndex = f.OFFSET_MENU + (menu.queueTail & f.UI_SLOT_MASK);
     f.MASTER_RENDER_BUFFER[absoluteIndex] = renderKind;
-    if (renderKind === MENUrenderKind_Set) menu.renderKind_Set_countOfPendingRequests++;
-    f.byteMENU_queueTail++;
+    if (renderKind === MENUrenderKind.Set) menu.renderKind_Set_countOfPendingRequests++;
+    menu.queueTail++;
     
-    if (f.byteMENU_isRenderPending === 0) {
-        f.byteMENU_isRenderPending = 1;
+    if (menu.isRenderPending === 0) {
+        menu.isRenderPending = 1;
         requestAnimationFrame(MENU_render_do);
     }
 }
 
 function MENU_render_do() {
-    while (f.byteMENU_queueHead !== f.byteMENU_queueTail) {
+    while (menu.queueHead !== menu.queueTail) {
         // Uses the exact same masking logic, but reads from the higher memory region
-        const absoluteIndex = f.OFFSET_MENU + (f.byteMENU_queueHead & f.UI_SLOT_MASK);
+        const absoluteIndex = f.OFFSET_MENU + (menu.queueHead & f.UI_SLOT_MASK);
         const renderKind = f.MASTER_RENDER_BUFFER[absoluteIndex];
-        f.byteMENU_queueHead++;
+        menu.queueHead++;
 
         switch (renderKind) {
-            case MENUrenderKind_Cursor:
+            case MENUrenderKind.Cursor:
                 MENU_render_do_Cursor();
                 break;
-            case MENUrenderKind_Set:
+            case MENUrenderKind.Set:
                 if (menu.renderKind_Set_countOfPendingRequests-- > 1) break;
                 MENU_render_do_Set();
                 break;
@@ -113,7 +115,7 @@ function MENU_render_do() {
                 break;
         }
     }
-    f.byteMENU_isRenderPending = 0;
+    menu.isRenderPending = 0;
 }
 
 function MENU_render_do_Set() {
@@ -230,7 +232,7 @@ export function menuSet(optionList, left, top, onCompleteAction, target, element
         disableFocusOnCompleted: disableFocusOnCompleted
     };
 
-    MENU_render_request(MENUrenderKind_Set);
+    MENU_render_request(MENUrenderKind.Set);
 }
 
 function MENU_render_do_Hide() {

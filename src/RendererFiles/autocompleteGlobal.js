@@ -2,12 +2,7 @@ import {APP_lineHeightStringWithPx} from "./applicationRendererRoot.js"
 
 export const CONST_AUTOCOMPLETE_topPadding = 4;
 
-let AUTOCOMPLETE_pending_lspResult = null;
-// I don't think 'slice' is in LSP specification but I need to start like this cause it is only way I'll get something "initially working".
-let AUTOCOMPLETE_items_slice = null;
-
-export const fAUTOCOMPLETE_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING = 108;
-fAUTOCOMPLETE_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING = 2;
+export const WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING = 2;
 
 const AUTOCOMPLETErenderKind = Object.freeze({
     None: 0,
@@ -50,25 +45,30 @@ class Autocomplete {
         this.virtualIndex = 0;
         this.ringBufferIndexZero = 0;
 
+        this.scrollLeft = 0;
         this.scrollTop = 0;
 
         this.isCheckingTrailingEdgeTimeoutId = 0;
 
         this.WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING = 20;
+
+        this.Element = null;
+        this.scroll_viewport = null;
+        this.text = null;
+        this.ringBuffer = null;
+
+        this.lastSeenFilter = null;
+        this.lastSeen_totalLength_SLICE = 0;
+
+        this.pending_lspResult = null;
+        // I don't think 'slice' is in LSP specification but I need to start like this cause it is only way I'll get something "initially working".
+        this.items_slice = null;
     }
 }
 
 export const autocomplete = new Autocomplete();
 
-let AUTOCOMPLETEElement = null;
-let AUTOCOMPLETE_scroll_viewport = null;
-let AUTOCOMPLETE_text = null;
-let AUTOCOMPLETE_ringBuffer = null;
-
-let AUTOCOMPLETE_scrollLeft = 0;
-
-let AUTOCOMPLETE_lastSeenFilter = null;
-let AUTOCOMPLETE_lastSeen_totalLength_SLICE = 0;
+export const OFFSET_AUTOCOMPLETE = 32; // Slots 32 to 63 // Define the unique byte offset where each UI's memory space begins
 
 function AUTOCOMPLETE_render_request(renderKind) {
     if (autocomplete.queueHead !== autocomplete.queueTail) {
@@ -96,19 +96,19 @@ function AUTOCOMPLETE_render_do() {
         autocomplete.queueHead++; 
 
         switch (renderKind) {
-            case AUTOCOMPLETErenderKind_Show:
+            case AUTOCOMPLETErenderKind.Show:
                 AUTOCOMPLETE_render_do_show();
                 break;
-            case AUTOCOMPLETErenderKind_Hide:
+            case AUTOCOMPLETErenderKind.Hide:
                 AUTOCOMPLETE_render_do_hide();
                 break;
-            case AUTOCOMPLETErenderKind_CursorSet:
+            case AUTOCOMPLETErenderKind.CursorSet:
                 AUTOCOMPLETE_cursor_render_set();
                 break;
-            case AUTOCOMPLETErenderKind_CreateLines:
+            case AUTOCOMPLETErenderKind.CreateLines:
                 AUTOCOMPLETE_render_create_lines();
                 break;
-            case AUTOCOMPLETErenderKind_Scroll:
+            case AUTOCOMPLETErenderKind.Scroll:
                 AUTOCOMPLETE_events_scroll_render();
                 break;
         }
@@ -124,12 +124,12 @@ function AUTOCOMPLETE_render_create_lines(AUTOCOMPLETE_itemList) {
     }
 
     // TODO: minus CONST_AUTOCOMPLETE_topPadding
-    fAUTOCOMPLETE_virtualCount = Math.floor(fAUTOCOMPLETE_rectHeight / editorAaaApp.lineHeight);
-    fAUTOCOMPLETE_virtualIndex = 0;
-    fAUTOCOMPLETE_ringBufferIndexZero = 0;
-    fAUTOCOMPLETE_scrollTop = 0;
+    autocomplete.virtualCount = Math.floor(autocomplete.rectHeight / editorAaaApp.lineHeight);
+    autocomplete.virtualIndex = 0;
+    autocomplete.ringBufferIndexZero = 0;
+    autocomplete.scrollTop = 0;
 
-    fAUTOCOMPLETE_cursorIndex = 0;
+    autocomplete.cursorIndex = 0;
 
     let appHeightCssAttributeValue = `${editorAaaApp.lineHeight}px`;
 
@@ -137,10 +137,10 @@ function AUTOCOMPLETE_render_create_lines(AUTOCOMPLETE_itemList) {
 
     let verticalOffset = CONST_AUTOCOMPLETE_topPadding;
 
-    let widthAttributeValueNumber = Math.ceil((fAUTOCOMPLETE_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING + 2/*padding*/) * f.fEXPLORER_firstSpanWidthValue);
+    let widthAttributeValueNumber = Math.ceil((autocomplete.WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING + 2/*padding*/) * f.fEXPLORER_firstSpanWidthValue);
     let widthAttributeValueString = widthAttributeValueNumber + 'px';
 
-    for (let i = 0; i < fAUTOCOMPLETE_virtualCount; i++) {
+    for (let i = 0; i < autocomplete.virtualCount; i++) {
         let div = document.createElement('div');
         div.style.height = appHeightCssAttributeValue;
         div.style.whiteSpace = 'nowrap';
@@ -174,19 +174,19 @@ function AUTOCOMPLETE_render_RESET_lines(AUTOCOMPLETE_itemList) {
     AUTOCOMPLETE_ensure_boundingClientRect();
 
     // TODO: minus CONST_AUTOCOMPLETE_topPadding
-    fAUTOCOMPLETE_virtualCount = Math.floor(fAUTOCOMPLETE_rectHeight / editorAaaApp.lineHeight);
-    fAUTOCOMPLETE_virtualIndex = 0;
-    fAUTOCOMPLETE_ringBufferIndexZero = 0;
-    fAUTOCOMPLETE_scrollTop = 0;
+    autocomplete.virtualCount = Math.floor(autocomplete.rectHeight / editorAaaApp.lineHeight);
+    autocomplete.virtualIndex = 0;
+    autocomplete.ringBufferIndexZero = 0;
+    autocomplete.scrollTop = 0;
 
     AUTOCOMPLETEElement.removeEventListener('scroll', AUTOCOMPLETE_events_scroll_receive, { passive: true });
     AUTOCOMPLETE_scroll_viewport.scrollTop = 0;
     AUTOCOMPLETEElement.addEventListener('scroll', AUTOCOMPLETE_events_scroll_receive, { passive: true });
-    fAUTOCOMPLETE_cursorIndex = 0;
+    autocomplete.cursorIndex = 0;
 
     let verticalOffset = CONST_AUTOCOMPLETE_topPadding;
 
-    for (let i = 0; i < fAUTOCOMPLETE_virtualCount; i++) {
+    for (let i = 0; i < autocomplete.virtualCount; i++) {
         
         let div = AUTOCOMPLETE_ringBuffer[i];
 
@@ -277,9 +277,9 @@ function AUTOCOMPLETE_render_do_show() {
 
         document.body.appendChild(local_AUTOCOMPLETEElement);
         let rect = local_AUTOCOMPLETEElement.getBoundingClientRect();
-        fAUTOCOMPLETE_rectHeight = Math.floor(rect.height);
-        fAUTOCOMPLETE_rectLeft = rect.left;
-        fAUTOCOMPLETE_rectTop = rect.top;
+        autocomplete.rectHeight = Math.floor(rect.height);
+        autocomplete.rectLeft = rect.left;
+        autocomplete.rectTop = rect.top;
         autocomplete.rect_isNull = 0;
 
         AUTOCOMPLETE_render_create_lines(AUTOCOMPLETE_itemList);
@@ -292,14 +292,14 @@ function AUTOCOMPLETE_render_do_show() {
     let lspResult = AUTOCOMPLETE_pending_lspResult;
     AUTOCOMPLETE_pending_lspResult = null;
     AUTOCOMPLETE_items_slice = lspResult.items;
-    fAUTOCOMPLETE_items_slice_start = lspResult.itemsStart;
-    fAUTOCOMPLETE_items_slice_end = lspResult.itemsEnd;
-    fAUTOCOMPLETE_items_totalLength = lspResult.totalLength;
+    autocomplete.items_slice_start = lspResult.itemsStart;
+    autocomplete.items_slice_end = lspResult.itemsEnd;
+    autocomplete.items_totalLength = lspResult.totalLength;
 
-    fAUTOCOMPLETE_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING = 0;
+    autocomplete.WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING = 0;
 
     // TODO: This doesn't need mail.ceil but perhaps add it to ensure things?
-    let itemHeightTotalNumber = fAUTOCOMPLETE_items_totalLength * editorAaaApp.lineHeight + CONST_AUTOCOMPLETE_topPadding;
+    let itemHeightTotalNumber = autocomplete.items_totalLength * editorAaaApp.lineHeight + CONST_AUTOCOMPLETE_topPadding;
     AUTOCOMPLETE_scrollbar_space_generator.style.height = itemHeightTotalNumber + 'px';
 
     autocomplete.exists = 1;
@@ -308,32 +308,32 @@ function AUTOCOMPLETE_render_do_show() {
 
     AUTOCOMPLETE_cursor_render_set();
 
-    fAUTOCOMPLETE_virtualIndex = fAUTOCOMPLETE_virtualCount;
+    autocomplete.virtualIndex = autocomplete.virtualCount;
     AUTOCOMPLETE_events_scroll_render();
-    fAUTOCOMPLETE_virtualIndex = 0;
+    autocomplete.virtualIndex = 0;
 }
 
 function AUTOCOMPLETE_show(lspResult) {
     AUTOCOMPLETE_pending_lspResult = lspResult;
-    AUTOCOMPLETE_render_request(AUTOCOMPLETErenderKind_Show);
+    AUTOCOMPLETE_render_request(AUTOCOMPLETErenderKind.Show);
 }
 
 function AUTOCOMPLETE_slice(lspResult) {
 
     autocomplete.scrollIsFetchingData = 0;
-    if (fAUTOCOMPLETE_sliceVirtualIndex_SLICE != fAUTOCOMPLETE_virtualIndex ||
-        fAUTOCOMPLETE_sliceVirtualCount_SLICE != fAUTOCOMPLETE_virtualCount ||
-        fAUTOCOMPLETE_sliceRingBufferIndexZero_SLICE != fAUTOCOMPLETE_ringBufferIndexZero) {
+    if (autocomplete.sliceVirtualIndex_SLICE != autocomplete.virtualIndex ||
+        autocomplete.sliceVirtualCount_SLICE != autocomplete.virtualCount ||
+        autocomplete.sliceRingBufferIndexZero_SLICE != autocomplete.ringBufferIndexZero) {
             return;
     }
 
     let local_AUTOCOMPLETE_ringBuffer = AUTOCOMPLETE_ringBuffer;
     let local_AUTOCOMPLETE_ringBuffer_length = local_AUTOCOMPLETE_ringBuffer.length;
 
-    let currentWIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING = fAUTOCOMPLETE_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING;
+    let currentWIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING = autocomplete.WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING;
     let NEXT_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING = currentWIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING;
 
-    let ringBufferIndex = fAUTOCOMPLETE_ringBufferIndexZero;
+    let ringBufferIndex = autocomplete.ringBufferIndexZero;
     let loopCount = 0;
 
     for (let i = 0; i < lspResult.items.length; i++) {
@@ -350,7 +350,7 @@ function AUTOCOMPLETE_slice(lspResult) {
         }
     }
 
-    for (; loopCount < fAUTOCOMPLETE_virtualCount; loopCount++) {
+    for (; loopCount < autocomplete.virtualCount; loopCount++) {
         let div = local_AUTOCOMPLETE_ringBuffer[ringBufferIndex];
         ringBufferIndex = (ringBufferIndex + 1) % local_AUTOCOMPLETE_ringBuffer_length;
         div.className = '';
@@ -358,8 +358,8 @@ function AUTOCOMPLETE_slice(lspResult) {
     }
 
     if (NEXT_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING > currentWIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING) {
-        fAUTOCOMPLETE_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING = NEXT_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING;
-        let widthAttributeValueNumber = Math.ceil((fAUTOCOMPLETE_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING + 2/*padding*/) * f.fEXPLORER_firstSpanWidthValue);
+        autocomplete.WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING = NEXT_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING;
+        let widthAttributeValueNumber = Math.ceil((autocomplete.WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING + 2/*padding*/) * f.fEXPLORER_firstSpanWidthValue);
 
         // This is actually more complicated you have to track whether you go above the minimum requirement lest you add 1 character over and over in width just to keep redrawing widths.
         //if (widthAttributeValueNumber < this.lastReadNumber_offsetWidth) {
@@ -406,7 +406,7 @@ function AUTOCOMPLETE_render_do_hide() {
 
 function AUTOCOMPLETE_hide() {
     AUTOCOMPLETE_pending_lspResult = null;
-    AUTOCOMPLETE_render_request(AUTOCOMPLETErenderKind_Hide);
+    AUTOCOMPLETE_render_request(AUTOCOMPLETErenderKind.Hide);
 }
 
 function AUTOCOMPLETE_cursor_render_set() {
@@ -415,7 +415,7 @@ function AUTOCOMPLETE_cursor_render_set() {
     let cursorElement = document.getElementById('AUTOCOMPLETE_cursor');
 
     // Determine the number without modifying styles so you can use this variable to determine the need to scroll into view without synchronous layout.
-    let cursorTranslateYNumber = CONST_AUTOCOMPLETE_topPadding + (editorAaaApp.lineHeight * fAUTOCOMPLETE_cursorIndex);
+    let cursorTranslateYNumber = CONST_AUTOCOMPLETE_topPadding + (editorAaaApp.lineHeight * autocomplete.cursorIndex);
 
     // Preferably this hasn't changed thus the function immediately just returns.
     if (autocomplete.rect_isNull)
@@ -424,14 +424,14 @@ function AUTOCOMPLETE_cursor_render_set() {
     // If no UI modifications were made prior that are still pending this might avoid a synchronous layout.
     // TODO: If you touch the transform style first... I don't know what would happen it is a GPU related style... so I'm unsure.
     //
-    if (cursorTranslateYNumber + (2 * editorAaaApp.lineHeight) > fAUTOCOMPLETE_scrollTop + fAUTOCOMPLETE_rectHeight) {
-        let currentBottom = fAUTOCOMPLETE_scrollTop + fAUTOCOMPLETE_rectHeight;
+    if (cursorTranslateYNumber + (2 * editorAaaApp.lineHeight) > autocomplete.scrollTop + autocomplete.rectHeight) {
+        let currentBottom = autocomplete.scrollTop + autocomplete.rectHeight;
         let changeToMakeBottomTouch = cursorTranslateYNumber - currentBottom;
         let entireValueToScrollBy = changeToMakeBottomTouch + (2 * editorAaaApp.lineHeight);
         AUTOCOMPLETE_scroll_viewport.scrollBy(0, entireValueToScrollBy);
     }
-    else if (cursorTranslateYNumber < fAUTOCOMPLETE_scrollTop) {
-        AUTOCOMPLETE_scroll_viewport.scrollBy(0, cursorTranslateYNumber - fAUTOCOMPLETE_scrollTop);
+    else if (cursorTranslateYNumber < autocomplete.scrollTop) {
+        AUTOCOMPLETE_scroll_viewport.scrollBy(0, cursorTranslateYNumber - autocomplete.scrollTop);
     }
 
     // transform last for optimal state flagging of the modified DOM element
@@ -439,13 +439,13 @@ function AUTOCOMPLETE_cursor_render_set() {
 }
 
 function AUTOCOMPLETE_cursor_do_set(cursorIndex) {
-    fAUTOCOMPLETE_cursorIndex = cursorIndex;
-    AUTOCOMPLETE_render_request(AUTOCOMPLETErenderKind_CursorSet);
+    autocomplete.cursorIndex = cursorIndex;
+    AUTOCOMPLETE_render_request(AUTOCOMPLETErenderKind.CursorSet);
 }
 
 function AUTOCOMPLETE_cursor_validate(cursorIndex) {
-    if (cursorIndex >= fAUTOCOMPLETE_items_totalLength) {
-        cursorIndex = fAUTOCOMPLETE_items_totalLength - 1;
+    if (cursorIndex >= autocomplete.items_totalLength) {
+        cursorIndex = autocomplete.items_totalLength - 1;
     }
     if (cursorIndex < 0) {
         cursorIndex = 0;
@@ -456,9 +456,9 @@ function AUTOCOMPLETE_cursor_validate(cursorIndex) {
 function AUTOCOMPLETE_ensure_boundingClientRect() {
     if (autocomplete.rect_isNull && autocomplete.exists) {
         let rect = AUTOCOMPLETEElement.getBoundingClientRect();
-        fAUTOCOMPLETE_rectHeight = rect.height;
-        fAUTOCOMPLETE_rectLeft = rect.left;
-        fAUTOCOMPLETE_rectTop = rect.top;
+        autocomplete.rectHeight = rect.height;
+        autocomplete.rectLeft = rect.left;
+        autocomplete.rectTop = rect.top;
         autocomplete.rect_isNull = 0;
     }
 }
@@ -490,24 +490,24 @@ function AUTOCOMPLETE_events_scroll_receive(event) {
     //
     // Something is still breaking
     // 
-    fAUTOCOMPLETE_scrollTop = AUTOCOMPLETE_scroll_viewport.scrollTop;
-    AUTOCOMPLETE_scrollLeft = AUTOCOMPLETE_scroll_viewport.scrollLeft;
-    AUTOCOMPLETE_render_request(AUTOCOMPLETErenderKind_Scroll);
+    autocomplete.scrollTop = AUTOCOMPLETE_scroll_viewport.scrollTop;
+    autocomplete.scrollLeft = AUTOCOMPLETE_scroll_viewport.scrollLeft;
+    AUTOCOMPLETE_render_request(AUTOCOMPLETErenderKind.Scroll);
 }
 
 function AUTOCOMPLETE_events_scroll_render() {
 
-    clearTimeout(fAUTOCOMPLETE_isCheckingTrailingEdgeTimeoutId);
-    fAUTOCOMPLETE_isCheckingTrailingEdgeTimeoutId = setTimeout(AUTOCOMPLETE_events_scroll_render_trailingEdgeDo, 300);
+    clearTimeout(autocomplete.isCheckingTrailingEdgeTimeoutId);
+    autocomplete.isCheckingTrailingEdgeTimeoutId = setTimeout(AUTOCOMPLETE_events_scroll_render_trailingEdgeDo, 300);
 
-    let prevVli = fAUTOCOMPLETE_virtualIndex;
+    let prevVli = autocomplete.virtualIndex;
 
-    AUTOCOMPLETE_text.style.transform = `translate3d(-${AUTOCOMPLETE_scrollLeft}px, -${fAUTOCOMPLETE_scrollTop}px, 0)`;
+    AUTOCOMPLETE_text.style.transform = `translate3d(-${autocomplete.scrollLeft}px, -${autocomplete.scrollTop}px, 0)`;
 
     // TODO: minus CONST_AUTOCOMPLETE_topPadding
-    let currVli = Math.floor(fAUTOCOMPLETE_scrollTop / editorAaaApp.lineHeight);
+    let currVli = Math.floor(autocomplete.scrollTop / editorAaaApp.lineHeight);
 
-    fAUTOCOMPLETE_virtualIndex = currVli;
+    autocomplete.virtualIndex = currVli;
 
     let diff = currVli - prevVli;
     if (diff === 0) return;
@@ -518,33 +518,33 @@ function AUTOCOMPLETE_events_scroll_render() {
 
     let local_AUTOCOMPLETE_ringBuffer = AUTOCOMPLETE_ringBuffer;
     let local_AUTOCOMPLETE_ringBuffer_length = local_AUTOCOMPLETE_ringBuffer.length;
-    let local_AUTOCOMPLETE_items_totalLength = fAUTOCOMPLETE_items_totalLength;
+    let local_AUTOCOMPLETE_items_totalLength = autocomplete.items_totalLength;
 
-    if (diff > 0 && diff < fAUTOCOMPLETE_virtualCount) {
-        lowerBound = prevVli + fAUTOCOMPLETE_virtualCount;
+    if (diff > 0 && diff < autocomplete.virtualCount) {
+        lowerBound = prevVli + autocomplete.virtualCount;
         upperBound = lowerBound + diff;
 
-        ringBufferIndex = fAUTOCOMPLETE_ringBufferIndexZero;
+        ringBufferIndex = autocomplete.ringBufferIndexZero;
 
-        fAUTOCOMPLETE_ringBufferIndexZero = (ringBufferIndex + diff) % local_AUTOCOMPLETE_ringBuffer_length;
+        autocomplete.ringBufferIndexZero = (ringBufferIndex + diff) % local_AUTOCOMPLETE_ringBuffer_length;
     }
-    else if (diff < 0 && ((diff *= -1) < fAUTOCOMPLETE_virtualCount)) {
+    else if (diff < 0 && ((diff *= -1) < autocomplete.virtualCount)) {
         lowerBound = currVli;
         upperBound = lowerBound + diff;
 
         // TODO: This can be simplified to a modulo operation.
-        let lastIndex = fAUTOCOMPLETE_ringBufferIndexZero === 0
+        let lastIndex = autocomplete.ringBufferIndexZero === 0
             ? local_AUTOCOMPLETE_ringBuffer_length - 1
-            : fAUTOCOMPLETE_ringBufferIndexZero - 1;
+            : autocomplete.ringBufferIndexZero - 1;
 
-        fAUTOCOMPLETE_ringBufferIndexZero = (lastIndex - (diff - 1) + local_AUTOCOMPLETE_ringBuffer_length) % local_AUTOCOMPLETE_ringBuffer_length;
+        autocomplete.ringBufferIndexZero = (lastIndex - (diff - 1) + local_AUTOCOMPLETE_ringBuffer_length) % local_AUTOCOMPLETE_ringBuffer_length;
 
-        ringBufferIndex = fAUTOCOMPLETE_ringBufferIndexZero;
+        ringBufferIndex = autocomplete.ringBufferIndexZero;
     }
     else {
         lowerBound = currVli;
-        upperBound = currVli + fAUTOCOMPLETE_virtualCount;
-        ringBufferIndex = fAUTOCOMPLETE_ringBufferIndexZero;
+        upperBound = currVli + autocomplete.virtualCount;
+        ringBufferIndex = autocomplete.ringBufferIndexZero;
     }
 
     let verticalOffset = CONST_AUTOCOMPLETE_topPadding + (lowerBound * editorAaaApp.lineHeight);
@@ -572,9 +572,9 @@ function AUTOCOMPLETE_events_scroll_render() {
 
 function AUTOCOMPLETE_events_scroll_render_trailingEdgeDo(filter) {
     if (!autocomplete.scrollIsFetchingData) {
-        fAUTOCOMPLETE_sliceVirtualIndex_SLICE = fAUTOCOMPLETE_virtualIndex;
-        fAUTOCOMPLETE_sliceVirtualCount_SLICE = fAUTOCOMPLETE_virtualCount;
-        fAUTOCOMPLETE_sliceRingBufferIndexZero_SLICE = fAUTOCOMPLETE_ringBufferIndexZero;
+        autocomplete.sliceVirtualIndex_SLICE = autocomplete.virtualIndex;
+        autocomplete.sliceVirtualCount_SLICE = autocomplete.virtualCount;
+        autocomplete.sliceRingBufferIndexZero_SLICE = autocomplete.ringBufferIndexZero;
         autocomplete.scrollIsFetchingData = 1;
 
         if (filter === undefined) {
@@ -588,7 +588,7 @@ function AUTOCOMPLETE_events_scroll_render_trailingEdgeDo(filter) {
             filter = AUTOCOMPLETE_lastSeenFilter;
         }
 
-        //window.myAPI.editorCompletionRequest_slice(fAUTOCOMPLETE_virtualIndex, fAUTOCOMPLETE_virtualIndex + fAUTOCOMPLETE_virtualCount, filter);
+        //window.myAPI.editorCompletionRequest_slice(autocomplete.virtualIndex, autocomplete.virtualIndex + autocomplete.virtualCount, filter);
     }
 }
 
@@ -602,13 +602,13 @@ function AUTOCOMPLETE_events_onkeydown(event) {
             event.preventDefault();
             event.stopPropagation();
             AUTOCOMPLETE_cursor_do_set(
-                AUTOCOMPLETE_cursor_validate(fAUTOCOMPLETE_cursorIndex + 1));
+                AUTOCOMPLETE_cursor_validate(autocomplete.cursorIndex + 1));
             break;
         case 'ArrowUp':
             event.preventDefault();
             event.stopPropagation();
             AUTOCOMPLETE_cursor_do_set(
-                AUTOCOMPLETE_cursor_validate(fAUTOCOMPLETE_cursorIndex - 1));
+                AUTOCOMPLETE_cursor_validate(autocomplete.cursorIndex - 1));
             break;
         default:
             AUTOCOMPLETE_hide();

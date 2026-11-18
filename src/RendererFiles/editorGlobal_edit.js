@@ -3863,7 +3863,7 @@ function EDI_requestLspHover() {
         let boundingClientRect = editor.baseElement.getBoundingClientRect();
         editor.recentBoundingClientRect_left = boundingClientRect.left;
         editor.recentBoundingClientRect_top = boundingClientRect.top;
-        f.set_EDI_recentBoundingClientRect_isNull_intFalsey(0);
+        editor.recentBoundingClientRect_isNull = false;
     }
 
     let rY = event_clientY - editor.recentBoundingClientRect_top + EDI_lastReadNumber_scrollTop;
@@ -8251,7 +8251,7 @@ export function EDI_draw_cursor_debug() {
 
 export function EDI_render_do_Resize() {
     EDI_resizeCanvases();
-    f.set_EDI_recentBoundingClientRect_isNull_intFalsey(1);
+    editor.recentBoundingClientRect_isNull = true;
     //EDI_render_do_Scroll();
     
 
@@ -8297,7 +8297,7 @@ export function EDI_onMouseDown(event) {
         let boundingClientRect = editor.baseElement.getBoundingClientRect();
         editor.recentBoundingClientRect_left = boundingClientRect.left;
         editor.recentBoundingClientRect_top = boundingClientRect.top;
-        f.set_EDI_recentBoundingClientRect_isNull_intFalsey(0);
+        editor.recentBoundingClientRect_isNull = false;
     }
 
     if (event.button === 0) {

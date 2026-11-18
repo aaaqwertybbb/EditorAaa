@@ -1,10 +1,6 @@
 export const BUFFER_SIZE = 32;
 export const BUFFER_MASK = 31;
 
-
-
-
-
 //export const UI_SLOT_SIZE = 32;
 /**
  * // TODO: you get `32 - 1` no matter whether you include the parenthesis or not / I don't feel like dealing with this right now.
@@ -19,27 +15,9 @@ export const UI_SLOT_MASK = 31; // UI_SLOT_SIZE - 1 // 31 (binary: 00011111)
  */
 export const MASTER_RENDER_BUFFER = new Uint8Array(128 /* export const MASTER_BUFFER_SIZE = 128; */);
 
-// Define the unique byte offset where each UI's memory space begins
-export const OFFSET_DIALOG      = 0;  // Slots 0 to 31
-export const OFFSET_AUTOCOMPLETE = 32; // Slots 32 to 63
-export const OFFSET_WIDGET = 64; // Slots 64 to 95
-export const OFFSET_MENU = 96; // Slots 96 to 127
 
 
 // TODO: '..._EDI_indent_ORIGINAL_indentBy()' is no longer in use
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // TODO: probably can be made obsolete these various
 // ```
@@ -83,44 +61,6 @@ export const OFFSET_MENU = 96; // Slots 96 to 127
  * 
  * 
  */
-
-
-// ============
-// ============
-// ============
-
-
-
-
-
-
-
-
-// ============
-// ============
-// ============
-
-
-
-
-
-// ============
-// ============
-// ============
-
-
-
-
-
-
-
-// ============
-// ============
-// ============
-
-
-
-
 
 
 /**

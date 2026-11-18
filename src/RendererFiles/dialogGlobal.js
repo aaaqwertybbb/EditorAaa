@@ -29,6 +29,8 @@ class Dialog {
     }
 }
 
+export const OFFSET_DIALOG      = 0;  // Slots 0 to 31 // Define the unique byte offset where each UI's memory space begins
+
 export const dialog = new Dialog();
 
 export const CONST_DIALOG_minTop = 8;
@@ -149,16 +151,16 @@ function DIALOG_render_do_Show() {
     DIALOG_createWindow();
 
     switch (DIALOG_request.dialogKind) {
-        case DialogKind_FindAll:
+        case DialogKind.FindAll:
             DIALOG_FindAll_Create();
             break;
-        case DialogKind_Settings:
+        case DialogKind.Settings:
             DIALOG_Settings_Create();
             break;
-        case DialogKind_DocumentSymbol:
+        case DialogKind.DocumentSymbol:
             DIALOG_DocumentSymbol_Create();
             break;
-        case DialogKind_Debug:
+        case DialogKind.Debug:
             DIALOG_Debug_Create();
             break;
     }
@@ -201,16 +203,16 @@ function DIALOG_render_do_Hide() {
     if (!DIALOG_element) return;
 
     switch (dialog.currentDialogKind) {
-        case DialogKind_FindAll:
+        case DialogKind.FindAll:
             DIALOG_FindAll_Delete();
             break;
-        case DialogKind_Settings:
+        case DialogKind.Settings:
             DIALOG_Settings_Delete();
             break;
-        case DialogKind_DocumentSymbol:
+        case DialogKind.DocumentSymbol:
             DIALOG_DocumentSymbol_Delete();
             break;
-        case DialogKind_Debug:
+        case DialogKind.Debug:
             DIALOG_Debug_Delete();
             break;
     }
