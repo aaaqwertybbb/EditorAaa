@@ -1,4 +1,4 @@
-import "./fieldBuffer.js"
+import {APP_lineHeightStringWithPx} from "./applicationRendererRoot.js"
 
 let AUTOCOMPLETE_pending_lspResult = null;
 // I don't think 'slice' is in LSP specification but I need to start like this cause it is only way I'll get something "initially working".
@@ -23,13 +23,13 @@ let AUTOCOMPLETE_lastSeen_totalLength_SLICE = 0;
 
 function AUTOCOMPLETE_render_request(renderKind) {
     if (f.BYTES[byteAUTOCOMPLETE_queueHead] !== f.BYTES[byteAUTOCOMPLETE_queueTail]) {
-        const lastAbsoluteIndex = f.OFFSET_AUTOCOMPLETE + ((f.BYTES[byteAUTOCOMPLETE_queueTail] - 1) & UI_SLOT_MASK);
+        const lastAbsoluteIndex = f.OFFSET_AUTOCOMPLETE + ((f.BYTES[byteAUTOCOMPLETE_queueTail] - 1) & f.UI_SLOT_MASK);
         if (f.MASTER_RENDER_BUFFER[lastAbsoluteIndex] === renderKind) {
             return;
         }
     }
 
-    const absoluteIndex = f.OFFSET_AUTOCOMPLETE + (f.BYTES[byteAUTOCOMPLETE_queueTail] & UI_SLOT_MASK);
+    const absoluteIndex = f.OFFSET_AUTOCOMPLETE + (f.BYTES[byteAUTOCOMPLETE_queueTail] & f.UI_SLOT_MASK);
     f.MASTER_RENDER_BUFFER[absoluteIndex] = renderKind;
     f.BYTES[byteAUTOCOMPLETE_queueTail]++;
     
@@ -42,7 +42,7 @@ function AUTOCOMPLETE_render_request(renderKind) {
 function AUTOCOMPLETE_render_do() {
     while (f.BYTES[byteAUTOCOMPLETE_queueHead] !== f.BYTES[byteAUTOCOMPLETE_queueTail]) {
         // Uses the exact same masking logic, but reads from the higher memory region
-        const absoluteIndex = f.OFFSET_AUTOCOMPLETE + (f.BYTES[byteAUTOCOMPLETE_queueHead] & UI_SLOT_MASK);
+        const absoluteIndex = f.OFFSET_AUTOCOMPLETE + (f.BYTES[byteAUTOCOMPLETE_queueHead] & f.UI_SLOT_MASK);
         const renderKind = f.MASTER_RENDER_BUFFER[absoluteIndex];
         f.BYTES[byteAUTOCOMPLETE_queueHead]++; 
 

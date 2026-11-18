@@ -1,4 +1,5 @@
 import * as f from './fieldBuffer.js'
+import {APP_lineHeightStringWithPx} from "./applicationRendererRoot.js"
 
 export const CommandKind_None = 0;
 export const CommandKind_Submenu = 1;
@@ -55,13 +56,13 @@ let MENU_request = null;
 
 function MENU_render_request(renderKind) {
     if (f.BYTES[f.byteMENU_queueHead] !== f.BYTES[f.byteMENU_queueTail]) {
-        const lastAbsoluteIndex = f.OFFSET_MENU + ((f.BYTES[f.byteMENU_queueTail] - 1) & UI_SLOT_MASK);
+        const lastAbsoluteIndex = f.OFFSET_MENU + ((f.BYTES[f.byteMENU_queueTail] - 1) & f.UI_SLOT_MASK);
         if (f.MASTER_RENDER_BUFFER[lastAbsoluteIndex] === renderKind) {
             return;
         }
     }
 
-    const absoluteIndex = f.OFFSET_MENU + (f.BYTES[f.byteMENU_queueTail] & UI_SLOT_MASK);
+    const absoluteIndex = f.OFFSET_MENU + (f.BYTES[f.byteMENU_queueTail] & f.UI_SLOT_MASK);
     f.MASTER_RENDER_BUFFER[absoluteIndex] = renderKind;
     if (renderKind === MENUrenderKind_Set) f.INTS[f.fMENU_renderKind_Set_countOfPendingRequests]++;
     f.BYTES[f.byteMENU_queueTail]++;
@@ -75,7 +76,7 @@ function MENU_render_request(renderKind) {
 function MENU_render_do() {
     while (f.BYTES[f.byteMENU_queueHead] !== f.BYTES[f.byteMENU_queueTail]) {
         // Uses the exact same masking logic, but reads from the higher memory region
-        const absoluteIndex = f.OFFSET_MENU + (f.BYTES[f.byteMENU_queueHead] & UI_SLOT_MASK);
+        const absoluteIndex = f.OFFSET_MENU + (f.BYTES[f.byteMENU_queueHead] & f.UI_SLOT_MASK);
         const renderKind = f.MASTER_RENDER_BUFFER[absoluteIndex];
         f.BYTES[f.byteMENU_queueHead]++;
 

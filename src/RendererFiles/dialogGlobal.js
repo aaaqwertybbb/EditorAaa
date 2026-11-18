@@ -44,13 +44,13 @@ let DIALOG_request = null;
 
 function DIALOG_render_request(renderKind) {
     if (f.BYTES[f.byteDIALOG_queueHead] !== f.BYTES[f.byteDIALOG_queueTail]) {
-        const lastAbsoluteIndex = f.OFFSET_DIALOG + ((f.BYTES[f.byteDIALOG_queueTail] - 1) & UI_SLOT_MASK);
+        const lastAbsoluteIndex = f.OFFSET_DIALOG + ((f.BYTES[f.byteDIALOG_queueTail] - 1) & f.UI_SLOT_MASK);
         if (f.MASTER_RENDER_BUFFER[lastAbsoluteIndex] === renderKind) {
             return;
         }
     }
 
-    const absoluteIndex = f.OFFSET_DIALOG + (f.BYTES[f.byteDIALOG_queueTail] & UI_SLOT_MASK);
+    const absoluteIndex = f.OFFSET_DIALOG + (f.BYTES[f.byteDIALOG_queueTail] & f.UI_SLOT_MASK);
     f.MASTER_RENDER_BUFFER[absoluteIndex] = renderKind;
     f.BYTES[f.byteDIALOG_queueTail]++;
     
@@ -63,7 +63,7 @@ function DIALOG_render_request(renderKind) {
 function DIALOG_render_do() {
     while (f.BYTES[f.byteDIALOG_queueHead] !== f.BYTES[f.byteDIALOG_queueTail]) {
         // 1. Wrap the virtual pointer to 0-31, then add the base offset
-        const absoluteIndex = f.OFFSET_DIALOG + (f.BYTES[f.byteDIALOG_queueHead] & UI_SLOT_MASK);
+        const absoluteIndex = f.OFFSET_DIALOG + (f.BYTES[f.byteDIALOG_queueHead] & f.UI_SLOT_MASK);
         const renderKind = f.MASTER_RENDER_BUFFER[absoluteIndex];
         f.BYTES[f.byteDIALOG_queueHead]++; 
 

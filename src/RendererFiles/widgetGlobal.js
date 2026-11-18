@@ -41,13 +41,13 @@ let WIDGET_request = null;
 
 function WIDGET_render_request(renderKind) {
     if (f.BYTES[byteWIDGET_queueHead] !== f.BYTES[byteWIDGET_queueTail]) {
-        const lastAbsoluteIndex = f.OFFSET_WIDGET + ((f.BYTES[byteWIDGET_queueTail] - 1) & UI_SLOT_MASK);
+        const lastAbsoluteIndex = f.OFFSET_WIDGET + ((f.BYTES[byteWIDGET_queueTail] - 1) & f.UI_SLOT_MASK);
         if (f.MASTER_RENDER_BUFFER[lastAbsoluteIndex] === renderKind) {
             return;
         }
     }
 
-    const absoluteIndex = f.OFFSET_WIDGET + (f.BYTES[byteWIDGET_queueTail] & UI_SLOT_MASK);
+    const absoluteIndex = f.OFFSET_WIDGET + (f.BYTES[byteWIDGET_queueTail] & f.UI_SLOT_MASK);
     f.MASTER_RENDER_BUFFER[absoluteIndex] = renderKind;
     if (renderKind === WIDGETrenderKind_Show) f.INTS[fWIDGETrenderKind_Show_countOfPendingRequests]++;
     f.BYTES[byteWIDGET_queueTail]++;
@@ -61,7 +61,7 @@ function WIDGET_render_request(renderKind) {
 function WIDGET_render_do() {
     while (f.BYTES[byteWIDGET_queueHead] !== f.BYTES[byteWIDGET_queueTail]) {
         // Uses the exact same masking logic, but reads from the higher memory region
-        const absoluteIndex = f.OFFSET_WIDGET + (f.BYTES[byteWIDGET_queueHead] & UI_SLOT_MASK);
+        const absoluteIndex = f.OFFSET_WIDGET + (f.BYTES[byteWIDGET_queueHead] & f.UI_SLOT_MASK);
         const renderKind = f.MASTER_RENDER_BUFFER[absoluteIndex];
         f.BYTES[byteWIDGET_queueHead]++; 
 

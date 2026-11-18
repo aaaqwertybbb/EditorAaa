@@ -2,9 +2,9 @@ import * as f from "./fieldBuffer.js"
 import {EXPLORER_firstSpanWidth, set_EXPLORER_firstSpanWidth} from './explorerGlobal.js'
 import {EDI_init} from './editorGlobal_edit.js'
 
-let APP_lineHeightStringWithPx = '';
+export let APP_lineHeightStringWithPx = '';
 
-let shouldUseCSharpToSaveFileWhenPossible = false;
+export let shouldUseCSharpToSaveFileWhenPossible = false;
 
 /**
  * Connect to the single threaded C# console app (custom language server)
