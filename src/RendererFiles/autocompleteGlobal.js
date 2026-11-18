@@ -79,20 +79,20 @@ function AUTOCOMPLETE_render_create_lines(AUTOCOMPLETE_itemList) {
     }
 
     // TODO: minus CONST_AUTOCOMPLETE_topPadding
-    f.INTS[fAUTOCOMPLETE_virtualCount] = Math.floor(f.INTS[fAUTOCOMPLETE_rectHeight] / f.INTS[f.fAPP_lineHeight]);
+    f.INTS[fAUTOCOMPLETE_virtualCount] = Math.floor(f.INTS[fAUTOCOMPLETE_rectHeight] / f.fAPP_lineHeight);
     f.INTS[fAUTOCOMPLETE_virtualIndex] = 0;
     f.INTS[fAUTOCOMPLETE_ringBufferIndexZero] = 0;
     f.INTS[fAUTOCOMPLETE_scrollTop] = 0;
 
     f.INTS[fAUTOCOMPLETE_cursorIndex] = 0;
 
-    let appHeightCssAttributeValue = `${f.INTS[f.fAPP_lineHeight]}px`;
+    let appHeightCssAttributeValue = `${f.fAPP_lineHeight}px`;
 
     AUTOCOMPLETE_itemList.innerHTML = '';
 
     let verticalOffset = CONST_AUTOCOMPLETE_topPadding;
 
-    let widthAttributeValueNumber = Math.ceil((f.INTS[fAUTOCOMPLETE_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING] + 2/*padding*/) * f.INTS[f.fEXPLORER_firstSpanWidthValue]);
+    let widthAttributeValueNumber = Math.ceil((f.INTS[fAUTOCOMPLETE_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING] + 2/*padding*/) * f.fEXPLORER_firstSpanWidthValue);
     let widthAttributeValueString = widthAttributeValueNumber + 'px';
 
     for (let i = 0; i < f.INTS[fAUTOCOMPLETE_virtualCount]; i++) {
@@ -113,7 +113,7 @@ function AUTOCOMPLETE_render_create_lines(AUTOCOMPLETE_itemList) {
         AUTOCOMPLETE_itemList.append(div);
 
         div.style.top = `${verticalOffset}px`;
-        verticalOffset += f.INTS[f.fAPP_lineHeight];
+        verticalOffset += f.fAPP_lineHeight;
     }
 
     AUTOCOMPLETE_ringBuffer = Array.from(AUTOCOMPLETE_itemList.children);
@@ -129,7 +129,7 @@ function AUTOCOMPLETE_render_RESET_lines(AUTOCOMPLETE_itemList) {
     AUTOCOMPLETE_ensure_boundingClientRect();
 
     // TODO: minus CONST_AUTOCOMPLETE_topPadding
-    f.INTS[fAUTOCOMPLETE_virtualCount] = Math.floor(f.INTS[fAUTOCOMPLETE_rectHeight] / f.INTS[f.fAPP_lineHeight]);
+    f.INTS[fAUTOCOMPLETE_virtualCount] = Math.floor(f.INTS[fAUTOCOMPLETE_rectHeight] / f.fAPP_lineHeight);
     f.INTS[fAUTOCOMPLETE_virtualIndex] = 0;
     f.INTS[fAUTOCOMPLETE_ringBufferIndexZero] = 0;
     f.INTS[fAUTOCOMPLETE_scrollTop] = 0;
@@ -152,7 +152,7 @@ function AUTOCOMPLETE_render_RESET_lines(AUTOCOMPLETE_itemList) {
         // for the nodes, it needs to even if 0 so the browser receives explicit instructions rather than trying to static place and it "happens" to end up at 0,0.
 
         div.style.top = `${verticalOffset}px`;
-        verticalOffset += f.INTS[f.fAPP_lineHeight];
+        verticalOffset += f.fAPP_lineHeight;
     }
 }
 
@@ -254,7 +254,7 @@ function AUTOCOMPLETE_render_do_show() {
     f.INTS[fAUTOCOMPLETE_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING] = 0;
 
     // TODO: This doesn't need mail.ceil but perhaps add it to ensure things?
-    let itemHeightTotalNumber = f.INTS[fAUTOCOMPLETE_items_totalLength] * f.INTS[f.fAPP_lineHeight] + CONST_AUTOCOMPLETE_topPadding;
+    let itemHeightTotalNumber = f.INTS[fAUTOCOMPLETE_items_totalLength] * f.fAPP_lineHeight + CONST_AUTOCOMPLETE_topPadding;
     AUTOCOMPLETE_scrollbar_space_generator.style.height = itemHeightTotalNumber + 'px';
 
     f.BYTES[byteAUTOCOMPLETE_exists] = 1;
@@ -314,7 +314,7 @@ function AUTOCOMPLETE_slice(lspResult) {
 
     if (NEXT_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING > currentWIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING) {
         f.INTS[fAUTOCOMPLETE_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING] = NEXT_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING;
-        let widthAttributeValueNumber = Math.ceil((f.INTS[fAUTOCOMPLETE_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING] + 2/*padding*/) * f.INTS[f.fEXPLORER_firstSpanWidthValue]);
+        let widthAttributeValueNumber = Math.ceil((f.INTS[fAUTOCOMPLETE_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING] + 2/*padding*/) * f.fEXPLORER_firstSpanWidthValue);
 
         // This is actually more complicated you have to track whether you go above the minimum requirement lest you add 1 character over and over in width just to keep redrawing widths.
         //if (widthAttributeValueNumber < this.lastReadNumber_offsetWidth) {
@@ -338,7 +338,7 @@ function AUTOCOMPLETE_slice(lspResult) {
     if (AUTOCOMPLETE_lastSeen_totalLength_SLICE !== lspResult.totalLength) {
         AUTOCOMPLETE_lastSeen_totalLength_SLICE = lspResult.totalLength;
         // TODO: This doesn't need mail.ceil but perhaps add it to ensure things?
-        let itemHeightTotalNumber = AUTOCOMPLETE_lastSeen_totalLength_SLICE * f.INTS[f.fAPP_lineHeight] + CONST_AUTOCOMPLETE_topPadding;
+        let itemHeightTotalNumber = AUTOCOMPLETE_lastSeen_totalLength_SLICE * f.fAPP_lineHeight + CONST_AUTOCOMPLETE_topPadding;
         AUTOCOMPLETE_scrollbar_space_generator.style.height = itemHeightTotalNumber + 'px';
     }
 }
@@ -370,7 +370,7 @@ function AUTOCOMPLETE_cursor_render_set() {
     let cursorElement = document.getElementById('AUTOCOMPLETE_cursor');
 
     // Determine the number without modifying styles so you can use this variable to determine the need to scroll into view without synchronous layout.
-    let cursorTranslateYNumber = CONST_AUTOCOMPLETE_topPadding + (f.INTS[f.fAPP_lineHeight] * f.INTS[fAUTOCOMPLETE_cursorIndex]);
+    let cursorTranslateYNumber = CONST_AUTOCOMPLETE_topPadding + (f.fAPP_lineHeight * f.INTS[fAUTOCOMPLETE_cursorIndex]);
 
     // Preferably this hasn't changed thus the function immediately just returns.
     if (f.BYTES[byteAUTOCOMPLETE_rect_isNull])
@@ -379,10 +379,10 @@ function AUTOCOMPLETE_cursor_render_set() {
     // If no UI modifications were made prior that are still pending this might avoid a synchronous layout.
     // TODO: If you touch the transform style first... I don't know what would happen it is a GPU related style... so I'm unsure.
     //
-    if (cursorTranslateYNumber + (2 * f.INTS[f.fAPP_lineHeight]) > f.INTS[fAUTOCOMPLETE_scrollTop] + f.INTS[fAUTOCOMPLETE_rectHeight]) {
+    if (cursorTranslateYNumber + (2 * f.fAPP_lineHeight) > f.INTS[fAUTOCOMPLETE_scrollTop] + f.INTS[fAUTOCOMPLETE_rectHeight]) {
         let currentBottom = f.INTS[fAUTOCOMPLETE_scrollTop] + f.INTS[fAUTOCOMPLETE_rectHeight];
         let changeToMakeBottomTouch = cursorTranslateYNumber - currentBottom;
-        let entireValueToScrollBy = changeToMakeBottomTouch + (2 * f.INTS[f.fAPP_lineHeight]);
+        let entireValueToScrollBy = changeToMakeBottomTouch + (2 * f.fAPP_lineHeight);
         AUTOCOMPLETE_scroll_viewport.scrollBy(0, entireValueToScrollBy);
     }
     else if (cursorTranslateYNumber < f.INTS[fAUTOCOMPLETE_scrollTop]) {
@@ -460,7 +460,7 @@ function AUTOCOMPLETE_events_scroll_render() {
     AUTOCOMPLETE_text.style.transform = `translate3d(-${AUTOCOMPLETE_scrollLeft}px, -${f.INTS[fAUTOCOMPLETE_scrollTop]}px, 0)`;
 
     // TODO: minus CONST_AUTOCOMPLETE_topPadding
-    let currVli = Math.floor(f.INTS[fAUTOCOMPLETE_scrollTop] / f.INTS[f.fAPP_lineHeight]);
+    let currVli = Math.floor(f.INTS[fAUTOCOMPLETE_scrollTop] / f.fAPP_lineHeight);
 
     f.INTS[fAUTOCOMPLETE_virtualIndex] = currVli;
 
@@ -502,7 +502,7 @@ function AUTOCOMPLETE_events_scroll_render() {
         ringBufferIndex = f.INTS[fAUTOCOMPLETE_ringBufferIndexZero];
     }
 
-    let verticalOffset = CONST_AUTOCOMPLETE_topPadding + (lowerBound * f.INTS[f.fAPP_lineHeight]);
+    let verticalOffset = CONST_AUTOCOMPLETE_topPadding + (lowerBound * f.fAPP_lineHeight);
 
     ringBufferIndex--; // The 0th loop will increment somewhat awkwardly. This decrement avoids that.
 
@@ -521,7 +521,7 @@ function AUTOCOMPLETE_events_scroll_render() {
         }
         
         div.style.top = `${verticalOffset}px`;
-        verticalOffset += f.INTS[f.fAPP_lineHeight];
+        verticalOffset += f.fAPP_lineHeight;
     }
 }
 
@@ -533,10 +533,10 @@ function AUTOCOMPLETE_events_scroll_render_trailingEdgeDo(filter) {
         f.BYTES[byteAUTOCOMPLETE_scrollIsFetchingData] = 1;
 
         if (filter === undefined) {
-            if (AUTOCOMPLETE_lastSeenFilter === null && f.INTS[f.fEDI_cursor_textInsertionBufferCount] > 0) {
+            if (AUTOCOMPLETE_lastSeenFilter === null && f.fEDI_cursor_textInsertionBufferCount > 0) {
                 AUTOCOMPLETE_lastSeenFilter = EDI_autocomplete_get_filter();
             }
-            else if (AUTOCOMPLETE_lastSeenFilter !== null && f.INTS[f.fEDI_cursor_textInsertionBufferCount] === 0) {
+            else if (AUTOCOMPLETE_lastSeenFilter !== null && f.fEDI_cursor_textInsertionBufferCount === 0) {
                 AUTOCOMPLETE_lastSeenFilter = null;
             }
 

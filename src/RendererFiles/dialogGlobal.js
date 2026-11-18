@@ -693,7 +693,7 @@ function DIALOG_createWindow() {
 
     let toolbar = document.createElement('div');
     toolbar.id = 'DIALOG_toolbar';
-    let toolbarHeightStringWithPx = `${2 * f.INTS[f.fEDI_lineHeight]}px`;
+    let toolbarHeightStringWithPx = `${2 * f.fEDI_lineHeight}px`;
     toolbar.style.height = toolbarHeightStringWithPx;
     toolbar.style.lineHeight = toolbarHeightStringWithPx;
 

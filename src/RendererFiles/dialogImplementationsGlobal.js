@@ -25,7 +25,7 @@ class DIALOG_FindAll_TreeViewDirector {
             return;
         }
 
-        this.component.setItems(this, f.INTS[f.fAPP_lineHeight], f.INTS[f.fAPP_lineHeight] + 'px');
+        this.component.setItems(this, f.fAPP_lineHeight, f.fAPP_lineHeight + 'px');
 
         for (let i = 0; i < actualData.length; i++) {
             let nodeKind = TreeViewNodeKind.isExpandable_NOTisExpanded;
@@ -97,8 +97,8 @@ class DIALOG_FindAll_TreeViewDirector {
             }
             else {
                 this.nodeList.getElementAt(indexItem);
-                let key = f.INTS[f.fTreeView_poolret_pooledNode_key];
-                depth = f.INTS[f.fTreeView_poolret_pooledNode_depth];
+                let key = f.fTreeView_poolret_pooledNode_key;
+                depth = f.fTreeView_poolret_pooledNode_depth;
                 nodeKind = f.BYTES[f.byteTreeView_byteret_pooledNode_nodeKind];
 
                 let textNode = divItem.lastChild;
@@ -159,8 +159,8 @@ class DIALOG_FindAll_TreeViewDirector {
     
     async tvd_ondblclick_async(divItem, indexItem) {
         this.nodeList.getElementAt(indexItem);
-        let key = f.INTS[f.fTreeView_poolret_pooledNode_key];
-        let depth = f.INTS[f.fTreeView_poolret_pooledNode_depth];
+        let key = f.fTreeView_poolret_pooledNode_key;
+        let depth = f.fTreeView_poolret_pooledNode_depth;
         let nodeKind = f.BYTES[f.byteTreeView_byteret_pooledNode_nodeKind];
 
         if (nodeKind === TreeViewNodeKind.NOTisExpandable_NOTisExpanded) {
@@ -185,7 +185,7 @@ class DIALOG_FindAll_TreeViewDirector {
             
             await EXPLORER_openInEditor(absolutePath, /*shouldFocus*/ true);
             
-            if (intValue > f.INTS[f.fEDI_lineEndPositionList_count]) {
+            if (intValue > f.fEDI_lineEndPositionList_count) {
                 return;
             }
 
@@ -205,8 +205,8 @@ class DIALOG_FindAll_TreeViewDirector {
      */
     async tvd_expandCollapseIconWasClicked_async(divItem, indexItem) {
         this.nodeList.getElementAt(indexItem);
-        let key = f.INTS[f.fTreeView_poolret_pooledNode_key];
-        let depth = f.INTS[f.fTreeView_poolret_pooledNode_depth];
+        let key = f.fTreeView_poolret_pooledNode_key;
+        let depth = f.fTreeView_poolret_pooledNode_depth;
         let nodeKind = f.BYTES[f.byteTreeView_byteret_pooledNode_nodeKind];
 
         if (nodeKind === TreeViewNodeKind.isExpandable_NOTisExpanded) {
@@ -329,7 +329,7 @@ function DIALOG_FindAll_Create() {
     // TODO: Remove 'searchResultsDiv'? It is pointlessly wrapping.
     let searchResultsDiv = document.createElement('div');
     searchResultsDiv.id = 'DIALOG_FindAll_searchResultsDiv';
-    const searchResultsDivHeightString = `calc(100% - ${2 * f.INTS[f.fAPP_lineHeight]}px - 2px)`;
+    const searchResultsDivHeightString = `calc(100% - ${2 * f.fAPP_lineHeight}px - 2px)`;
     searchResultsDiv.style.height = searchResultsDivHeightString;
     searchResultsDiv.style.lineHeight = searchResultsDivHeightString;
     dialogBody.appendChild(searchResultsDiv);
@@ -475,7 +475,7 @@ function DIALOG_checkboxTrueTabsFalseSpaces_onchange() {
     if (f.BYTES[f.byteDIALOG_Settings_trueTabs_falseSpaces]) {
         EDI_on_tab_bytes = new Uint8Array(1);
         EDI_on_tab_bytes[0] = CONST_EDI_ASCII_TAB;
-        f.INTS[f.fEDI_ontab_visualWidth_perCharacter] = 4;
+        f.fEDI_ontab_visualWidth_perCharacter = 4;
     }
     else {
         EDI_on_tab_bytes = new Uint8Array(4);
@@ -483,7 +483,7 @@ function DIALOG_checkboxTrueTabsFalseSpaces_onchange() {
         EDI_on_tab_bytes[1] = CONST_EDI_ASCII_SPACE;
         EDI_on_tab_bytes[2] = CONST_EDI_ASCII_SPACE;
         EDI_on_tab_bytes[3] = CONST_EDI_ASCII_SPACE;
-        f.INTS[f.fEDI_ontab_visualWidth_perCharacter] = 1;
+        f.fEDI_ontab_visualWidth_perCharacter = 1;
     }
 }
 
@@ -502,7 +502,7 @@ function DIALOG_DocumentSymbol_Create() {
     if (EDI_documentSymbolResult) {
         let div = document.createElement('div');
         div.textContent = 'EDI_documentSymbolResult.length: ' + EDI_documentSymbolResult.length;
-        div.style.height = f.INTS[f.fAPP_lineHeight] + 'px';
+        div.style.height = f.fAPP_lineHeight + 'px';
         div.style.whiteSpace = 'nowrap';
         dialogBody.appendChild(div);
         EDI_listComponent.rootElement.style.height = `calc(100% - ${div.style.height})`;

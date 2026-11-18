@@ -68,7 +68,7 @@ function MENU_render_request(renderKind) {
 
     const absoluteIndex = f.OFFSET_MENU + (f.BYTES[f.byteMENU_queueTail] & f.UI_SLOT_MASK);
     f.MASTER_RENDER_BUFFER[absoluteIndex] = renderKind;
-    if (renderKind === MENUrenderKind_Set) f.INTS[f.fMENU_renderKind_Set_countOfPendingRequests]++;
+    if (renderKind === MENUrenderKind_Set) f.fMENU_renderKind_Set_countOfPendingRequests++;
     f.BYTES[f.byteMENU_queueTail]++;
     
     if (f.BYTES[f.byteMENU_isRenderPending] === 0) {
@@ -89,7 +89,7 @@ function MENU_render_do() {
                 MENU_render_do_Cursor();
                 break;
             case MENUrenderKind_Set:
-                if (f.INTS[f.fMENU_renderKind_Set_countOfPendingRequests]-- > 1) break;
+                if (f.fMENU_renderKind_Set_countOfPendingRequests-- > 1) break;
                 MENU_render_do_Set();
                 break;
             case MENUrenderKind_Hide:
@@ -146,7 +146,7 @@ function MENU_render_do_Set() {
         MENU_request.elementToFocusOnCompleted = document.activeElement;
     }
     
-    f.INTS[f.fMENU_ticketId_drawn] = MENU_request.ticket;
+    f.fMENU_ticketId_drawn = MENU_request.ticket;
 
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
@@ -208,7 +208,7 @@ export function menuSet(optionList, left, top, onCompleteAction, target, element
         target: target,
         optionList: optionList,
         index: index ?? 0,
-        ticket: f.INTS[f.fMENU_ticketId_counter]++,
+        ticket: f.fMENU_ticketId_counter++,
         ArrayFrom_menuOptionList_children: null,
         elementToFocusOnCompleted: elementToFocusOnCompleted,
         disableFocusOnCompleted: disableFocusOnCompleted
@@ -221,7 +221,7 @@ function MENU_render_do_Hide() {
     const menu = document.getElementById('MENU');
     if (!menu) return;
 
-    f.INTS[f.fMENU_ticketId_drawn] = 0;
+    f.fMENU_ticketId_drawn = 0;
     menu.remove();
 }
 
@@ -250,7 +250,7 @@ function MENU_completeForm(forceIsCancelled, changingFocusIsReasonable) {
     if (changingFocusIsReasonable && !local_request.disableFocusOnCompleted && local_request.elementToFocusOnCompleted) {
         local_request.elementToFocusOnCompleted.focus();
     }
-    if (!forceIsCancelled && local_request.ticket !== f.INTS[f.fMENU_ticketId_drawn]) {
+    if (!forceIsCancelled && local_request.ticket !== f.fMENU_ticketId_drawn) {
         forceIsCancelled = true;
     }
     let menuOption = undefined;
@@ -266,7 +266,7 @@ function MENU_onMouseMove(event) {
     //}
 
     let relativeY = event.clientY - (MENU_request.recentBoundingClientRectTop + 4 /*paddingTop*/);
-    let index = Math.floor(relativeY / f.INTS[f.fAPP_lineHeight]);
+    let index = Math.floor(relativeY / f.fAPP_lineHeight);
     if (MENU_request.index === index) {
         return;
     }
@@ -278,7 +278,7 @@ function MENU_onMouseMove(event) {
 function menuGetRelativeMouseEventData(event_clientY) {
     let paddingTop = 4;
     let relativeY = event_clientY - (MENU_request.recentBoundingClientRectTop + paddingTop);
-    return Math.floor(relativeY / f.INTS[f.fAPP_lineHeight]);
+    return Math.floor(relativeY / f.fAPP_lineHeight);
 }
 
 function MENU_addEvents() {
@@ -315,7 +315,7 @@ function MENU_render_do_Cursor() {
     const cursorElement = document.getElementById('MENU_cursor');
     if (!cursorElement || MENU_request === null) return;
     // The menu 'padding-top: 4px'
-    cursorElement.style.top = 4 + (f.INTS[f.fAPP_lineHeight] * MENU_request.index) + 'px';
+    cursorElement.style.top = 4 + (f.fAPP_lineHeight * MENU_request.index) + 'px';
 }
 
 function MENU_state_do_Cursor(index) {

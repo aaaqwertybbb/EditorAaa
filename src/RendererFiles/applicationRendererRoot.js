@@ -383,8 +383,8 @@ function APP_socket_onmessage(event) {
             // If the server sent it as text, convert text to a Uint8Array
             view = Uint8Array.fromBase64(event.data);
             set_EDI_styleBuffer(view);
-            f.INTS[f.fEDI_styleBuffer_count] = EDI_styleBuffer.length;
-            f.INTS[f.fEDI_styleBuffer_capacity] = EDI_styleBuffer.length;
+            f.fEDI_styleBuffer_count = EDI_styleBuffer.length;
+            f.fEDI_styleBuffer_capacity = EDI_styleBuffer.length;
             
             EDI_render_request(f.RenderKind_SyntaxHighlighting);
             //view = new TextEncoder().encode(event.data);
@@ -422,20 +422,20 @@ function APP_measureLineHeightAndCharacterWidth() {
     textNode.replaceData(0, textNode.length, "-"); // This permits me to in 'explorer.js' set the first span of every "tree-view-node" to be the same width, regardless of whether its content is '-', '+', or '' (an empty string). (1 of 2)
     let rect = measureElement.getBoundingClientRect();
     // line height is read here
-    f.INTS[f.fAPP_lineHeight] = Math.ceil(rect.height); // get line height too while I'm here.
+    f.fAPP_lineHeight = Math.ceil(rect.height); // get line height too while I'm here.
     const minusWidth = Math.ceil(rect.width);
     
     textNode.replaceData(0, textNode.length, "+"); // This permits me to in 'explorer.js' set the first span of every "tree-view-node" to be the same width, regardless of whether its content is '-', '+', or '' (an empty string). (2 of 2)
     rect = measureElement.getBoundingClientRect();
     const plusWidth = Math.ceil(rect.width);
     const largerWidth = minusWidth > plusWidth ? minusWidth : plusWidth; // 11
-    f.INTS[f.fEXPLORER_firstSpanWidthValue] = largerWidth;
-    set_EXPLORER_firstSpanWidth(f.INTS[f.fEXPLORER_firstSpanWidthValue] + 'px');
+    f.fEXPLORER_firstSpanWidthValue = largerWidth;
+    set_EXPLORER_firstSpanWidth(f.fEXPLORER_firstSpanWidthValue + 'px');
 
     wrapper.removeChild(measureElement);
     document.body.removeChild(wrapper);
 
-    APP_lineHeightStringWithPx = f.INTS[f.fAPP_lineHeight] + 'px';
+    APP_lineHeightStringWithPx = f.fAPP_lineHeight + 'px';
 }
 
 //async function window_myAPI_onMessage(data) {
