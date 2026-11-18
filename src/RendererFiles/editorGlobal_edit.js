@@ -5,6 +5,95 @@ import * as f from './fieldBuffer.js'
 import {CommandKind_Cut, CommandKind_Copy, CommandKind_Paste, CommandKind_Find} from './menuGlobal.js'
 import {sendTransaction_MessageKind_custom_edit_InsertLtr} from './applicationRendererRoot.js'
 
+export const EDI_baseElement = document.getElementById('EDITOR_inner_container');
+
+export const EDI_scroll_viewport = EDI_baseElement.children[0];
+export const EDI_virtualization_horizontal = EDI_baseElement.children[0].children[0];
+
+export const EDI_viewport = EDI_baseElement.children[1];
+
+export const EDI_gutter = EDI_baseElement.children[1].children[0];
+export const EDI_gutter_canvas = EDI_baseElement.children[1].children[0].children[0];
+export const EDI_text = EDI_baseElement.children[1].children[1];
+export const EDI_text_canvas = EDI_baseElement.children[1].children[1].children[0];
+export const EDI_cursor_canvas = EDI_baseElement.children[1].children[1].children[1];
+
+/**
+ * If you have an extension listed here, it is expected that the "function to invoke" exists.
+ * As of right now any patterns to naming the function that gets invoked are tentative.
+ * But I am not checking whether JS_full_lex or JS_line_lex exist, I'm just switching on ExtensionKind and presuming that function exists.
+ */
+const ExtensionKind = Object.freeze({
+    None: 0,
+    JavaScript: 1,
+});
+
+/**
+ * DeleteLtr and BackspaceRtl are both forms of removing text,
+ * their edits are stored the same (i.e.: both in "the form of a delete" keypress)
+ * The kind delete/backspace tells you how to restore the cursor when doing a ctrl+z and etc...?
+ */
+const EditKind = Object.freeze({
+    None: 0,
+    InsertLtr: 1,
+    DeleteLtr: 2,
+    BackspaceRtl: 3,
+    RemoveTextNoBatching: 4,
+    Tab: 5,
+    IndentMore: 6,
+    IndentLess: 7,
+    Enter: 8,
+    Paste: 9,
+    Duplicate: 10,
+});
+
+/**
+ * TODO: Long term this likely should be removed and all enter key logic reduced into an insertion but this will help in the time being.
+ * TODO: There's tons of '0' checks rather than using 'EnterKeyEventKind_None' that I'm seeing throughout the code...
+ */
+const EnterKeyEventKind = Object.freeze({
+    None: 0,
+    StartOfLine: 1,
+    AmongALine: 3,
+    EndOfLine: 4,
+    EndOfFile: 6,
+});
+
+/**
+ * Do not change the order/values of these, they are used in equality comparisons, the larger the number says when double clicking between a character and a punctuation
+ * whoever has larger number gets selected then the selection continues while the same kind is being read.
+ */
+const CharacterKind = Object.freeze({
+    None: 0,
+    Whitespace: 1,
+    Punctuation: 2,
+    LetterOrDigit: 3,
+});
+
+/** @enum {number} */
+const RenderKind = Object.freeze({
+    None: 0,
+    Scroll: 1,
+    Resize: 2,
+    InsertLtr: 3,
+    TabKey: 4,
+    IndentMore: 5,
+    IndentLess: 6,
+    BackspaceRtl: 7,
+    DeleteLtr: 8,
+    RemoveSelection: 9,
+    Enter: 10,
+    DuplicateOrPaste: 11,
+    Clear: 12,
+    SetText: 13,
+    CreateViewport: 14,
+    SyntaxHighlighting: 15,
+    Cursor_flag_scrollIntoViewExplicit: 16,
+    Cursor_flag_doNotScrollIntoView: 17,
+    Cursor_n: 18,
+});
+
+
 export const EDI_gutterPaddingLeft = 3;
 export const EDI_gutterPaddingRight = 6;
 
