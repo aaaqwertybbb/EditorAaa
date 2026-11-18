@@ -86,7 +86,7 @@ function WIDGET_render_request(renderKind) {
 
     const absoluteIndex = OFFSET_WIDGET + (widget.queueTail & f.UI_SLOT_MASK);
     f.MASTER_RENDER_BUFFER[absoluteIndex] = renderKind;
-    if (renderKind === WIDGETrenderKind_Show) f.INTS[fWIDGETrenderKind_Show_countOfPendingRequests]++;
+    if (renderKind === WIDGETrenderKind_Show) widget.renderKind_Show_countOfPendingRequests++;
     widget.queueTail++;
     
     if (!widget.isRenderPending) {
@@ -104,7 +104,7 @@ function WIDGET_render_do() {
 
         switch (renderKind) {
             case WIDGETrenderKind.Show:
-                if (f.INTS[fWIDGETrenderKind_Show_countOfPendingRequests]-- > 1) break;
+                if (widget.renderKind_Show_countOfPendingRequests-- > 1) break;
                 WIDGET_render_do_Show();
                 break;
             case WIDGETrenderKind.Hide:
@@ -118,7 +118,7 @@ function WIDGET_render_do() {
 function WIDGET_render_do_Show() {
 
     let WIDGET_element = document.getElementById('WIDGET');
-    if (widget.WidgetKind_drawn !== WidgetKind_None) {
+    if (widget.widgetKind_drawn !== WidgetKind.None) {
         WIDGET_element = null;
         WIDGET_render_do_Hide();
     }
@@ -129,20 +129,20 @@ function WIDGET_render_do_Show() {
         document.body.appendChild(WIDGET_element);
     }
 
-    widget.WidgetKind_drawn = WIDGET_request.widgetKind;
+    widget.widgetKind_drawn = WIDGET_request.widgetKind;
 
     if (!WIDGET_request.elementToFocusOnCompleted) {
         WIDGET_request.elementToFocusOnCompleted = document.activeElement;
     }
     
     // TODO: Move this to after the '..._Create()' invocations
-    f.INTS[fWIDGET_ticketId_drawn] = WIDGET_request.ticket;
+    widget.ticketId_drawn = WIDGET_request.ticket;
 
-    switch (widget.WidgetKind_drawn) {
-        case WidgetKind_InputText:
+    switch (widget.widgetKind_drawn) {
+        case WidgetKind.InputText:
             WidgetKind_InputText_Create();
             break;
-        case WidgetKind_YesCancel:
+        case WidgetKind.YesCancel:
             WidgetKind_YesCancel_Create();
             break;
     }
@@ -202,7 +202,7 @@ async function WIDGET_show(widgetKind, left, top, placeholder, value, target, el
         elementToFocusOnCompleted: elementToFocusOnCompleted,
         disableFocusOnCompleted: disableFocusOnCompleted,
         callback: callback,
-        ticket: f.INTS[fWIDGET_ticketId_counter]++
+        ticket: widget.ticketId_counter++
     };
 
     WIDGET_render_request(WIDGETrenderKind_Show);
@@ -211,16 +211,16 @@ async function WIDGET_show(widgetKind, left, top, placeholder, value, target, el
 function WIDGET_render_do_Hide() {
     const WIDGET_element = document.getElementById('WIDGET');
 
-    switch (widget.WidgetKind_drawn) {
-        case WidgetKind_InputText:
+    switch (widget.widgetKind_drawn) {
+        case WidgetKind.InputText:
             WidgetKind_InputText_Delete(WIDGET_element);
             break;
-        case WidgetKind_YesCancel:
+        case WidgetKind.YesCancel:
             WidgetKind_YesCancel_Delete(WIDGET_element);
             break;
     }
-    widget.WidgetKind_drawn = WidgetKind_None;
-    f.INTS[fWIDGET_ticketId_drawn] = 0;
+    widget.widgetKind_drawn = WidgetKind.None;
+    widget.ticketId_drawn = 0;
     WIDGET_element.remove();
 }
 
@@ -259,7 +259,7 @@ function WIDGET_completeForm(forceIsCancelled, changingFocusIsReasonable, result
         local_request.elementToFocusOnCompleted.focus();
     }
     if (local_request.callback) {
-        if (!forceIsCancelled && local_request.ticket !== f.INTS[fWIDGET_ticketId_drawn]) {
+        if (!forceIsCancelled && local_request.ticket !== widget.ticketId_drawn) {
             forceIsCancelled = true;
         }
         if (resultData === null) {
