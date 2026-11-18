@@ -26,7 +26,8 @@ import {
     CommandKind_SelectWorkspace,
     menuSet,
 } from './menuGlobal.js'
-import {set_shouldUseCSharpToSaveFileWhenPossible} from './applicationRendererRoot.js'
+import {set_shouldUseCSharpToSaveFileWhenPossible, sendTransaction_MessageKind_textDocument_didOpen} from './applicationRendererRoot.js'
+import {EDI_state_setText_byteArray, EDI_toExtensionKind} from './editorGlobal_edit.js'
 
 
 

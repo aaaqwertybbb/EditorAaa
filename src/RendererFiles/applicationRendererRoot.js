@@ -1,6 +1,6 @@
 import * as f from "./fieldBuffer.js"
 import {EXPLORER_firstSpanWidth, set_EXPLORER_firstSpanWidth} from './explorerGlobal.js'
-import {EDI_init} from './editorGlobal_edit.js'
+import {EDI_init, EDI_decoder_CUSTOM, EDI_styleBuffer, set_EDI_styleBuffer, EDI_render_request} from './editorGlobal_edit.js'
 
 export let APP_lineHeightStringWithPx = '';
 
@@ -70,7 +70,7 @@ function sendTransaction_MessageKind_string(messageString) {
 // I'm gonna read it one day I have it all planned out I'm serious I just am inching there day by day it is what it is (energy and etc...)
 
 /** TODO: This is likely to have a race condition issue because Anything other than sending the exact same bytes that the editor read from the OS is likely to have a race condition issue */
-function sendTransaction_MessageKind_textDocument_didOpen(filePath) {
+export function sendTransaction_MessageKind_textDocument_didOpen(filePath) {
   if (!socket || socket.readyState !== WebSocket.OPEN) { return; }
 
   const pathByteLength = EDI_decoder_CUSTOM.getUtf8ByteLength(filePath);
@@ -382,7 +382,7 @@ function APP_socket_onmessage(event) {
         else {
             // If the server sent it as text, convert text to a Uint8Array
             view = Uint8Array.fromBase64(event.data);
-            EDI_styleBuffer = view;
+            set_EDI_styleBuffer(view);
             f.INTS[f.fEDI_styleBuffer_count] = EDI_styleBuffer.length;
             f.INTS[f.fEDI_styleBuffer_capacity] = EDI_styleBuffer.length;
             
