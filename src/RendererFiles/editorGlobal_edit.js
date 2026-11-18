@@ -566,29 +566,6 @@ class TextEditor {
 
 export const editor = new TextEditor();
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /**
  * TODO: long term 'EDI_getEntireLineVisualWidth' should be replaced by a lookup within 'EDI_trackingUint32MaxHeap'...
  * ...but currently there are some cases that are inaccurately updating this map.
@@ -701,7 +678,7 @@ export function set_EDI_cursor_cursorTranslateXValue(value) {
 }
 
 /**
- * Depending on 'f.byteEDI_cursor_enterKeyEventKind' this may either start OR end with '\n'.
+ * Depending on 'editor.cursor_enterKeyEventKind' this may either start OR end with '\n'.
  * 
  * Upon an enter keystroke this is inserted onto the newly added line.
  * 
@@ -725,7 +702,7 @@ let EDI_cursor_enterKey_newLinePlusIndentation_byteList = null;
  */
 let EDI_cursor_cached_indentation_string = null;
 
-// see: 'const f.byteEDI_clipboard_may_have_changed' in fieldBuffer.js
+// see: 'const editor.clipboard_may_have_changed' in fieldBuffer.js
 /**
  * When reading the clipboard use 'await EDI_read_clipboard();' and then read the result from this variable.
  */
@@ -750,7 +727,7 @@ let EDI_cursor_EDI_paste_clipboardContent_arrayLinePositions_OFFSETS = null;
 let EDI_cursor_EDI_paste_clipboardContent_arrayLineVisualLengths = null;
 
 
-// see: 'const f.byteEDI_duplication_may_have_changed' in fieldBuffer.js
+// see: 'const editor.duplication_may_have_changed' in fieldBuffer.js
 /**
  * When reading the clipboard use 'await EDI_read_clipboard();' and then read the result from this variable.
  */
@@ -1115,7 +1092,7 @@ function EDI_state_clear(trackingUint32MaxHeap_initialCapacity) {
     f.set_EDI_recentBoundingClientRect_isNull_intFalsey(1);
     EDI_textSourceIdentifier = '';
     EDI_FORMATTED_textSourceIdentifier = '';
-    f.byteEDI_extensionKind = f.ExtensionKind_None;
+    editor.extensionKind = f.ExtensionKind_None;
     f.set_EDI_fileStartsWithBom(false);
     EDI_lineEndString = null;
     // TODO: Maybe re-use the 'TrackingUint32MaxHeap' rather than making a new one everytime
@@ -1157,7 +1134,7 @@ export function EDI_state_setText_byteArray(paddedUint8Array, textByteLength, fi
     f.set_EDI_fileStartsWithBom(fileStartsWithBom);
     EDI_textSourceIdentifier = textSourceIdentifier;
     EDI_FORMATTED_textSourceIdentifier = FORMATTED_textSourceIdentifier;
-    f.byteEDI_extensionKind = extensionKind;
+    editor.extensionKind = extensionKind;
     EDI_lineEndString = lineEndString;
     if (!EDI_lineEndString) {
         EDI_lineEndString = '\n';
@@ -1380,7 +1357,7 @@ async function EDI_copySelection() {
         large = selectionAnchor;
     }
     await window.myAPI.editorSetClipboard(EDI_textByteList_bytes, small, large - small, EDI_lineEndString);
-    f.byteEDI_clipboard_may_have_changed = 1;
+    editor.clipboard_may_have_changed = 1;
 }
 
 /**
@@ -1505,27 +1482,27 @@ function EDI_EnterKey(ctrlKey, originalIndexLine, originalIndexColumn) {
     const lastValidIndexColumn = EDI_getLastValidIndexColumn_raw(editor.cursor_indexLine);
 
     if (editor.cursor_edit_eventCount_occurred === 0) {
-        f.byteEDI_cursor_enterKeyEventKind = f.EnterKeyEventKind_None;
+        editor.cursor_enterKeyEventKind = f.EnterKeyEventKind_None;
         editor.cursor_editPosition = EDI_getPositionIndex_cursor_raw();
         editor.cursor_editIndexLine = editor.cursor_indexLine;
         editor.cursor_editIndexColumn = editor.cursor_indexColumn;
     }
 
-    if (f.byteEDI_cursor_enterKeyEventKind === 0) {
+    if (editor.cursor_enterKeyEventKind === 0) {
         if (editor.cursor_indexColumn === 0 && lastValidIndexColumn !== 0) {
-            f.byteEDI_cursor_enterKeyEventKind = f.EnterKeyEventKind_StartOfLine;
+            editor.cursor_enterKeyEventKind = f.EnterKeyEventKind_StartOfLine;
         }
         else {
             if (lastValidIndexColumn === editor.cursor_indexColumn) {
                 if (editor.cursor_editPosition === f.EDI_textByteList_count) {
-                    f.byteEDI_cursor_enterKeyEventKind = f.EnterKeyEventKind_EndOfFile;
+                    editor.cursor_enterKeyEventKind = f.EnterKeyEventKind_EndOfFile;
                 }
                 else {
-                    f.byteEDI_cursor_enterKeyEventKind = f.EnterKeyEventKind_EndOfLine;
+                    editor.cursor_enterKeyEventKind = f.EnterKeyEventKind_EndOfLine;
                 }
             }
             else {
-                f.byteEDI_cursor_enterKeyEventKind = f.EnterKeyEventKind_AmongALine;
+                editor.cursor_enterKeyEventKind = f.EnterKeyEventKind_AmongALine;
             }
         }
     }
@@ -2113,7 +2090,7 @@ function EDI_NOTcanBatch_insert() {
  * @returns 
  */
 function EDI_NOTcanBatch_enter() {
-    return f.byteEDI_cursor_enterKeyEventKind === f.EnterKeyEventKind_None ||
+    return editor.cursor_enterKeyEventKind === f.EnterKeyEventKind_None ||
         editor.cursor_editKind !== f.EditKind_Enter ||
         editor.cursor_indexLine !== editor.cursor_END_editIndexLine ||
         editor.cursor_indexColumn !== editor.cursor_END_editIndexColumn ||
@@ -2375,7 +2352,7 @@ function EDI_finalizeEdit_Enter(indexLine_editOccurredOn) {
     }
 
     // throws an exception if 'f.EnterKeyEventKind_None' (...or falsey).
-    if (!f.byteEDI_cursor_enterKeyEventKind || f.byteEDI_cursor_enterKeyEventKind === f.EnterKeyEventKind_None) { EDI_finalizeEdit_ClearEditState(); throw new Error('if (!enterKeyEventKind...)'); }
+    if (!editor.cursor_enterKeyEventKind || editor.cursor_enterKeyEventKind === f.EnterKeyEventKind_None) { EDI_finalizeEdit_ClearEditState(); throw new Error('if (!enterKeyEventKind...)'); }
 
     const per_edit_insertionCount = EDI_cursor_enterKey_newLinePlusIndentation_byteList.length;
 
@@ -2387,24 +2364,24 @@ function EDI_finalizeEdit_Enter(indexLine_editOccurredOn) {
     let specialCase_number = 0;
     let specialCase_firstLineIndexInserted = 0; // TODO: This is probably the lineIndex you end up on after the loop minus some number, maybe 'editor.cursor_editLineFeedCount'.
 
-    if (f.byteEDI_cursor_enterKeyEventKind === f.EnterKeyEventKind_EndOfLine) {
+    if (editor.cursor_enterKeyEventKind === f.EnterKeyEventKind_EndOfLine) {
         actualEditPosition++; // Move past the current line's '\n'
         actualLineFeedPosition = actualEditPosition;
         actualLineFeedPosition += per_edit_insertionCount - 1;
         actualIndexLine++;
     }
-    else if (f.byteEDI_cursor_enterKeyEventKind === f.EnterKeyEventKind_EndOfFile) {
+    else if (editor.cursor_enterKeyEventKind === f.EnterKeyEventKind_EndOfFile) {
         specialCase_firstLineIndexInserted = actualIndexLine;
         const lastLineIndex = editor.lineEndPositionList_count - 1;
         specialCase_number = EDI_trackingUint32MaxHeap.getLength(lastLineIndex);
         EDI_trackingUint32MaxHeap.updateLength(lastLineIndex, actualNewLineVisualWidth);
     }
-    else if (f.byteEDI_cursor_enterKeyEventKind === f.EnterKeyEventKind_StartOfLine) {
+    else if (editor.cursor_enterKeyEventKind === f.EnterKeyEventKind_StartOfLine) {
         // Contrary to 'f.EnterKeyEventKind_EndOfLine' this case actually does NOT have to move past the "current line's '\n'"
         // NOTE: Ctrl + Enter keybind is a known case for why this line of code is needed, perhaps there are more that will come later I have no idea.
         actualLineFeedPosition += per_edit_insertionCount - 1;
     }
-    else if (f.byteEDI_cursor_enterKeyEventKind === f.EnterKeyEventKind_AmongALine) {
+    else if (editor.cursor_enterKeyEventKind === f.EnterKeyEventKind_AmongALine) {
         EDI_ret_getLineBoundaryPositions_raw(editor.cursor_editIndexLine);
         const lineStart = editor.ret_getLineBoundaryPositions_start;
         const lineEnd = editor.ret_getLineBoundaryPositions_end;
@@ -2459,7 +2436,7 @@ function EDI_finalizeEdit_Enter(indexLine_editOccurredOn) {
         actualLineFeedPosition += per_edit_insertionCount;
     }
 
-    if (f.byteEDI_cursor_enterKeyEventKind === f.EnterKeyEventKind_EndOfFile) {
+    if (editor.cursor_enterKeyEventKind === f.EnterKeyEventKind_EndOfFile) {
         EDI_trackingUint32MaxHeap.updateLength(specialCase_firstLineIndexInserted, specialCase_number);
         if (EDI_trackingUint32MaxHeap.tryPooledPeek() &&
             (editor.longestLine_length !== EDI_trackingUint32MaxHeap.unpack_pool_length || editor.longestLine_indexLine !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
@@ -2481,7 +2458,7 @@ function EDI_finalizeEdit_Enter(indexLine_editOccurredOn) {
             requestAnimationFrame(EDI_drawHorizontalScrollbar);
         }
     }
-    else if (f.byteEDI_cursor_enterKeyEventKind === f.EnterKeyEventKind_AmongALine) {
+    else if (editor.cursor_enterKeyEventKind === f.EnterKeyEventKind_AmongALine) {
         EDI_trackingUint32MaxHeap.updateLength(specialCase_firstLineIndexInserted, specialCase_number);
         if (EDI_trackingUint32MaxHeap.tryPooledPeek() &&
             (editor.longestLine_length !== EDI_trackingUint32MaxHeap.unpack_pool_length || editor.longestLine_indexLine !== EDI_trackingUint32MaxHeap.unpack_pool_lineIndex)) {
@@ -3029,12 +3006,12 @@ function EDI_finalizeEdit_ClearEditState() {
         EDI_cursor_EDI_paste_clipboardContent_bytes = null;
         EDI_cursor_EDI_paste_clipboardContent_arrayLinePositions_OFFSETS = null;
         EDI_cursor_EDI_paste_clipboardContent_arrayLineVisualLengths = null;
-        f.byteEDI_clipboard_may_have_changed = 1;
+        editor.clipboard_may_have_changed = 1;
         EDI_cursor_EDI_duplicationORpaste_cacheEachLineSubstringDecodedArray = null;
     }
 
     if (true) { // if true to explicitly point out the pattern matching of the above and that this one intentionally will always clear.
-        f.byteEDI_duplication_may_have_changed = 1;
+        editor.duplication_may_have_changed = 1;
         //EDI_cursor_EDI_duplication_string = null;
         EDI_cursor_EDI_duplication_bytes = null;
         editor.cursor_EDI_duplication_totalLineEndCount = 0;
@@ -3062,7 +3039,7 @@ function EDI_finalizeEdit_ClearEditState() {
     EDI_lineEndPositionList_PENDING.clear();
 
     // TODO: You do indeed have to clear this because of ctrl or shift cases of enter.
-    f.byteEDI_cursor_enterKeyEventKind = f.EnterKeyEventKind_None;
+    editor.cursor_enterKeyEventKind = f.EnterKeyEventKind_None;
 
     // TODO: I want to put these in the paste case directly and above the 'EDI_finalizeEdit_ClearEditState' invocation...
     // ...but 'EDI_cursor_clear' needs to "clear an unfinalized edit" (I think that would be the sensible behavior at least)...
@@ -3788,7 +3765,7 @@ export function EDI_cursor_hasSelection() {
  * ...(I think this is unfortunate I'd prefer it weren't the case but I can't help but think it is a very important thing to get right.)...
  * ...so all the edit finalize logic needs to correctly clear its state here as well.
  * 
- * The code that clears the editor is dependent on this method NOT clearing 'f.byteEDI_cursor_selectionDivExists'
+ * The code that clears the editor is dependent on this method NOT clearing 'editor.cursor_selectionDivExists'
  * 
  * Somewhat duplicated code: This messes with the language features if I invoke clear() in the constructor, it puts "| undefined" on all the types.
  */
@@ -3825,7 +3802,7 @@ function EDI_cursor_clear() {
 
     EDI_cursor_enterKey_newLinePlusIndentation_byteList = null;
     EDI_cursor_cached_indentation_string = null;
-    f.byteEDI_cursor_enterKeyEventKind = f.EnterKeyEventKind_None;
+    editor.cursor_enterKeyEventKind = f.EnterKeyEventKind_None;
 
     editor.cursor_editLineFeedCount = 0;
     editor.cursor_edit_flagLineChanged = 0;
@@ -3835,9 +3812,9 @@ function EDI_cursor_clear() {
     EDI_cursor_EDI_paste_clipboardContent_arrayLinePositions_OFFSETS = null;
     EDI_cursor_EDI_paste_clipboardContent_arrayLineVisualLengths = null;
     EDI_cursor_EDI_duplicationORpaste_cacheEachLineSubstringDecodedArray = null;
-    f.byteEDI_clipboard_may_have_changed = 1;
+    editor.clipboard_may_have_changed = 1;
 
-    f.byteEDI_duplication_may_have_changed = 1;
+    editor.duplication_may_have_changed = 1;
     //EDI_cursor_EDI_duplication_string = null;
     EDI_cursor_EDI_duplication_bytes = null;
     editor.cursor_EDI_duplication_totalLineEndCount = 0;
@@ -3850,9 +3827,9 @@ function EDI_cursor_clear() {
 }
 
 export function EDI_cursorBlinkingTrailingEdge() {
-    f.byteEDI_isChecking_cursorBlinkTrailingEdge = 0;
+    editor.isChecking_cursorBlinkTrailingEdge = 0;
     // TODO: does modifying animationPlayState benefit from rAF?
-    //if (f.byteEDI_editorHasFocus) {
+    //if (editor.editorHasFocus) {
     //    EDI_cursor_cursorElement.style.animationPlayState = 'running';
     //}
     // TODO: (rAF) / it is possible that you paint more than the debug text due to combining that text modification with the same rAF frame...
@@ -3894,8 +3871,8 @@ async function EDI_MenuOnClick(isCancelled, menuOption, request) {
 }
 
 async function EDI_read_clipboard() {
-    if (f.byteEDI_clipboard_may_have_changed === 1) {
-        f.byteEDI_clipboard_may_have_changed = 0;
+    if (editor.clipboard_may_have_changed === 1) {
+        editor.clipboard_may_have_changed = 0;
         EDI_finalizeEdit();
         EDI_cursor_EDI_paste_clipboardContent_string = await window.myAPI.readClipboard();
         // TODO: what are the possible returned values of 'await window.myAPI.readClipboard();'? Is it nullable?
@@ -3935,8 +3912,8 @@ async function EDI_read_clipboard() {
 }
 
 function EDI_read_duplication() {
-    if (f.byteEDI_duplication_may_have_changed === 1) {
-        f.byteEDI_duplication_may_have_changed = 0;
+    if (editor.duplication_may_have_changed === 1) {
+        editor.duplication_may_have_changed = 0;
 
         // Timing don't do this like u did in the other
         //EDI_finalizeEdit();
@@ -4042,7 +4019,7 @@ function EDI_requestLspHover() {
     ///////////
 
     // Indices are wrong... they're likely outdated
-    if (f.byteEDI_mousemove_eventListener_isActive === 0) {
+    if (editor.mousemove_eventListener_isActive === 0) {
         //window.myAPI.editorHoverRequest(indexLine, indexColumn);
     }
 }
@@ -4052,13 +4029,13 @@ function EDI_hideTooltip() {
 }
 
 function EDI_onfocus() {
-    f.byteEDI_editorHasFocus = 1;
-    f.byteEDI_clipboard_may_have_changed = 1;
+    editor.editorHasFocus = 1;
+    editor.clipboard_may_have_changed = 1;
 }
 
 function EDI_onblur() {
-    f.byteEDI_editorHasFocus = 0;
-    f.byteEDI_clipboard_may_have_changed = 1;
+    editor.editorHasFocus = 0;
+    editor.clipboard_may_have_changed = 1;
 }
 
 /**
@@ -5675,7 +5652,7 @@ function EDI_render_do_IndentLess() {
 
         /////////////////////// P_1
         let textSelectionDiv;
-        if (f.byteEDI_cursor_selectionDivExists === 1) {
+        if (editor.cursor_selectionDivExists === 1) {
             for (var i = 0; i < EDI_selection.children.length; i++) {
                 if (EDI_selection.children[i].id === f.CONST_EDI_cursor_htmlId) {
                     textSelectionDiv = EDI_selection.children[i];
@@ -6389,7 +6366,7 @@ function EDI_render_do_EnterKey() {
         
         // TODO: Rewrite this comment in a way that isn't rambling:
         //
-        // Currently this is written in a way that ignores 'f.byteEDI_cursor_enterKeyEventKind' for the 'render'.
+        // Currently this is written in a way that ignores 'editor.cursor_enterKeyEventKind' for the 'render'.
         // This is because consecutive enter key events are not necessarily rendered the same way.
         // For example, if the cursor is among a line. And you render the first enter key event.
         // The cursor is among a line.
@@ -8280,7 +8257,7 @@ function EDI_drawCursor(NOTscrollCursorIntoView) {
     //    EDI_scrollCursorIntoView();
     //}
 
-    /*if (f.byteEDI_isChecking_cursorBlinkTrailingEdge === 0) {
+    /*if (editor.isChecking_cursorBlinkTrailingEdge === 0) {
         // Why track "isChecking_..." anymore if you're doing this clearTimeout logic?
         // Because the assumption is that I was wrong about how expensive 'clearTimeout' and 'setTimeout' were
         // with respect to when the timeout doesn't end up being executed due to repeatedly setting and cancelling over and over.
@@ -8288,7 +8265,7 @@ function EDI_drawCursor(NOTscrollCursorIntoView) {
         // That is not to say however that my modifications to the UI are not expensive.
         // So I don't want to change more than 1 variable at a time here.
         //
-        f.byteEDI_isChecking_cursorBlinkTrailingEdge = 1;
+        editor.isChecking_cursorBlinkTrailingEdge = 1;
         EDI_cursor_cursorElement.style.animationPlayState = 'paused';
         const animations = EDI_cursor_cursorElement.getAnimations();
         if (animations.length > 0) {
@@ -8457,7 +8434,7 @@ export function EDI_onMouseDown(event) {
     }
 
     if (event.button === 0) {
-        f.byteEDI_mousemove_eventListener_isActive = 1;
+        editor.mousemove_eventListener_isActive = 1;
         f.EDI_baseElement.addEventListener('mousemove', EDI_onMouseMove_WRAPIT);
     }
     else if (event.button === 3) {
@@ -8794,7 +8771,7 @@ export function EDI_onMouseMove_WRAPIT(event) {
         }
     }
     else {
-        f.byteEDI_mousemove_eventListener_isActive = 0;
+        editor.mousemove_eventListener_isActive = 0;
         f.EDI_baseElement.removeEventListener('mousemove', EDI_onMouseMove_WRAPIT);
     }
 }
@@ -9017,7 +8994,7 @@ function EDI_onMouseMoveDetailRankThree(indexLineClicked, indexColumnClicked) {
  * - EDI_cursor_enterKey_newLinePlusIndentation_byteList
  * - EDI_cursor_cached_indentation_string
  * 
- * Internally uses 'f.byteEDI_cursor_enterKeyEventKind'.
+ * Internally uses 'editor.cursor_enterKeyEventKind'.
  */
 function EDI_cacheIndentation(originalIndexLine, originalIndexColumn, lastValidIndexColumn) {
     EDI_ret_getLineBoundaryPositions_raw(originalIndexLine);
@@ -9055,7 +9032,7 @@ function EDI_cacheIndentation(originalIndexLine, originalIndexColumn, lastValidI
 
     let setOffset = 1;
 
-    switch (f.byteEDI_cursor_enterKeyEventKind) {
+    switch (editor.cursor_enterKeyEventKind) {
         case f.EnterKeyEventKind_StartOfLine:
         case f.EnterKeyEventKind_EndOfLine:
             setOffset = 0;
