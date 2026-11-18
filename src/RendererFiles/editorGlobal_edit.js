@@ -3,7 +3,7 @@ import {TrackingUint32MaxHeap} from './editorMaxHeap.js'
 import {UInt32List} from './listTypes.js'
 import * as f from './fieldBuffer.js'
 import {CommandKind} from './menuGlobal.js'
-import {sendTransaction_MessageKind_custom_edit_InsertLtr} from './applicationRendererRoot.js'
+import {sendTransaction_MessageKind_custom_edit_InsertLtr, sendTransaction_MessageKind_custom_edit_Remove, sendTransaction_MessageKind_textDocument_definition} from './applicationRendererRoot.js'
 import {tooltip} from './tooltipGlobal.js'
 
 /**
@@ -3359,7 +3359,7 @@ function EDI_ret_getIndexFromX_sameLine_newRxIsSmaller(goalRx, lineStart, startC
 /**
  * This clears the cursor's selection.
  */
-function EDI_moveCursor_position(intValue) {
+export function EDI_moveCursor_position(intValue) {
     if (editor.cursor_editKind !== EditKind.None) {
         // TODO: Timing issue, someone typing while they scroll
         EDI_finalizeEdit();
