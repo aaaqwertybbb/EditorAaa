@@ -22,7 +22,7 @@ class DIALOG_FindAll_TreeViewDirector {
             return;
         }
 
-        this.component.setItems(this, INTS[fAPP_lineHeight], INTS[fAPP_lineHeight] + 'px');
+        this.component.setItems(this, f.INTS[f.fAPP_lineHeight], f.INTS[f.fAPP_lineHeight] + 'px');
 
         for (let i = 0; i < actualData.length; i++) {
             let nodeKind = TreeViewNodeKind_isExpandable_NOTisExpanded;
@@ -94,9 +94,9 @@ class DIALOG_FindAll_TreeViewDirector {
             }
             else {
                 this.nodeList.getElementAt(indexItem);
-                let key = INTS[fTreeView_poolret_pooledNode_key];
-                depth = INTS[fTreeView_poolret_pooledNode_depth];
-                nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+                let key = f.INTS[fTreeView_poolret_pooledNode_key];
+                depth = f.INTS[fTreeView_poolret_pooledNode_depth];
+                nodeKind = f.BYTES[byteTreeView_byteret_pooledNode_nodeKind];
 
                 let textNode = divItem.lastChild;
                 if (textNode.nodeType !== Node.TEXT_NODE) throw new Error('if (textNode.nodeType !== Node.TEXT_NODE)');
@@ -156,9 +156,9 @@ class DIALOG_FindAll_TreeViewDirector {
     
     async tvd_ondblclick_async(divItem, indexItem) {
         this.nodeList.getElementAt(indexItem);
-        let key = INTS[fTreeView_poolret_pooledNode_key];
-        let depth = INTS[fTreeView_poolret_pooledNode_depth];
-        let nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+        let key = f.INTS[fTreeView_poolret_pooledNode_key];
+        let depth = f.INTS[fTreeView_poolret_pooledNode_depth];
+        let nodeKind = f.BYTES[byteTreeView_byteret_pooledNode_nodeKind];
 
         if (nodeKind === TreeViewNodeKind_NOTisExpandable_NOTisExpanded) {
 
@@ -182,7 +182,7 @@ class DIALOG_FindAll_TreeViewDirector {
             
             await EXPLORER_openInEditor(absolutePath, /*shouldFocus*/ true);
             
-            if (intValue > INTS[fEDI_lineEndPositionList_count]) {
+            if (intValue > f.INTS[f.fEDI_lineEndPositionList_count]) {
                 return;
             }
 
@@ -202,9 +202,9 @@ class DIALOG_FindAll_TreeViewDirector {
      */
     async tvd_expandCollapseIconWasClicked_async(divItem, indexItem) {
         this.nodeList.getElementAt(indexItem);
-        let key = INTS[fTreeView_poolret_pooledNode_key];
-        let depth = INTS[fTreeView_poolret_pooledNode_depth];
-        let nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+        let key = f.INTS[fTreeView_poolret_pooledNode_key];
+        let depth = f.INTS[fTreeView_poolret_pooledNode_depth];
+        let nodeKind = f.BYTES[byteTreeView_byteret_pooledNode_nodeKind];
 
         if (nodeKind === TreeViewNodeKind_isExpandable_NOTisExpanded) {
 
@@ -213,7 +213,7 @@ class DIALOG_FindAll_TreeViewDirector {
 
             let searchTextInput = document.getElementById('DIALOG_FindAll_searchTextInput');
             if (!searchTextInput) return;
-            let results = await window.myAPI.findAllGetPositions(divItem.title, searchTextInput.value, BYTES[byteDIALOG_FindAll_options_matchWord]);
+            let results = await window.myAPI.findAllGetPositions(divItem.title, searchTextInput.value, f.BYTES[byteDIALOG_FindAll_options_matchWord]);
             if (!results) {
                 return;
             }
@@ -307,7 +307,7 @@ function DIALOG_FindAll_Create() {
     let checkboxMatchWord = document.createElement('input');
     checkboxMatchWord.type = 'checkbox';
     checkboxMatchWord.id = 'DIALOG_FindAll_checkboxMatchWord';
-    checkboxMatchWord.checked = BYTES[byteDIALOG_FindAll_options_matchWord];
+    checkboxMatchWord.checked = f.BYTES[byteDIALOG_FindAll_options_matchWord];
     checkboxMatchWord.addEventListener('change', DIALOG_FindAll_checkboxMatchWord_onchange);
     divOptions.appendChild(checkboxMatchWord);
     let label_for_checkboxMatchWord = document.createElement('label');
@@ -326,7 +326,7 @@ function DIALOG_FindAll_Create() {
     // TODO: Remove 'searchResultsDiv'? It is pointlessly wrapping.
     let searchResultsDiv = document.createElement('div');
     searchResultsDiv.id = 'DIALOG_FindAll_searchResultsDiv';
-    const searchResultsDivHeightString = `calc(100% - ${2 * INTS[fAPP_lineHeight]}px - 2px)`;
+    const searchResultsDivHeightString = `calc(100% - ${2 * f.INTS[f.fAPP_lineHeight]}px - 2px)`;
     searchResultsDiv.style.height = searchResultsDivHeightString;
     searchResultsDiv.style.lineHeight = searchResultsDivHeightString;
     dialogBody.appendChild(searchResultsDiv);
@@ -364,7 +364,7 @@ async function DIALOG_FindAll_searchTextInput_onkeydown(event) {
             return;
         }
 
-        let results = await window.myAPI.findAll(search, BYTES[byteDIALOG_FindAll_options_matchWord]);
+        let results = await window.myAPI.findAll(search, f.BYTES[byteDIALOG_FindAll_options_matchWord]);
         if (!DIALOG_FindAll_TreeViewDirector_instance) {
             DIALOG_FindAll_TreeViewDirector_instance = new DIALOG_FindAll_TreeViewDirector();
         }
@@ -377,7 +377,7 @@ function DIALOG_FindAll_checkboxMatchWord_onchange() {
 	// for an onchange event, event.target might always be precise?
 	let checkboxMatchWord = document.getElementById('DIALOG_FindAll_checkboxMatchWord');
     if (checkboxMatchWord) {
-    	BYTES[byteDIALOG_FindAll_options_matchWord] = checkboxMatchWord.checked;
+    	f.BYTES[byteDIALOG_FindAll_options_matchWord] = checkboxMatchWord.checked;
     	let spanNotes = document.getElementById('DIALOG_FindAll_spanNotes');
 	    if (spanNotes) {
 	        spanNotes.textContent = 'NOTE: changing \'matchWord\' here does not re-do the search';
@@ -404,7 +404,7 @@ function DIALOG_Settings_Create() {
     let checkboxTrueTabsFalseSpaces = document.createElement('input');
     checkboxTrueTabsFalseSpaces.type = 'checkbox';
     checkboxTrueTabsFalseSpaces.id = 'SETTINGS_trueTabs_falseSpaces';
-    checkboxTrueTabsFalseSpaces.checked = BYTES[byteDIALOG_Settings_trueTabs_falseSpaces]; // Optional: sets the initial state to checked
+    checkboxTrueTabsFalseSpaces.checked = f.BYTES[byteDIALOG_Settings_trueTabs_falseSpaces]; // Optional: sets the initial state to checked
     checkboxTrueTabsFalseSpaces.addEventListener('change', DIALOG_checkboxTrueTabsFalseSpaces_onchange);
     dialogBody.appendChild(checkboxTrueTabsFalseSpaces);
 	// -----------------------------------------------------------
@@ -416,7 +416,7 @@ function DIALOG_Settings_Create() {
     let checkboxEditorDebugShowAdjacentCharacters = document.createElement('input');
     checkboxEditorDebugShowAdjacentCharacters.type = 'checkbox';
     checkboxEditorDebugShowAdjacentCharacters.id = 'SETTINGS_editorDebugShowAdjacentCharacters';
-    checkboxEditorDebugShowAdjacentCharacters.checked = BYTES[byteDIALOG_Settings_editorDebugShowAdjacentCharacters]; // Optional: sets the initial state to checked
+    checkboxEditorDebugShowAdjacentCharacters.checked = f.BYTES[byteDIALOG_Settings_editorDebugShowAdjacentCharacters]; // Optional: sets the initial state to checked
     checkboxEditorDebugShowAdjacentCharacters.addEventListener('change', DIALOG_checkboxEditorDebugShowAdjacentCharacters_onchange);
     dialogBody.appendChild(checkboxEditorDebugShowAdjacentCharacters);
 	// -----------------------------------------------------------
@@ -447,13 +447,13 @@ function DIALOG_Settings_Delete() {
 }
 
 function DIALOG_buttonTheme_onclick() {
-    if (BYTES[byteDIALOG_Settings_isDark]) {
-        BYTES[byteDIALOG_Settings_isDark] = 0;
+    if (f.BYTES[byteDIALOG_Settings_isDark]) {
+        f.BYTES[byteDIALOG_Settings_isDark] = 0;
         document.body.classList.remove('dark-theme');
         document.body.classList.add('light-theme');
     }
     else {
-        BYTES[byteDIALOG_Settings_isDark] = 1;
+        f.BYTES[byteDIALOG_Settings_isDark] = 1;
         document.body.classList.remove('light-theme');
         document.body.classList.add('dark-theme');
     }
@@ -468,19 +468,19 @@ function DIALOG_checkboxTrueTabsFalseSpaces_onchange() {
     if (!checkboxTrueTabsFalseSpaces) return;
 
     EDI_finalizeEdit();
-    BYTES[byteDIALOG_Settings_trueTabs_falseSpaces] = checkboxTrueTabsFalseSpaces.checked;
-    if (BYTES[byteDIALOG_Settings_trueTabs_falseSpaces]) {
+    f.BYTES[byteDIALOG_Settings_trueTabs_falseSpaces] = checkboxTrueTabsFalseSpaces.checked;
+    if (f.BYTES[byteDIALOG_Settings_trueTabs_falseSpaces]) {
         EDI_on_tab_bytes = new Uint8Array(1);
-        EDI_on_tab_bytes[0] = CONST_EDI_ASCII_TAB;
-        INTS[fEDI_ontab_visualWidth_perCharacter] = 4;
+        EDI_on_tab_bytes[0] = f.CONST_EDI_ASCII_TAB;
+        f.INTS[f.fEDI_ontab_visualWidth_perCharacter] = 4;
     }
     else {
         EDI_on_tab_bytes = new Uint8Array(4);
-        EDI_on_tab_bytes[0] = CONST_EDI_ASCII_SPACE;
-        EDI_on_tab_bytes[1] = CONST_EDI_ASCII_SPACE;
-        EDI_on_tab_bytes[2] = CONST_EDI_ASCII_SPACE;
-        EDI_on_tab_bytes[3] = CONST_EDI_ASCII_SPACE;
-        INTS[fEDI_ontab_visualWidth_perCharacter] = 1;
+        EDI_on_tab_bytes[0] = f.CONST_EDI_ASCII_SPACE;
+        EDI_on_tab_bytes[1] = f.CONST_EDI_ASCII_SPACE;
+        EDI_on_tab_bytes[2] = f.CONST_EDI_ASCII_SPACE;
+        EDI_on_tab_bytes[3] = f.CONST_EDI_ASCII_SPACE;
+        f.INTS[f.fEDI_ontab_visualWidth_perCharacter] = 1;
     }
 }
 
@@ -488,7 +488,7 @@ function DIALOG_checkboxEditorDebugShowAdjacentCharacters_onchange() {
     let checkboxEditorDebugShowAdjacentCharacters = document.getElementById('SETTINGS_editorDebugShowAdjacentCharacters');
     if (!checkboxEditorDebugShowAdjacentCharacters) return;
 
-    BYTES[byteDIALOG_Settings_editorDebugShowAdjacentCharacters] = checkboxEditorDebugShowAdjacentCharacters.checked;
+    f.BYTES[byteDIALOG_Settings_editorDebugShowAdjacentCharacters] = checkboxEditorDebugShowAdjacentCharacters.checked;
     EDI_drawCursor(/*NOTscrollCursorIntoView*/ false);
 }
 
@@ -499,7 +499,7 @@ function DIALOG_DocumentSymbol_Create() {
     if (EDI_documentSymbolResult) {
         let div = document.createElement('div');
         div.textContent = 'EDI_documentSymbolResult.length: ' + EDI_documentSymbolResult.length;
-        div.style.height = INTS[fAPP_lineHeight] + 'px';
+        div.style.height = f.INTS[f.fAPP_lineHeight] + 'px';
         div.style.whiteSpace = 'nowrap';
         dialogBody.appendChild(div);
         EDI_listComponent.rootElement.style.height = `calc(100% - ${div.style.height})`;

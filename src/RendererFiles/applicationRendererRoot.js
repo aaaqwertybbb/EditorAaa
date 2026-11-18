@@ -1,3 +1,7 @@
+import * as f from "./fieldBuffer.js"
+import {EXPLORER_firstSpanWidth, set_EXPLORER_firstSpanWidth} from './explorerGlobal.js'
+import {EDI_init} from './editorGlobal_edit.js'
+
 let APP_lineHeightStringWithPx = '';
 
 let shouldUseCSharpToSaveFileWhenPossible = false;
@@ -376,10 +380,10 @@ function APP_socket_onmessage(event) {
             // If the server sent it as text, convert text to a Uint8Array
             view = Uint8Array.fromBase64(event.data);
             EDI_styleBuffer = view;
-            INTS[fEDI_styleBuffer_count] = EDI_styleBuffer.length;
-            INTS[fEDI_styleBuffer_capacity] = EDI_styleBuffer.length;
+            f.INTS[f.fEDI_styleBuffer_count] = EDI_styleBuffer.length;
+            f.INTS[f.fEDI_styleBuffer_capacity] = EDI_styleBuffer.length;
             
-            EDI_render_request(RenderKind_SyntaxHighlighting);
+            EDI_render_request(f.RenderKind_SyntaxHighlighting);
             //view = new TextEncoder().encode(event.data);
             //EDI_styleBuffer = view;
         }
@@ -415,20 +419,20 @@ function APP_measureLineHeightAndCharacterWidth() {
     textNode.replaceData(0, textNode.length, "-"); // This permits me to in 'explorer.js' set the first span of every "tree-view-node" to be the same width, regardless of whether its content is '-', '+', or '' (an empty string). (1 of 2)
     let rect = measureElement.getBoundingClientRect();
     // line height is read here
-    INTS[fAPP_lineHeight] = Math.ceil(rect.height); // get line height too while I'm here.
+    f.INTS[f.fAPP_lineHeight] = Math.ceil(rect.height); // get line height too while I'm here.
     const minusWidth = Math.ceil(rect.width);
     
     textNode.replaceData(0, textNode.length, "+"); // This permits me to in 'explorer.js' set the first span of every "tree-view-node" to be the same width, regardless of whether its content is '-', '+', or '' (an empty string). (2 of 2)
     rect = measureElement.getBoundingClientRect();
     const plusWidth = Math.ceil(rect.width);
     const largerWidth = minusWidth > plusWidth ? minusWidth : plusWidth; // 11
-    INTS[fEXPLORER_firstSpanWidthValue] = largerWidth;
-    EXPLORER_firstSpanWidth = INTS[fEXPLORER_firstSpanWidthValue] + 'px';
+    f.INTS[f.fEXPLORER_firstSpanWidthValue] = largerWidth;
+    set_EXPLORER_firstSpanWidth(f.INTS[f.fEXPLORER_firstSpanWidthValue] + 'px');
 
     wrapper.removeChild(measureElement);
     document.body.removeChild(wrapper);
 
-    APP_lineHeightStringWithPx = INTS[fAPP_lineHeight] + 'px';
+    APP_lineHeightStringWithPx = f.INTS[f.fAPP_lineHeight] + 'px';
 }
 
 //async function window_myAPI_onMessage(data) {

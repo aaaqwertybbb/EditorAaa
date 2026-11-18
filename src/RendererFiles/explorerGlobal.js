@@ -1,4 +1,5 @@
-import "./fieldBuffer.js"
+import * as f from "./fieldBuffer.js"
+import {TreeViewComponent, treeViewComponent_staticRunner} from './treeViewComponent.js'
 
 /*
 When collapse maybe you reset the length of the longest line or something
@@ -95,9 +96,9 @@ function EXPLORER_renderLines(lineIndexLower, lineIndexUpper, ringBufferIndex, d
         if (i >= decodingBoundLower && i < decodingBoundUpper) {
             if (i < COUNT_ABSTRACT) {
                 EXPLORER_treeViewComponent.getElementAt(i);
-                const key = INTS[fTreeView_poolret_pooledNode_key];
-                const depth = INTS[fTreeView_poolret_pooledNode_depth];
-                const nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+                const key = f.INTS[fTreeView_poolret_pooledNode_key];
+                const depth = f.INTS[fTreeView_poolret_pooledNode_depth];
+                const nodeKind = f.BYTES[byteTreeView_byteret_pooledNode_nodeKind];
 
                 let name = STRINGS_MAP_BY_PATH_ID.get(key) ?? `unknown_${i}`;
                 let chevronRepresentation = ' ';
@@ -135,9 +136,9 @@ function EXPLORER_renderLines(lineIndexLower, lineIndexUpper, ringBufferIndex, d
 
 async function EXPLORER_expandCollapseIconWasClicked(divItem, indexItem, ringBufferIndexItem) {
     EXPLORER_treeViewComponent.getElementAt(indexItem);
-    const key = INTS[fTreeView_poolret_pooledNode_key];
-    const depth = INTS[fTreeView_poolret_pooledNode_depth];
-    const nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+    const key = f.INTS[fTreeView_poolret_pooledNode_key];
+    const depth = f.INTS[fTreeView_poolret_pooledNode_depth];
+    const nodeKind = f.BYTES[byteTreeView_byteret_pooledNode_nodeKind];
 
     if (nodeKind === TreeViewNodeKind_isExpandable_NOTisExpanded) {
         EXPLORER_treeViewComponent.setNodeKind(indexItem, TreeViewNodeKind_isExpandable_isExpanded);
@@ -189,8 +190,8 @@ async function EXPLORER_expandCollapseIconWasClicked(divItem, indexItem, ringBuf
 
 async function EXPLORER_dblClick_or_space_or_enter(eventKey, indexItem, ringBufferIndexItem) {
     EXPLORER_treeViewComponent.getElementAt(indexItem);
-    let key = INTS[fTreeView_poolret_pooledNode_key];
-    let nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+    let key = f.INTS[fTreeView_poolret_pooledNode_key];
+    let nodeKind = f.BYTES[byteTreeView_byteret_pooledNode_nodeKind];
 
     if (nodeKind === TreeViewNodeKind_NOTisExpandable_NOTisExpanded) {
         // TODO: open the file by id in one ipc call
@@ -212,9 +213,9 @@ function EXPLORER_oncontextmenu(divItem, indexItem, event_button, event_clientX,
 
     // TODO: !!!! You might need to be careful with async and the TreeView_pooledNode; I'm not certain whether you do or don't have to be careful, and I don't feel like looking into it at the moment.
     EXPLORER_treeViewComponent.getElementAt(indexItem);
-    let key = INTS[fTreeView_poolret_pooledNode_key];
-    let depth = INTS[fTreeView_poolret_pooledNode_depth];
-    let nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+    let key = f.INTS[fTreeView_poolret_pooledNode_key];
+    let depth = f.INTS[fTreeView_poolret_pooledNode_depth];
+    let nodeKind = f.BYTES[byteTreeView_byteret_pooledNode_nodeKind];
 
     let target = {
         id: key,
@@ -229,13 +230,13 @@ function EXPLORER_oncontextmenu(divItem, indexItem, event_button, event_clientX,
 
     if (event_button === 2) {
         EXPLORER_addSpecificMenuOptionsForTarget(optionList, divItem, target);
-        left = INTS[fEXPLORER_menuOptionX] = event_clientX;
-        top = INTS[fEXPLORER_menuOptionY] = event_clientY;
+        left = f.INTS[f.fEXPLORER_menuOptionX] = event_clientX;
+        top = f.INTS[f.fEXPLORER_menuOptionY] = event_clientY;
     }
     else {
         EXPLORER_addSpecificMenuOptionsForTarget(optionList, divItem, target);
-        left = INTS[fEXPLORER_menuOptionX]=INTS[fEXPLORER_boundingClientRect_left];
-        top = INTS[fEXPLORER_menuOptionY] = (INTS[fEXPLORER_boundingClientRect_top] + ((INTS[fEXPLORER_cursorIndex] + 1) * INTS[fEXPLORER_itemHeightNumber]) - INTS[fEXPLORER_lastReadNumber_scrollTop]);
+        left = f.INTS[f.fEXPLORER_menuOptionX]=f.INTS[f.fEXPLORER_boundingClientRect_left];
+        top = f.INTS[f.fEXPLORER_menuOptionY] = (f.INTS[f.fEXPLORER_boundingClientRect_top] + ((f.INTS[f.fEXPLORER_cursorIndex] + 1) * f.INTS[f.fEXPLORER_itemHeightNumber]) - f.INTS[f.fEXPLORER_lastReadNumber_scrollTop]);
     }
 
     menuSet(optionList, left, top, EXPLORER_MenuOnClick, target, /*elementToFocusOnCompleted*/ null, /*disableFocusOnCompleted*/ false, /*index*/ 0);
@@ -252,8 +253,8 @@ function EXPLORER_oncontextmenu(divItem, indexItem, event_button, event_clientX,
  */
 function EXPLORER_removeFromNodeList(indexItem) {
     EXPLORER_treeViewNodes.getElementAt(indexItem);
-    let depth = INTS[fTreeView_poolret_pooledNode_depth];
-    let nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+    let depth = f.INTS[fTreeView_poolret_pooledNode_depth];
+    let nodeKind = f.BYTES[byteTreeView_byteret_pooledNode_nodeKind];
 
     if (nodeKind === TreeViewNodeKind_NOTisExpandable_isExpanded) {
         alert("TODO: if (nodeKind === ...TreeViewNodeKind_NOTisExpandable_isExpanded())");
@@ -275,8 +276,8 @@ function EXPLORER_removeFromNodeList(indexItem) {
     }
 
     EXPLORER_treeViewNodes.removeAt(indexItem, 1 + countChildren);
-    INTS[fEXPLORER_itemHeightTotal] = EXPLORER_treeViewNodes.count_abstract * INTS[fEXPLORER_itemHeightNumber];
-    EXPLORER_scrollbar_space_generator.style.height = INTS[fEXPLORER_itemHeightTotal] + 'px';
+    f.INTS[f.fEXPLORER_itemHeightTotal] = EXPLORER_treeViewNodes.count_abstract * f.INTS[f.fEXPLORER_itemHeightNumber];
+    EXPLORER_scrollbar_space_generator.style.height = f.INTS[f.fEXPLORER_itemHeightTotal] + 'px';
     return 1 + countChildren;
 }
 
@@ -317,7 +318,10 @@ TODO: The TreeView after you resize it, you can continually scroll down and it k
 */
 
 /** 8px by default or the measured value with px */
-let EXPLORER_firstSpanWidth = '8px';
+export let EXPLORER_firstSpanWidth = '8px';
+export function set_EXPLORER_firstSpanWidth(value) {
+    EXPLORER_firstSpanWidth = value;
+}
 
 /**
  * TODO: Only use a single menuOptionCut_object that is located in "MENU_" to reduce the chance of memory leaks due to a 'cut' that never gets
@@ -332,7 +336,7 @@ const EXPLORER_pickFolderOrWorkspaceButton = document.getElementById('EXPLORER_f
 if (EXPLORER_pickFolderOrWorkspaceButton) { EXPLORER_pickFolderOrWorkspaceButton.addEventListener('click', EXPLORER_pickFolderOrWorkspaceButton_onClick); }
 //
 let toggleShowExplorerButton = document.getElementById('HEADER_toggleShowExplorer');
-toggleShowExplorerButton.checked = BYTES[byteEXPLORER_show];
+toggleShowExplorerButton.checked = f.BYTES[f.byteEXPLORER_show];
 toggleShowExplorerButton.addEventListener('click', toggleShowExplorerButton_onClick);
 
 function toggleShowExplorerButton_onClick() {
@@ -367,25 +371,25 @@ function EXPLORER_setShow(shouldShow) {
     const EXPLORER_Element = document.getElementById('EXPLORER');
     if (!EXPLORER_Element) return;
 
-	if (shouldShow && !BYTES[byteEXPLORER_show]) {
+	if (shouldShow && !f.BYTES[f.byteEXPLORER_show]) {
 		let editorHackElement = document.getElementById('EDI_hack');
 		EXPLORER_Element.style.width = '200px';
 		EXPLORER_Element.style.visibility = '';
 		editorHackElement.style.width = 'calc(100% - 200px)';
-		BYTES[byteEXPLORER_show] = shouldShow;
+		f.BYTES[f.byteEXPLORER_show] = shouldShow;
 		let toggleShowExplorerButton = document.getElementById('HEADER_toggleShowExplorer');
-		toggleShowExplorerButton.checked = BYTES[byteEXPLORER_show];
+		toggleShowExplorerButton.checked = f.BYTES[f.byteEXPLORER_show];
 		EDI_onResize();
 	}
-	else if (!shouldShow && BYTES[byteEXPLORER_show]) {
+	else if (!shouldShow && f.BYTES[f.byteEXPLORER_show]) {
 		// !show is redundant, but exists for readability.
 		let editorHackElement = document.getElementById('EDI_hack');
 		EXPLORER_Element.style.width = '0px';
 		EXPLORER_Element.style.visibility = 'hidden';
 		editorHackElement.style.width = '100%';
-		BYTES[byteEXPLORER_show] = shouldShow;
+		f.BYTES[f.byteEXPLORER_show] = shouldShow;
 		let toggleShowExplorerButton = document.getElementById('HEADER_toggleShowExplorer');
-		toggleShowExplorerButton.checked = BYTES[byteEXPLORER_show];
+		toggleShowExplorerButton.checked = f.BYTES[f.byteEXPLORER_show];
 		EDI_onResize();
 	}
 }
@@ -507,31 +511,31 @@ async function EXPLORER_MenuOnClick(isCancelled, menuOption, menuRequest) {
             await CommandKind_Paste_MenuOnClick_Paste(entry, menuRequest);
             break;
         case CommandKind_NewFile_Directory:
-            await WIDGET_show(WidgetKind_InputText, INTS[fEXPLORER_menuOptionX], INTS[fEXPLORER_menuOptionY], 'filename', entry, menuRequest.target, menuRequest.elementToFocusOnCompleted, false, NewFile_Directory_WIDGET_InputText_callback);
+            await WIDGET_show(WidgetKind_InputText, f.INTS[f.fEXPLORER_menuOptionX], f.INTS[f.fEXPLORER_menuOptionY], 'filename', entry, menuRequest.target, menuRequest.elementToFocusOnCompleted, false, NewFile_Directory_WIDGET_InputText_callback);
             break;
         case CommandKind_NewFile_File:
-            await WIDGET_show(WidgetKind_InputText, INTS[fEXPLORER_menuOptionX], INTS[fEXPLORER_menuOptionY], 'filename', entry, menuRequest.target, menuRequest.elementToFocusOnCompleted, false, NewFile_File_WIDGET_InputText_callback);
+            await WIDGET_show(WidgetKind_InputText, f.INTS[f.fEXPLORER_menuOptionX], f.INTS[f.fEXPLORER_menuOptionY], 'filename', entry, menuRequest.target, menuRequest.elementToFocusOnCompleted, false, NewFile_File_WIDGET_InputText_callback);
             break;
         case CommandKind_DeleteFile_Directory:
-            await WIDGET_show(WidgetKind_YesCancel, INTS[fEXPLORER_menuOptionX], INTS[fEXPLORER_menuOptionY], 'delete ' + entry.basename, entry, menuRequest.target, menuRequest.elementToFocusOnCompleted, false, DeleteFile_Directory_YesCancel_callback);
+            await WIDGET_show(WidgetKind_YesCancel, f.INTS[f.fEXPLORER_menuOptionX], f.INTS[f.fEXPLORER_menuOptionY], 'delete ' + entry.basename, entry, menuRequest.target, menuRequest.elementToFocusOnCompleted, false, DeleteFile_Directory_YesCancel_callback);
             break;
         case CommandKind_DeleteFile_File:
-            await WIDGET_show(WidgetKind_YesCancel, INTS[fEXPLORER_menuOptionX], INTS[fEXPLORER_menuOptionY], 'delete ' + entry.basename, entry, menuRequest.target, menuRequest.elementToFocusOnCompleted, false, DeleteFile_File_YesCancel_callback);
+            await WIDGET_show(WidgetKind_YesCancel, f.INTS[f.fEXPLORER_menuOptionX], f.INTS[f.fEXPLORER_menuOptionY], 'delete ' + entry.basename, entry, menuRequest.target, menuRequest.elementToFocusOnCompleted, false, DeleteFile_File_YesCancel_callback);
             break;
         case CommandKind_RenameFile_Directory:
-            await WIDGET_show(WidgetKind_InputText, INTS[fEXPLORER_menuOptionX], INTS[fEXPLORER_menuOptionY], 'rename', entry.basename, {MENU_target:menuRequest.target, entry:entry}, menuRequest.elementToFocusOnCompleted, false, RenameFile_Directory_InputText_callback);
+            await WIDGET_show(WidgetKind_InputText, f.INTS[f.fEXPLORER_menuOptionX], f.INTS[f.fEXPLORER_menuOptionY], 'rename', entry.basename, {MENU_target:menuRequest.target, entry:entry}, menuRequest.elementToFocusOnCompleted, false, RenameFile_Directory_InputText_callback);
             break;
         case CommandKind_RenameFile_File:
             // TODO: Maybe the only difference between the _Directory and _File cases for each ..._... is the bool for isDirectory but I'm exhausted and I cannot reduce the code duplication here because my head doesn't function.
-            await WIDGET_show(WidgetKind_InputText, INTS[fEXPLORER_menuOptionX], INTS[fEXPLORER_menuOptionY], 'rename', entry.basename, {MENU_target: menuRequest.target, entry: entry}, menuRequest.elementToFocusOnCompleted, false, RenameFile_File_InputText_callback);
+            await WIDGET_show(WidgetKind_InputText, f.INTS[f.fEXPLORER_menuOptionX], f.INTS[f.fEXPLORER_menuOptionY], 'rename', entry.basename, {MENU_target: menuRequest.target, entry: entry}, menuRequest.elementToFocusOnCompleted, false, RenameFile_File_InputText_callback);
             break;
     }
 }
 
 async function CommandKind_Paste_MenuOnClick_Paste(entry, menuRequest) {
     EXPLORER_treeViewNodes.getElementAt(menuRequest.target.indexItem);
-    let nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
-    let depthOfTheParent = INTS[fTreeView_poolret_pooledNode_depth];
+    let nodeKind = f.BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+    let depthOfTheParent = f.INTS[fTreeView_poolret_pooledNode_depth];
     let isCollapsed = nodeKind === TreeViewNodeKind_isExpandable_NOTisExpanded || nodeKind === TreeViewNodeKind_NOTisExpandable_NOTisExpanded;
 
     let local_EXPLORER_menuOptionCut_object = EXPLORER_menuOptionCut_object;
@@ -558,10 +562,10 @@ async function CommandKind_Paste_MenuOnClick_Paste(entry, menuRequest) {
     //
     for (let i_targetDepth = 0; i_targetDepth < pasteResult.indexOf; i_targetDepth++) {
         EXPLORER_treeViewNodes.getElementAt(someIndex);
-        let nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+        let nodeKind = f.BYTES[byteTreeView_byteret_pooledNode_nodeKind];
         let isCollapsed = nodeKind === TreeViewNodeKind_isExpandable_NOTisExpanded || nodeKind === TreeViewNodeKind_NOTisExpandable_NOTisExpanded;
 
-        let d_of_presumed_correct_depth = INTS[fTreeView_poolret_pooledNode_depth];
+        let d_of_presumed_correct_depth = f.INTS[fTreeView_poolret_pooledNode_depth];
         if (d_of_presumed_correct_depth !== targetDepth) {
             // Validate the target you paste into's child count
             break;
@@ -604,9 +608,9 @@ async function CommandKind_Paste_MenuOnClick_Paste(entry, menuRequest) {
         }
     }
 
-    INTS[fEXPLORER_itemHeightTotal] = EXPLORER_treeViewNodes.count_abstract * INTS[fEXPLORER_itemHeightNumber];
-    EXPLORER_scrollbar_space_generator.style.height = INTS[fEXPLORER_itemHeightTotal] + 'px';
-    EXPLORER_draw_BATCH_request(INTS[fEXPLORER_virtualIndex_ofScrollTop], INTS[fEXPLORER_virtualCount], 3);
+    f.INTS[f.fEXPLORER_itemHeightTotal] = EXPLORER_treeViewNodes.count_abstract * f.INTS[f.fEXPLORER_itemHeightNumber];
+    EXPLORER_scrollbar_space_generator.style.height = f.INTS[f.fEXPLORER_itemHeightTotal] + 'px';
+    EXPLORER_draw_BATCH_request(f.INTS[f.fEXPLORER_virtualIndex_ofScrollTop], f.INTS[f.fEXPLORER_virtualCount], 3);
 }
 
 async function NewFile_Directory_WIDGET_InputText_callback(widgetResult) {
@@ -616,8 +620,8 @@ async function NewFile_Directory_WIDGET_InputText_callback(widgetResult) {
     const target = widgetResult.request.target;
 
     EXPLORER_treeViewNodes.getElementAt(target.indexItem);
-    let nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
-    let depthOfTheParent = INTS[fTreeView_poolret_pooledNode_depth];
+    let nodeKind = f.BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+    let depthOfTheParent = f.INTS[fTreeView_poolret_pooledNode_depth];
     let isCollapsed = nodeKind === TreeViewNodeKind_isExpandable_NOTisExpanded || nodeKind === TreeViewNodeKind_NOTisExpandable_NOTisExpanded;
 
     const newFileResult = await window.myAPI.newFile(entry.absolutePath, widgetResult.resultData, /*isDirectory*/ true);
@@ -637,10 +641,10 @@ async function NewFile_Directory_WIDGET_InputText_callback(widgetResult) {
         //
         for (let i_targetDepth = 0; i_targetDepth < newFileResult.indexOf; i_targetDepth++) {
             EXPLORER_treeViewNodes.getElementAt(someIndex);
-            let nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+            let nodeKind = f.BYTES[byteTreeView_byteret_pooledNode_nodeKind];
             let isCollapsed = nodeKind === TreeViewNodeKind_isExpandable_NOTisExpanded || nodeKind === TreeViewNodeKind_NOTisExpandable_NOTisExpanded;
 
-            let d_of_presumed_correct_depth = INTS[fTreeView_poolret_pooledNode_depth];
+            let d_of_presumed_correct_depth = f.INTS[fTreeView_poolret_pooledNode_depth];
             if (d_of_presumed_correct_depth !== targetDepth) {
                 // Validate the target you paste into's child count
                 break;
@@ -666,9 +670,9 @@ async function NewFile_Directory_WIDGET_InputText_callback(widgetResult) {
 
         EXPLORER_treeViewNodes.insert(someIndex, nodeKind, newFileResult.pathId, target.depth + 1);
 
-        INTS[fEXPLORER_itemHeightTotal] = EXPLORER_treeViewNodes.count_abstract * INTS[fEXPLORER_itemHeightNumber];
-        EXPLORER_scrollbar_space_generator.style.height = INTS[fEXPLORER_itemHeightTotal] + 'px';
-        EXPLORER_draw_BATCH_request(INTS[fEXPLORER_virtualIndex_ofScrollTop], INTS[fEXPLORER_virtualCount], 3);
+        f.INTS[f.fEXPLORER_itemHeightTotal] = EXPLORER_treeViewNodes.count_abstract * f.INTS[f.fEXPLORER_itemHeightNumber];
+        EXPLORER_scrollbar_space_generator.style.height = f.INTS[f.fEXPLORER_itemHeightTotal] + 'px';
+        EXPLORER_draw_BATCH_request(f.INTS[f.fEXPLORER_virtualIndex_ofScrollTop], f.INTS[f.fEXPLORER_virtualCount], 3);
     }
 }
 
@@ -679,8 +683,8 @@ async function NewFile_File_WIDGET_InputText_callback(widgetResult) {
     const target = widgetResult.request.target;
     
     EXPLORER_treeViewNodes.getElementAt(target.indexItem);
-    let nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
-    let depthOfTheParent = INTS[fTreeView_poolret_pooledNode_depth];
+    let nodeKind = f.BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+    let depthOfTheParent = f.INTS[fTreeView_poolret_pooledNode_depth];
     let isCollapsed = nodeKind === TreeViewNodeKind_isExpandable_NOTisExpanded || nodeKind === TreeViewNodeKind_NOTisExpandable_NOTisExpanded;
 
     const newFileResult = await window.myAPI.newFile(entry.absolutePath, widgetResult.resultData, /*isDirectory*/ false);
@@ -698,10 +702,10 @@ async function NewFile_File_WIDGET_InputText_callback(widgetResult) {
     //
     for (let i_targetDepth = 0; i_targetDepth < newFileResult.indexOf; i_targetDepth++) {
         EXPLORER_treeViewNodes.getElementAt(someIndex);
-        let nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+        let nodeKind = f.BYTES[byteTreeView_byteret_pooledNode_nodeKind];
         let isCollapsed = nodeKind === TreeViewNodeKind_isExpandable_NOTisExpanded || nodeKind === TreeViewNodeKind_NOTisExpandable_NOTisExpanded;
 
-        let d_of_presumed_correct_depth = INTS[fTreeView_poolret_pooledNode_depth];
+        let d_of_presumed_correct_depth = f.INTS[fTreeView_poolret_pooledNode_depth];
         if (d_of_presumed_correct_depth !== targetDepth) {
             // Validate the target you paste into's child count
             break;
@@ -727,9 +731,9 @@ async function NewFile_File_WIDGET_InputText_callback(widgetResult) {
 
     EXPLORER_treeViewNodes.insert(someIndex, nodeKind, newFileResult.pathId, target.depth + 1);
 
-    INTS[fEXPLORER_itemHeightTotal] = EXPLORER_treeViewNodes.count_abstract * INTS[fEXPLORER_itemHeightNumber];
-    EXPLORER_scrollbar_space_generator.style.height = INTS[fEXPLORER_itemHeightTotal] + 'px';
-    EXPLORER_draw_BATCH_request(INTS[fEXPLORER_virtualIndex_ofScrollTop], INTS[fEXPLORER_virtualCount], 3);
+    f.INTS[f.fEXPLORER_itemHeightTotal] = EXPLORER_treeViewNodes.count_abstract * f.INTS[f.fEXPLORER_itemHeightNumber];
+    EXPLORER_scrollbar_space_generator.style.height = f.INTS[f.fEXPLORER_itemHeightTotal] + 'px';
+    EXPLORER_draw_BATCH_request(f.INTS[f.fEXPLORER_virtualIndex_ofScrollTop], f.INTS[f.fEXPLORER_virtualCount], 3);
 }
 
 async function DeleteFile_Directory_YesCancel_callback(widgetResult) {
@@ -741,9 +745,9 @@ async function DeleteFile_Directory_YesCancel_callback(widgetResult) {
 
     let countChanges = EXPLORER_removeFromNodeList(target.indexItem);
 
-    INTS[fEXPLORER_itemHeightTotal] = EXPLORER_treeViewNodes.count_abstract * INTS[fEXPLORER_itemHeightNumber];
-    EXPLORER_scrollbar_space_generator.style.height = INTS[fEXPLORER_itemHeightTotal] + 'px';
-    EXPLORER_draw_BATCH_request(INTS[fEXPLORER_virtualIndex_ofScrollTop], INTS[fEXPLORER_virtualCount], 3);
+    f.INTS[f.fEXPLORER_itemHeightTotal] = EXPLORER_treeViewNodes.count_abstract * f.INTS[f.fEXPLORER_itemHeightNumber];
+    EXPLORER_scrollbar_space_generator.style.height = f.INTS[f.fEXPLORER_itemHeightTotal] + 'px';
+    EXPLORER_draw_BATCH_request(f.INTS[f.fEXPLORER_virtualIndex_ofScrollTop], f.INTS[f.fEXPLORER_virtualCount], 3);
 }
 
 async function DeleteFile_File_YesCancel_callback(widgetResult) {
@@ -755,9 +759,9 @@ async function DeleteFile_File_YesCancel_callback(widgetResult) {
 
     EXPLORER_treeViewNodes.removeAt(target.indexItem, 1);
 
-    INTS[fEXPLORER_itemHeightTotal] = EXPLORER_treeViewNodes.count_abstract * INTS[fEXPLORER_itemHeightNumber];
-    EXPLORER_scrollbar_space_generator.style.height = INTS[fEXPLORER_itemHeightTotal] + 'px';
-    EXPLORER_draw_BATCH_request(INTS[fEXPLORER_virtualIndex_ofScrollTop], INTS[fEXPLORER_virtualCount], 3);
+    f.INTS[f.fEXPLORER_itemHeightTotal] = EXPLORER_treeViewNodes.count_abstract * f.INTS[f.fEXPLORER_itemHeightNumber];
+    EXPLORER_scrollbar_space_generator.style.height = f.INTS[f.fEXPLORER_itemHeightTotal] + 'px';
+    EXPLORER_draw_BATCH_request(f.INTS[f.fEXPLORER_virtualIndex_ofScrollTop], f.INTS[f.fEXPLORER_virtualCount], 3);
 }
 
 async function RenameFile_Directory_InputText_callback(widgetResult) {

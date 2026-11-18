@@ -52,37 +52,37 @@ const MENUrenderKind_Hide = 3;
 let MENU_request = null;
 
 function MENU_render_request(renderKind) {
-    if (BYTES[byteMENU_queueHead] !== BYTES[byteMENU_queueTail]) {
-        const lastAbsoluteIndex = OFFSET_MENU + ((BYTES[byteMENU_queueTail] - 1) & UI_SLOT_MASK);
+    if (f.BYTES[byteMENU_queueHead] !== f.BYTES[byteMENU_queueTail]) {
+        const lastAbsoluteIndex = OFFSET_MENU + ((f.BYTES[byteMENU_queueTail] - 1) & UI_SLOT_MASK);
         if (MASTER_RENDER_BUFFER[lastAbsoluteIndex] === renderKind) {
             return;
         }
     }
 
-    const absoluteIndex = OFFSET_MENU + (BYTES[byteMENU_queueTail] & UI_SLOT_MASK);
+    const absoluteIndex = OFFSET_MENU + (f.BYTES[byteMENU_queueTail] & UI_SLOT_MASK);
     MASTER_RENDER_BUFFER[absoluteIndex] = renderKind;
-    if (renderKind === MENUrenderKind_Set) INTS[fMENU_renderKind_Set_countOfPendingRequests]++;
-    BYTES[byteMENU_queueTail]++;
+    if (renderKind === MENUrenderKind_Set) f.INTS[fMENU_renderKind_Set_countOfPendingRequests]++;
+    f.BYTES[byteMENU_queueTail]++;
     
-    if (BYTES[byteMENU_isRenderPending] === 0) {
-        BYTES[byteMENU_isRenderPending] = 1;
+    if (f.BYTES[byteMENU_isRenderPending] === 0) {
+        f.BYTES[byteMENU_isRenderPending] = 1;
         requestAnimationFrame(MENU_render_do);
     }
 }
 
 function MENU_render_do() {
-    while (BYTES[byteMENU_queueHead] !== BYTES[byteMENU_queueTail]) {
+    while (f.BYTES[byteMENU_queueHead] !== f.BYTES[byteMENU_queueTail]) {
         // Uses the exact same masking logic, but reads from the higher memory region
-        const absoluteIndex = OFFSET_MENU + (BYTES[byteMENU_queueHead] & UI_SLOT_MASK);
+        const absoluteIndex = OFFSET_MENU + (f.BYTES[byteMENU_queueHead] & UI_SLOT_MASK);
         const renderKind = MASTER_RENDER_BUFFER[absoluteIndex];
-        BYTES[byteMENU_queueHead]++;
+        f.BYTES[byteMENU_queueHead]++;
 
         switch (renderKind) {
             case MENUrenderKind_Cursor:
                 MENU_render_do_Cursor();
                 break;
             case MENUrenderKind_Set:
-                if (INTS[fMENU_renderKind_Set_countOfPendingRequests]-- > 1) break;
+                if (f.INTS[fMENU_renderKind_Set_countOfPendingRequests]-- > 1) break;
                 MENU_render_do_Set();
                 break;
             case MENUrenderKind_Hide:
@@ -90,7 +90,7 @@ function MENU_render_do() {
                 break;
         }
     }
-    BYTES[byteMENU_isRenderPending] = 0;
+    f.BYTES[byteMENU_isRenderPending] = 0;
 }
 
 function MENU_render_do_Set() {
@@ -139,7 +139,7 @@ function MENU_render_do_Set() {
         MENU_request.elementToFocusOnCompleted = document.activeElement;
     }
     
-    INTS[fMENU_ticketId_drawn] = MENU_request.ticket;
+    f.INTS[fMENU_ticketId_drawn] = MENU_request.ticket;
 
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
@@ -201,7 +201,7 @@ function menuSet(optionList, left, top, onCompleteAction, target, elementToFocus
         target: target,
         optionList: optionList,
         index: index ?? 0,
-        ticket: INTS[fMENU_ticketId_counter]++,
+        ticket: f.INTS[fMENU_ticketId_counter]++,
         ArrayFrom_menuOptionList_children: null,
         elementToFocusOnCompleted: elementToFocusOnCompleted,
         disableFocusOnCompleted: disableFocusOnCompleted
@@ -214,7 +214,7 @@ function MENU_render_do_Hide() {
     const menu = document.getElementById('MENU');
     if (!menu) return;
 
-    INTS[fMENU_ticketId_drawn] = 0;
+    f.INTS[fMENU_ticketId_drawn] = 0;
     menu.remove();
 }
 
@@ -243,7 +243,7 @@ function MENU_completeForm(forceIsCancelled, changingFocusIsReasonable) {
     if (changingFocusIsReasonable && !local_request.disableFocusOnCompleted && local_request.elementToFocusOnCompleted) {
         local_request.elementToFocusOnCompleted.focus();
     }
-    if (!forceIsCancelled && local_request.ticket !== INTS[fMENU_ticketId_drawn]) {
+    if (!forceIsCancelled && local_request.ticket !== f.INTS[fMENU_ticketId_drawn]) {
         forceIsCancelled = true;
     }
     let menuOption = undefined;
@@ -259,7 +259,7 @@ function MENU_onMouseMove(event) {
     //}
 
     let relativeY = event.clientY - (MENU_request.recentBoundingClientRectTop + 4 /*paddingTop*/);
-    let index = Math.floor(relativeY / INTS[fAPP_lineHeight]);
+    let index = Math.floor(relativeY / f.INTS[f.fAPP_lineHeight]);
     if (MENU_request.index === index) {
         return;
     }
@@ -271,7 +271,7 @@ function MENU_onMouseMove(event) {
 function menuGetRelativeMouseEventData(event_clientY) {
     let paddingTop = 4;
     let relativeY = event_clientY - (MENU_request.recentBoundingClientRectTop + paddingTop);
-    return Math.floor(relativeY / INTS[fAPP_lineHeight]);
+    return Math.floor(relativeY / f.INTS[f.fAPP_lineHeight]);
 }
 
 function MENU_addEvents() {
@@ -308,7 +308,7 @@ function MENU_render_do_Cursor() {
     const cursorElement = document.getElementById('MENU_cursor');
     if (!cursorElement || MENU_request === null) return;
     // The menu 'padding-top: 4px'
-    cursorElement.style.top = 4 + (INTS[fAPP_lineHeight] * MENU_request.index) + 'px';
+    cursorElement.style.top = 4 + (f.INTS[f.fAPP_lineHeight] * MENU_request.index) + 'px';
 }
 
 function MENU_state_do_Cursor(index) {
@@ -398,8 +398,8 @@ TODO:
     - [ ] can also make a factory function is needed but sometimes you only end up having the one allocation and no others.
 - [ ] Make sure you never absent mindedly modify the objects or you'll create hidden classes.
     - [ ] If it is the correct thing to do that's one thing but don't mindlessly create hidden classes.
-- [ ] Remove the obsolete INTS entries that widgetGlobal.js no longer is using.
-- [ ] Remove the obsolete INTS entries that menuGlobal.js no longer is using.
+- [ ] Remove the obsolete f.INTS entries that widgetGlobal.js no longer is using.
+- [ ] Remove the obsolete f.INTS entries that menuGlobal.js no longer is using.
 - [ ] If the initial state is '[]' in attempt to ...
     - [ ] if the array kind is reference entries
     - [ ] have them all share the initial version

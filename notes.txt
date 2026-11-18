@@ -1179,16 +1179,35 @@ Are your files in RendererFiles already using import/export statements, or are t
 
 
 
+>
+import './listTypes.js' to access 'Uint8Array' is not working
 
+<
+In ES6 modules, every file has its own isolated scope, so simply writing import './listTypes.js' will execute that file without bringing any of its variables,
+constants, or types into your current file. Even if listTypes.js defines something at the top level (or if you had a custom alias/helper there),
+native ES modules do not leak top-level declarations into other modules the way concatenated bundles do.
 
+(Note: Standard JavaScript Uint8Array is already a built-in global object in Electron/Chromium, so if you are referring to the native Uint8Array,
+ you don't need to import it at all. However, if listTypes.js defines custom constants, type enums, or wrapper classes related to Uint8Array,
+ here is how to share them across modules.)
 
+How to Share Variables & Types Between ES Modules
+- Export from listTypes.js: Add the export keyword in front of whatever variables, constants, functions, or classes you want other files to access.
+```js
+// inside listTypes.js
+export const MY_LIST_TYPE = 1;
+export class CustomBuffer { /* ... */ }
+```
 
+- Import by name in the consuming file: Replace the bare side-effect import (import './listTypes.js') with a named import inside curly braces.
+```js
+// inside the file that needs them
+import { MY_LIST_TYPE, CustomBuffer } from './listTypes.js';
+```
 
+• Why your old single-file bundle behaved differently: When your build step transpiled everything into one big file, top-level variables in listTypes.js ended up in the same module scope as the rest of your code. Now that each file is a separate native ES module, any shared symbol must be explicitly exported and imported (or explicitly attached to window if you want it truly global).
 
-
-
-
-
+Can you paste the contents of listTypes.js (or the line where you're trying to use it) so I can show you the exact export and import syntax to add?
 
 
 

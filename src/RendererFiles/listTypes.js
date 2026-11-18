@@ -1,4 +1,4 @@
-class UInt32List {
+export class UInt32List {
     data;
     capacity;
     count;

@@ -112,14 +112,14 @@ class TreeViewComponent_staticRunner {
 
 
 /** TODO: Does JavaScript have static classes, I don't want to go down a rabbit hole right now. */
-const treeViewComponent_staticRunner = new TreeViewComponent_staticRunner();
+export const treeViewComponent_staticRunner = new TreeViewComponent_staticRunner();
 
 /**
  * You could probably calculate the ringBuffer diff in the scroll event then pass that information to a non-TreeViewComponent defined function.
  * The consumer of the 'TreeViewComponent' would provide a function that knows how to draw everything?
  * The main thing to avoid is probably invoking "per line being drawn" some function that knows how to draw a line.
  */
-class TreeViewComponent {
+export class TreeViewComponent {
     /**
      * @param {number} initialCapacityAbstract 
      * @param {TreeViewComponent_staticRunner} treeViewComponent_staticRunner 
@@ -480,8 +480,8 @@ class TreeViewComponent {
         if (ringBufferIndexItem < 0) return;
 
         this.getElementAt(this.cursorIndex);
-        let depth = INTS[fTreeView_poolret_pooledNode_depth];
-        let nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+        let depth = f.INTS[fTreeView_poolret_pooledNode_depth];
+        let nodeKind = f.BYTES[byteTreeView_byteret_pooledNode_nodeKind];
         
         if (nodeKind === TreeViewNodeKind_isExpandable_isExpanded) {
             if (this.cursorIndex + 1 < this.countAbstract) {
@@ -506,8 +506,8 @@ class TreeViewComponent {
         if (ringBufferIndexItem < 0) return;
 
         this.getElementAt(this.cursorIndex);
-        let depth = INTS[fTreeView_poolret_pooledNode_depth];
-        let nodeKind = BYTES[byteTreeView_byteret_pooledNode_nodeKind];
+        let depth = f.INTS[fTreeView_poolret_pooledNode_depth];
+        let nodeKind = f.BYTES[byteTreeView_byteret_pooledNode_nodeKind];
         
         if (nodeKind === TreeViewNodeKind_isExpandable_isExpanded) {
             this.expandCollapseIconWasClicked(undefined /*divItem*/, this.cursorIndex, ringBufferIndexItem);
@@ -640,9 +640,9 @@ class TreeViewComponent {
      */
     getElementAt(index_abstract) {
         let index_literal = index_abstract * this.fieldCount;
-        BYTES[byteTreeView_byteret_pooledNode_nodeKind] = this.dataLiteral[index_literal + this.nodeKindOffset];
-        INTS[fTreeView_poolret_pooledNode_key] = this.dataLiteral[index_literal + this.keyOffset];
-        INTS[fTreeView_poolret_pooledNode_depth] = this.dataLiteral[index_literal + this.depthOffset];
+        f.BYTES[byteTreeView_byteret_pooledNode_nodeKind] = this.dataLiteral[index_literal + this.nodeKindOffset];
+        f.INTS[fTreeView_poolret_pooledNode_key] = this.dataLiteral[index_literal + this.keyOffset];
+        f.INTS[fTreeView_poolret_pooledNode_depth] = this.dataLiteral[index_literal + this.depthOffset];
     }
 
     getKey(index_abstract) {

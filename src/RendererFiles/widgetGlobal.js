@@ -40,34 +40,34 @@ let WIDGET_request = null;
 //WIDGET_element.addEventListener('focusout', () => WIDGET_hide());
 
 function WIDGET_render_request(renderKind) {
-    if (BYTES[byteWIDGET_queueHead] !== BYTES[byteWIDGET_queueTail]) {
-        const lastAbsoluteIndex = OFFSET_WIDGET + ((BYTES[byteWIDGET_queueTail] - 1) & UI_SLOT_MASK);
+    if (f.BYTES[byteWIDGET_queueHead] !== f.BYTES[byteWIDGET_queueTail]) {
+        const lastAbsoluteIndex = OFFSET_WIDGET + ((f.BYTES[byteWIDGET_queueTail] - 1) & UI_SLOT_MASK);
         if (MASTER_RENDER_BUFFER[lastAbsoluteIndex] === renderKind) {
             return;
         }
     }
 
-    const absoluteIndex = OFFSET_WIDGET + (BYTES[byteWIDGET_queueTail] & UI_SLOT_MASK);
+    const absoluteIndex = OFFSET_WIDGET + (f.BYTES[byteWIDGET_queueTail] & UI_SLOT_MASK);
     MASTER_RENDER_BUFFER[absoluteIndex] = renderKind;
-    if (renderKind === WIDGETrenderKind_Show) INTS[fWIDGETrenderKind_Show_countOfPendingRequests]++;
-    BYTES[byteWIDGET_queueTail]++;
+    if (renderKind === WIDGETrenderKind_Show) f.INTS[fWIDGETrenderKind_Show_countOfPendingRequests]++;
+    f.BYTES[byteWIDGET_queueTail]++;
     
-    if (BYTES[byteWIDGET_isRenderPending] === 0) {
-        BYTES[byteWIDGET_isRenderPending] = 1;
+    if (f.BYTES[byteWIDGET_isRenderPending] === 0) {
+        f.BYTES[byteWIDGET_isRenderPending] = 1;
         requestAnimationFrame(WIDGET_render_do);
     }
 }
 
 function WIDGET_render_do() {
-    while (BYTES[byteWIDGET_queueHead] !== BYTES[byteWIDGET_queueTail]) {
+    while (f.BYTES[byteWIDGET_queueHead] !== f.BYTES[byteWIDGET_queueTail]) {
         // Uses the exact same masking logic, but reads from the higher memory region
-        const absoluteIndex = OFFSET_WIDGET + (BYTES[byteWIDGET_queueHead] & UI_SLOT_MASK);
+        const absoluteIndex = OFFSET_WIDGET + (f.BYTES[byteWIDGET_queueHead] & UI_SLOT_MASK);
         const renderKind = MASTER_RENDER_BUFFER[absoluteIndex];
-        BYTES[byteWIDGET_queueHead]++; 
+        f.BYTES[byteWIDGET_queueHead]++; 
 
         switch (renderKind) {
             case WIDGETrenderKind_Show:
-                if (INTS[fWIDGETrenderKind_Show_countOfPendingRequests]-- > 1) break;
+                if (f.INTS[fWIDGETrenderKind_Show_countOfPendingRequests]-- > 1) break;
                 WIDGET_render_do_Show();
                 break;
             case WIDGETrenderKind_Hide:
@@ -75,13 +75,13 @@ function WIDGET_render_do() {
                 break;
         }
     }
-    BYTES[byteWIDGET_isRenderPending] = 0;
+    f.BYTES[byteWIDGET_isRenderPending] = 0;
 }
 
 function WIDGET_render_do_Show() {
 
     let WIDGET_element = document.getElementById('WIDGET');
-    if (BYTES[byteWIDGET_WidgetKind_drawn] !== WidgetKind_None) {
+    if (f.BYTES[byteWIDGET_WidgetKind_drawn] !== WidgetKind_None) {
         WIDGET_element = null;
         WIDGET_render_do_Hide();
     }
@@ -92,16 +92,16 @@ function WIDGET_render_do_Show() {
         document.body.appendChild(WIDGET_element);
     }
 
-    BYTES[byteWIDGET_WidgetKind_drawn] = WIDGET_request.widgetKind;
+    f.BYTES[byteWIDGET_WidgetKind_drawn] = WIDGET_request.widgetKind;
 
     if (!WIDGET_request.elementToFocusOnCompleted) {
         WIDGET_request.elementToFocusOnCompleted = document.activeElement;
     }
     
     // TODO: Move this to after the '..._Create()' invocations
-    INTS[fWIDGET_ticketId_drawn] = WIDGET_request.ticket;
+    f.INTS[fWIDGET_ticketId_drawn] = WIDGET_request.ticket;
 
-    switch (BYTES[byteWIDGET_WidgetKind_drawn]) {
+    switch (f.BYTES[byteWIDGET_WidgetKind_drawn]) {
         case WidgetKind_InputText:
             WidgetKind_InputText_Create();
             break;
@@ -165,7 +165,7 @@ async function WIDGET_show(widgetKind, left, top, placeholder, value, target, el
         elementToFocusOnCompleted: elementToFocusOnCompleted,
         disableFocusOnCompleted: disableFocusOnCompleted,
         callback: callback,
-        ticket: INTS[fWIDGET_ticketId_counter]++
+        ticket: f.INTS[fWIDGET_ticketId_counter]++
     };
 
     WIDGET_render_request(WIDGETrenderKind_Show);
@@ -174,7 +174,7 @@ async function WIDGET_show(widgetKind, left, top, placeholder, value, target, el
 function WIDGET_render_do_Hide() {
     const WIDGET_element = document.getElementById('WIDGET');
 
-    switch (BYTES[byteWIDGET_WidgetKind_drawn]) {
+    switch (f.BYTES[byteWIDGET_WidgetKind_drawn]) {
         case WidgetKind_InputText:
             WidgetKind_InputText_Delete(WIDGET_element);
             break;
@@ -182,8 +182,8 @@ function WIDGET_render_do_Hide() {
             WidgetKind_YesCancel_Delete(WIDGET_element);
             break;
     }
-    BYTES[byteWIDGET_WidgetKind_drawn] = WidgetKind_None;
-    INTS[fWIDGET_ticketId_drawn] = 0;
+    f.BYTES[byteWIDGET_WidgetKind_drawn] = WidgetKind_None;
+    f.INTS[fWIDGET_ticketId_drawn] = 0;
     WIDGET_element.remove();
 }
 
@@ -207,7 +207,7 @@ function WIDGET_hide() {
  * 
  * This function is used for the UI event handlers.
  * Any internal "completion" due to for example invoking 'hide' when a UI" is being shown skips this function.
- * If anyone desires to in the future change this such that the internal "completion" uses this function, take care because 'INTS[fWIDGET_ticketId_pending] === INTS[fWIDGET_ticketId_drawn]'
+ * If anyone desires to in the future change this such that the internal "completion" uses this function, take care because 'f.INTS[fWIDGET_ticketId_pending] === f.INTS[fWIDGET_ticketId_drawn]'
  * isn't quite as sensible when dealing with internal "completion" that needs to cancel the previous UI.
  * 
  * @param {*} changingFocusIsReasonable A blur event should not change focus.
@@ -222,7 +222,7 @@ function WIDGET_completeForm(forceIsCancelled, changingFocusIsReasonable, result
         local_request.elementToFocusOnCompleted.focus();
     }
     if (local_request.callback) {
-        if (!forceIsCancelled && local_request.ticket !== INTS[fWIDGET_ticketId_drawn]) {
+        if (!forceIsCancelled && local_request.ticket !== f.INTS[fWIDGET_ticketId_drawn]) {
             forceIsCancelled = true;
         }
         if (resultData === null) {

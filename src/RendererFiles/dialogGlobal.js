@@ -11,7 +11,7 @@ const DIALOGrenderKind_Show = 1;
 const DIALOGrenderKind_Hide = 2;
 const DIALOGrenderKind_DimensionsChanged = 3;
 
-// No onComplete because all of that logic goes in the respective case of 'switch (BYTES[byteDIALOG_currentDialogKind])'/'switch (DIALOG_request.dialogKind)'.
+// No onComplete because all of that logic goes in the respective case of 'switch (f.BYTES[byteDIALOG_currentDialogKind])'/'switch (DIALOG_request.dialogKind)'.
 
 /**
  * @callback DIALOG_onResizeAction when the dialog is repositioned, the bounding client rect data of the component being displayed within it needs to be invalidated. This is the API to do that.
@@ -43,29 +43,29 @@ const DIALOGrenderKind_DimensionsChanged = 3;
 let DIALOG_request = null;
 
 function DIALOG_render_request(renderKind) {
-    if (BYTES[byteDIALOG_queueHead] !== BYTES[byteDIALOG_queueTail]) {
-        const lastAbsoluteIndex = OFFSET_DIALOG + ((BYTES[byteDIALOG_queueTail] - 1) & UI_SLOT_MASK);
+    if (f.BYTES[byteDIALOG_queueHead] !== f.BYTES[byteDIALOG_queueTail]) {
+        const lastAbsoluteIndex = OFFSET_DIALOG + ((f.BYTES[byteDIALOG_queueTail] - 1) & UI_SLOT_MASK);
         if (MASTER_RENDER_BUFFER[lastAbsoluteIndex] === renderKind) {
             return;
         }
     }
 
-    const absoluteIndex = OFFSET_DIALOG + (BYTES[byteDIALOG_queueTail] & UI_SLOT_MASK);
+    const absoluteIndex = OFFSET_DIALOG + (f.BYTES[byteDIALOG_queueTail] & UI_SLOT_MASK);
     MASTER_RENDER_BUFFER[absoluteIndex] = renderKind;
-    BYTES[byteDIALOG_queueTail]++;
+    f.BYTES[byteDIALOG_queueTail]++;
     
-    if (BYTES[byteDIALOG_isRenderPending] === 0) {
-        BYTES[byteDIALOG_isRenderPending] = 1;
+    if (f.BYTES[byteDIALOG_isRenderPending] === 0) {
+        f.BYTES[byteDIALOG_isRenderPending] = 1;
         requestAnimationFrame(DIALOG_render_do);
     }
 }
 
 function DIALOG_render_do() {
-    while (BYTES[byteDIALOG_queueHead] !== BYTES[byteDIALOG_queueTail]) {
+    while (f.BYTES[byteDIALOG_queueHead] !== f.BYTES[byteDIALOG_queueTail]) {
         // 1. Wrap the virtual pointer to 0-31, then add the base offset
-        const absoluteIndex = OFFSET_DIALOG + (BYTES[byteDIALOG_queueHead] & UI_SLOT_MASK);
+        const absoluteIndex = OFFSET_DIALOG + (f.BYTES[byteDIALOG_queueHead] & UI_SLOT_MASK);
         const renderKind = MASTER_RENDER_BUFFER[absoluteIndex];
-        BYTES[byteDIALOG_queueHead]++; 
+        f.BYTES[byteDIALOG_queueHead]++; 
 
         switch (renderKind) {
             case DIALOGrenderKind_Show:
@@ -79,7 +79,7 @@ function DIALOG_render_do() {
                 break;
         }
     }
-    BYTES[byteDIALOG_isRenderPending] = 0;
+    f.BYTES[byteDIALOG_isRenderPending] = 0;
 }
 
 function DIALOG_render_do_DimensionsChanged() {
@@ -106,7 +106,7 @@ function DIALOG_render_do_DimensionsChanged() {
 }
 
 function DIALOG_render_do_Show() {
-    if (BYTES[byteDIALOG_currentDialogKind] !== DialogKind_None) {
+    if (f.BYTES[byteDIALOG_currentDialogKind] !== DialogKind_None) {
         DIALOG_render_do_Hide();
     }
 
@@ -138,7 +138,7 @@ function DIALOG_render_do_Show() {
             break;
     }
 
-    BYTES[byteDIALOG_currentDialogKind] = DIALOG_request.dialogKind;
+    f.BYTES[byteDIALOG_currentDialogKind] = DIALOG_request.dialogKind;
 }
 
 function DIALOG_show(dialogKind, onResizeAction, elementToFocusOnDialogHideInitiated) {
@@ -175,7 +175,7 @@ function DIALOG_render_do_Hide() {
     const DIALOG_element = document.getElementById('DIALOG');
     if (!DIALOG_element) return;
 
-    switch (BYTES[byteDIALOG_currentDialogKind]) {
+    switch (f.BYTES[byteDIALOG_currentDialogKind]) {
         case DialogKind_FindAll:
             DIALOG_FindAll_Delete();
             break;
@@ -193,7 +193,7 @@ function DIALOG_render_do_Hide() {
     DIALOG_deleteWindow();
 
     DIALOG_element.remove();
-    BYTES[byteDIALOG_currentDialogKind] = DialogKind_None;
+    f.BYTES[byteDIALOG_currentDialogKind] = DialogKind_None;
 }
 
 /**
@@ -257,7 +257,7 @@ function DIALOG_resize_onmousedown(event) {
     DIALOG_request.top = dialogBoundingClientRect.top;
     DIALOG_request.width = dialogBoundingClientRect.width;
     DIALOG_request.height = dialogBoundingClientRect.height;
-    BYTES[byteDIALOG_hasBeenMeasured] = 1;
+    f.BYTES[byteDIALOG_hasBeenMeasured] = 1;
 
     document.body.classList.add('unselectable');
     window.addEventListener('mousemove', DIALOG_resize_body_onmousemove, /*useCapture*/ true);
@@ -503,7 +503,7 @@ function DIALOG_window_onresize() {
     const DIALOG_element = document.getElementById('DIALOG');
     if (!DIALOG_element) return;
 
-    if (!BYTES[byteDIALOG_hasBeenMeasured]) return;
+    if (!f.BYTES[byteDIALOG_hasBeenMeasured]) return;
 
     // Max width and min width depend on the left/top so they need to come first.
     if (DIALOG_request.left <= CONST_DIALOG_minLeft) {
@@ -664,7 +664,7 @@ function DIALOG_toolbar_onmousedown(event) {
     DIALOG_request.top = dialogBoundingClientRect.top;
     DIALOG_request.width = dialogBoundingClientRect.width;
     DIALOG_request.height = dialogBoundingClientRect.height;
-    BYTES[byteDIALOG_hasBeenMeasured] = 1;
+    f.BYTES[byteDIALOG_hasBeenMeasured] = 1;
 
     document.body.classList.add('unselectable');
     window.addEventListener('mousemove', DIALOG_toolbar_body_onmousemove, /*useCapture*/ true);
@@ -679,12 +679,12 @@ function DIALOG_createWindow() {
     if (!DIALOG_element) return;
 
     // TODO: Might want to check if the HTML element exists instead.
-    if (BYTES[byteDIALOG_windowExists]) return;
-    BYTES[byteDIALOG_windowExists] = 1;
+    if (f.BYTES[byteDIALOG_windowExists]) return;
+    f.BYTES[byteDIALOG_windowExists] = 1;
 
     let toolbar = document.createElement('div');
     toolbar.id = 'DIALOG_toolbar';
-    let toolbarHeightStringWithPx = `${2 * INTS[fEDI_lineHeight]}px`;
+    let toolbarHeightStringWithPx = `${2 * f.INTS[f.fEDI_lineHeight]}px`;
     toolbar.style.height = toolbarHeightStringWithPx;
     toolbar.style.lineHeight = toolbarHeightStringWithPx;
 
@@ -709,7 +709,7 @@ function DIALOG_createWindow() {
     DIALOG_element.appendChild(body);
 
     // TODO: You have to actually make sure the text fits
-    toolbar.textContent = BYTES[byteDIALOG_currentDialogKind];
+    toolbar.textContent = f.BYTES[byteDIALOG_currentDialogKind];
 
     let closeButton = document.createElement('button');
     closeButton.textContent = 'x';
@@ -731,10 +731,10 @@ function DIALOG_deleteWindow() {
     if (!DIALOG_element) return;
 
     // TODO: Might want to check if the HTML element exists instead.
-    if (!BYTES[byteDIALOG_windowExists]) return;
+    if (!f.BYTES[byteDIALOG_windowExists]) return;
     // TODO: Perhaps move these respective sets to the end of their functions.
     // This way them being set as a certain value reflects that the entirety of their respective code had been ran but then again... idk
-    BYTES[byteDIALOG_windowExists] = 0;
+    f.BYTES[byteDIALOG_windowExists] = 0;
 
     DIALOG_request.left = 0;
     DIALOG_request.top = 0;
