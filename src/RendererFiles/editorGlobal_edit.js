@@ -1,4 +1,3 @@
-import "./fieldBuffer.js"
 import {TrackingUint32MaxHeap} from './editorMaxHeap.js'
 import {UInt32List} from './listTypes.js'
 import * as f from './fieldBuffer.js'
