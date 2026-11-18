@@ -601,7 +601,7 @@ let EDI_trackingUint32MaxHeap = new TrackingUint32MaxHeap();
  */
 let EDI_findOverlay_searchResultPositionList = null;
 
-export let EDI_textByteList_bytes = new Uint8Array(f.INTS[f.EDI_textByteList_capacity]);
+export let EDI_textByteList_bytes = new Uint8Array(f.EDI_textByteList_capacity);
 
 export let EDI_lineStringCache = [];
 export function set_EDI_lineStringCache(value) {
@@ -626,7 +626,7 @@ const EDI_cursor_textInsertionBuffer = new Uint8Array(f.CONST_EDI_cursor_GAP_BUF
  */
 let EDI_on_tab_bytes = new Uint8Array(1);
 EDI_on_tab_bytes[0] = CONST_EDI_ASCII_TAB;
-f.INTS[f.fEDI_ontab_visualWidth_perCharacter] = 4;
+f.fEDI_ontab_visualWidth_perCharacter = 4;
 
 /**
  * When a cursor removes a line end the position of the line end is stored in this list until the edit is finalized.
@@ -637,7 +637,7 @@ const EDI_lineEndPositionList_PENDING = new UInt32List(128);
 
 
 /** Be wary to the possibility of pending edits causing this to not be up to date. */
-export let EDI_lineEndPositionList_data = new Uint32Array(f.INTS[f.fEDI_lineEndPositionList_capacity]);
+export let EDI_lineEndPositionList_data = new Uint32Array(f.fEDI_lineEndPositionList_capacity);
 
 let EDI_textSourceIdentifier = '';
 let EDI_FORMATTED_textSourceIdentifier = '';
@@ -1093,7 +1093,7 @@ export const EDI_decoder_CUSTOM = new EDI_CustomDecoder();
 /** invoked from requestAnimationFrame */
 export function EDI_init() {
 
-    f.INTS[f.EDI_gutterWidthTotal] = 60;
+    f.EDI_gutterWidthTotal = 60;
 
     EDI_state_setText_byteArray(new Uint8Array(16), /*textByteLength*/ 0, /*fileStartsWithBom*/ false, /*textSourceIdentifier*/ null, /*FORMATTED_textSourceIdentifier*/ null, /*extensionKind*/ 0, /*lineEndString*/ '\n', /*lineEndCount*/ 0);
     EDI_registerHandlers();
@@ -1120,13 +1120,13 @@ function EDI_state_clear(trackingUint32MaxHeap_initialCapacity) {
     EDI_lineEndString = null;
     // TODO: Maybe re-use the 'TrackingUint32MaxHeap' rather than making a new one everytime
     EDI_trackingUint32MaxHeap = new TrackingUint32MaxHeap(trackingUint32MaxHeap_initialCapacity);
-    f.INTS[f.fEDI_lineEndPositionList_count] = 0;
-    f.INTS[f.EDI_textByteList_count] = 0;
-    f.INTS[f.fEDI_longestLine_indexLine] = 0;
-    f.INTS[f.fEDI_longestLine_length] = 0;
+    f.fEDI_lineEndPositionList_count = 0;
+    f.EDI_textByteList_count = 0;
+    f.fEDI_longestLine_indexLine = 0;
+    f.fEDI_longestLine_length = 0;
 
     // TODO: This placement is slightly odd because the styleBuffer is made asynchronously and whether there could be a race condition that clears the styleBuffer you just received is uncertain (I just have not checked recently maybe I did when I first wrote it, it just looks odd though, need to check this).
-    f.INTS[f.fEDI_styleBuffer_count] = 0;
+    f.fEDI_styleBuffer_count = 0;
 
     //EDI_lineStringCache = new Array(trackingUint32MaxHeap_initialCapacity);
 }
@@ -1164,10 +1164,10 @@ export function EDI_state_setText_byteArray(paddedUint8Array, textByteLength, fi
     }
 
     EDI_textByteList_bytes = paddedUint8Array;
-    f.INTS[f.EDI_textByteList_capacity] = paddedUint8Array.length;
+    f.EDI_textByteList_capacity = paddedUint8Array.length;
     const local_EDI_textByteList_bytes = EDI_textByteList_bytes;
-    f.INTS[f.EDI_textByteList_count] = textByteLength;
-    const local_EDI_textByteList_count = f.INTS[f.EDI_textByteList_count];
+    f.EDI_textByteList_count = textByteLength;
+    const local_EDI_textByteList_count = f.EDI_textByteList_count;
 
 
     EDI_lineEndPositionList_ensureCapacityForInsertion(0, necessaryCapacity);
@@ -1178,7 +1178,7 @@ export function EDI_state_setText_byteArray(paddedUint8Array, textByteLength, fi
     const local_EDI_trackingUint32MaxHeap_lineIndexToHeapIndex = local_EDI_trackingUint32MaxHeap.lineIndexToHeapIndex;
 
     let lineLengthVisual = 0; /** TODO: Track the linePosition last seen when making a line or something you don't have to increment this per character, you just need the difference of the last line drawn to the current or something. */
-    let local_EDI_lineEndPositionList_count = f.INTS[f.fEDI_lineEndPositionList_count];
+    let local_EDI_lineEndPositionList_count = f.fEDI_lineEndPositionList_count;
 
     for (let sourceI = 0; sourceI < local_EDI_textByteList_count; ++sourceI) {
         ++lineLengthVisual; // avoid branching by eager counting the lineLengthVisual and then excluding the lineEnding later
@@ -1207,12 +1207,12 @@ export function EDI_state_setText_byteArray(paddedUint8Array, textByteLength, fi
     local_EDI_trackingUint32MaxHeap_lineIndexToHeapIndex[local_EDI_lineEndPositionList_count] = local_EDI_lineEndPositionList_count;
 
     ++local_EDI_lineEndPositionList_count;
-    f.INTS[f.fEDI_lineEndPositionList_count] = local_EDI_lineEndPositionList_count;
+    f.fEDI_lineEndPositionList_count = local_EDI_lineEndPositionList_count;
 
     local_EDI_trackingUint32MaxHeap.heapify(local_EDI_lineEndPositionList_count);
     local_EDI_trackingUint32MaxHeap.tryPooledPeek();
-    f.INTS[f.fEDI_longestLine_indexLine] = local_EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
-    f.INTS[f.fEDI_longestLine_length] = local_EDI_trackingUint32MaxHeap.unpack_pool_length;
+    f.fEDI_longestLine_indexLine = local_EDI_trackingUint32MaxHeap.unpack_pool_lineIndex;
+    f.fEDI_longestLine_length = local_EDI_trackingUint32MaxHeap.unpack_pool_length;
 
     // TODO: Timing of 'EDI_render_do_SetText'...
     // ...probably what you can do is invoke the inner render requests directly...
@@ -1254,32 +1254,32 @@ function countNewlines(sourceString) {
 function EDI_indentMore() {
     let SMALL_pos;
     let LARGE_pos;
-    if (f.INTS[f.fEDI_cursor_selectionAnchor] < f.INTS[f.fEDI_cursor_selectionEnd]) {
-        SMALL_pos = f.INTS[f.fEDI_cursor_selectionAnchor];
-        LARGE_pos = f.INTS[f.fEDI_cursor_selectionEnd];
+    if (f.fEDI_cursor_selectionAnchor < f.fEDI_cursor_selectionEnd) {
+        SMALL_pos = f.fEDI_cursor_selectionAnchor;
+        LARGE_pos = f.fEDI_cursor_selectionEnd;
     }
     else {
-        SMALL_pos = f.INTS[f.fEDI_cursor_selectionEnd];
-        LARGE_pos = f.INTS[f.fEDI_cursor_selectionAnchor];
+        SMALL_pos = f.fEDI_cursor_selectionEnd;
+        LARGE_pos = f.fEDI_cursor_selectionAnchor;
     }
 
     EDI_ret_getLineAndColumnIndices_raw(SMALL_pos);
-    let SMALL_lineAndColumnIndices_indexLine = f.INTS[f.fEDI_ret_getLineAndColumnIndices_indexLine];
+    let SMALL_lineAndColumnIndices_indexLine = f.fEDI_ret_getLineAndColumnIndices_indexLine;
 
     EDI_ret_getLineAndColumnIndices_raw(LARGE_pos);
-    let LARGE_lineAndColumnIndices_indexLine = f.INTS[f.fEDI_ret_getLineAndColumnIndices_indexLine];
+    let LARGE_lineAndColumnIndices_indexLine = f.fEDI_ret_getLineAndColumnIndices_indexLine;
 
     // start at the LARGE position
     let startingIndex = LARGE_lineAndColumnIndices_indexLine;
     EDI_ret_getLineBoundaryPositions_raw(startingIndex);
-    let startingLinePos_start = f.INTS[f.fEDI_ret_getLineBoundaryPositions_start];
-    let startingLinePos_end = f.INTS[f.fEDI_ret_getLineBoundaryPositions_end];
+    let startingLinePos_start = f.fEDI_ret_getLineBoundaryPositions_start;
+    let startingLinePos_end = f.fEDI_ret_getLineBoundaryPositions_end;
     if (startingLinePos_start === LARGE_pos) {
         startingIndex -= 1;
         if (startingIndex >= 0) {
             EDI_ret_getLineBoundaryPositions_raw(startingIndex);
-            startingLinePos_start = f.INTS[f.fEDI_ret_getLineBoundaryPositions_start]; // TODO: This updated start value isn't actually used. Keep it for symmetry with 'startingLinePos_end'?
-            startingLinePos_end = f.INTS[f.fEDI_ret_getLineBoundaryPositions_end]; // TODO: Well actually this end value is used but you could move the if statement for 'f.INTS[f.fEDI_cursor_editLength_characters] === 0' and just immediately set 'f.INTS[f.fEDI_editret_indentLess_startingLinePos_end]' here...
+            startingLinePos_start = f.fEDI_ret_getLineBoundaryPositions_start; // TODO: This updated start value isn't actually used. Keep it for symmetry with 'startingLinePos_end'?
+            startingLinePos_end = f.fEDI_ret_getLineBoundaryPositions_end; // TODO: Well actually this end value is used but you could move the if statement for 'f.INTS[f.fEDI_cursor_editLength_characters] === 0' and just immediately set 'f.INTS[f.fEDI_editret_indentLess_startingLinePos_end]' here...
             // ...This would avoid the symmetry issue because you updated a different value than the "end" so both values are still outdated rather than just 1.
         }
     }
@@ -1287,18 +1287,18 @@ function EDI_indentMore() {
         return;
     }
 
-    f.INTS[f.fEDI_indent_SMALL_lineAndColumnIndices_indexLine] = SMALL_lineAndColumnIndices_indexLine;
-    f.INTS[f.fEDI_indent_startingIndex] = startingIndex;
+    f.fEDI_indent_SMALL_lineAndColumnIndices_indexLine = SMALL_lineAndColumnIndices_indexLine;
+    f.fEDI_indent_startingIndex = startingIndex;
 
-    if (f.INTS[f.fEDI_cursor_edit_eventCount_occurred] === 0) {
-        f.INTS[f.fEDI_editret_indentLess_startingLinePos_end] = startingLinePos_end;
+    if (f.fEDI_cursor_edit_eventCount_occurred === 0) {
+        f.fEDI_editret_indentLess_startingLinePos_end = startingLinePos_end;
     }
 
     // # Update the cursor's indexColumn to reflect the inserted text
-    f.INTS[f.fEDI_cursor_indexColumn] += EDI_on_tab_bytes.length;
-    f.INTS[f.fEDI_cursorVisualColumnIndex] += EDI_on_tab_bytes.length;
+    f.fEDI_cursor_indexColumn += EDI_on_tab_bytes.length;
+    f.fEDI_cursorVisualColumnIndex += EDI_on_tab_bytes.length;
 
-    f.INTS[f.fEDI_cursor_edit_eventCount_occurred]++;
+    f.fEDI_cursor_edit_eventCount_occurred++;
     EDI_render_request(f.RenderKind_IndentMore);
 }
 
@@ -1306,32 +1306,32 @@ function EDI_indentLess() {
     // selection positions
     let SMALL_pos;
     let LARGE_pos;
-    if (f.INTS[f.fEDI_cursor_selectionAnchor] < f.INTS[f.fEDI_cursor_selectionEnd]) {
-        SMALL_pos = f.INTS[f.fEDI_cursor_selectionAnchor];
-        LARGE_pos = f.INTS[f.fEDI_cursor_selectionEnd];
+    if (f.fEDI_cursor_selectionAnchor < f.fEDI_cursor_selectionEnd) {
+        SMALL_pos = f.fEDI_cursor_selectionAnchor;
+        LARGE_pos = f.fEDI_cursor_selectionEnd;
     }
     else {
-        SMALL_pos = f.INTS[f.fEDI_cursor_selectionEnd];
-        LARGE_pos = f.INTS[f.fEDI_cursor_selectionAnchor];
+        SMALL_pos = f.fEDI_cursor_selectionEnd;
+        LARGE_pos = f.fEDI_cursor_selectionAnchor;
     }
 
     EDI_ret_getLineAndColumnIndices_raw(SMALL_pos);
-    let SMALL_lineAndColumnIndices_indexLine = f.INTS[f.fEDI_ret_getLineAndColumnIndices_indexLine];
+    let SMALL_lineAndColumnIndices_indexLine = f.fEDI_ret_getLineAndColumnIndices_indexLine;
 
     EDI_ret_getLineAndColumnIndices_raw(LARGE_pos);
-    let LARGE_lineAndColumnIndices_indexLine = f.INTS[f.fEDI_ret_getLineAndColumnIndices_indexLine];
+    let LARGE_lineAndColumnIndices_indexLine = f.fEDI_ret_getLineAndColumnIndices_indexLine;
 
     // starting index
     let startingIndex = LARGE_lineAndColumnIndices_indexLine;
     EDI_ret_getLineBoundaryPositions_raw(startingIndex);
-    let startingLinePos_start = f.INTS[f.fEDI_ret_getLineBoundaryPositions_start];
-    let startingLinePos_end = f.INTS[f.fEDI_ret_getLineBoundaryPositions_end];
+    let startingLinePos_start = f.fEDI_ret_getLineBoundaryPositions_start;
+    let startingLinePos_end = f.fEDI_ret_getLineBoundaryPositions_end;
     if (startingLinePos_start === LARGE_pos) {
         startingIndex -= 1;
         if (startingIndex >= 0) {
             EDI_ret_getLineBoundaryPositions_raw(startingIndex);
-            startingLinePos_start = f.INTS[f.fEDI_ret_getLineBoundaryPositions_start]; // TODO: This updated start value isn't actually used. Keep it for symmetry with 'startingLinePos_end'?
-            startingLinePos_end = f.INTS[f.fEDI_ret_getLineBoundaryPositions_end]; // TODO: Well actually this end value is used but you could move the if statement for 'f.INTS[f.fEDI_cursor_editLength_characters] === 0' and just immediately set 'f.INTS[f.fEDI_editret_indentLess_startingLinePos_end]' here...
+            startingLinePos_start = f.fEDI_ret_getLineBoundaryPositions_start; // TODO: This updated start value isn't actually used. Keep it for symmetry with 'startingLinePos_end'?
+            startingLinePos_end = f.fEDI_ret_getLineBoundaryPositions_end; // TODO: Well actually this end value is used but you could move the if statement for 'f.fEDI_cursor_editLength_characters === 0' and just immediately set 'f.fEDI_editret_indentLess_startingLinePos_end' here...
             // ...This would avoid the symmetry issue because you updated a different value than the "end" so both values are still outdated rather than just 1.
         }
     }
@@ -1339,24 +1339,24 @@ function EDI_indentLess() {
         return;
     }
 
-    f.INTS[f.fEDI_indent_SMALL_lineAndColumnIndices_indexLine] = SMALL_lineAndColumnIndices_indexLine;
-    f.INTS[f.fEDI_indent_startingIndex] = startingIndex;
+    f.fEDI_indent_SMALL_lineAndColumnIndices_indexLine = SMALL_lineAndColumnIndices_indexLine;
+    f.fEDI_indent_startingIndex = startingIndex;
 
-    if (f.INTS[f.fEDI_cursor_edit_eventCount_occurred] === 0) {
-        f.INTS[f.fEDI_editret_indentLess_startingLinePos_end] = startingLinePos_end;
+    if (f.fEDI_cursor_edit_eventCount_occurred === 0) {
+        f.fEDI_editret_indentLess_startingLinePos_end = startingLinePos_end;
     }
 
     // TODO: Some kind of "fake" selection somehow because you really only need to modify the top-left most selection and the bottom-right most selection.
     // Then when you perhaps hit 'ctrl + c' to copy. You'd need to finalize the edit then and there so you copy the text correctly.
     //
-    //if (f.INTS[f.fEDI_cursor_selectionAnchor] < f.INTS[f.fEDI_cursor_selectionEnd]) {
-    //    f.INTS[f.fEDI_cursor_selectionEnd] -= ORIGINAL_decrementBy;
+    //if (f.fEDI_cursor_selectionAnchor < f.fEDI_cursor_selectionEnd) {
+    //    f.fEDI_cursor_selectionEnd -= ORIGINAL_decrementBy;
     //}
     //else {
-    //    f.INTS[f.fEDI_cursor_selectionAnchor] -= ORIGINAL_decrementBy;
+    //    f.fEDI_cursor_selectionAnchor -= ORIGINAL_decrementBy;
     //}
 
-    f.INTS[f.fEDI_cursor_edit_eventCount_occurred]++;
+    f.fEDI_cursor_edit_eventCount_occurred++;
     EDI_render_request(f.RenderKind_IndentLess);
 }
 
@@ -1365,10 +1365,10 @@ function EDI_indentLess() {
  */
 async function EDI_copySelection() {
     if (!EDI_cursor_hasSelection()) {
-        EDI_onMouseDownDetailRankThree(0, false, f.INTS[f.fEDI_cursor_indexLine], f.INTS[f.fEDI_cursor_indexColumn]);
+        EDI_onMouseDownDetailRankThree(0, false, f.fEDI_cursor_indexLine, f.fEDI_cursor_indexColumn);
     }
-    let selectionAnchor = f.INTS[f.fEDI_cursor_selectionAnchor];
-    let selectionEnd = f.INTS[f.fEDI_cursor_selectionEnd];
+    let selectionAnchor = f.fEDI_cursor_selectionAnchor;
+    let selectionEnd = f.fEDI_cursor_selectionEnd;
     let small;
     let large;
     if (selectionAnchor < selectionEnd) {
@@ -1388,11 +1388,11 @@ async function EDI_copySelection() {
  */
 async function EDI_duplicateSelection() {
     if (!EDI_cursor_hasSelection()) {
-        EDI_onMouseDownDetailRankThree(0, false, f.INTS[f.fEDI_cursor_indexLine], f.INTS[f.fEDI_cursor_indexColumn]);
+        EDI_onMouseDownDetailRankThree(0, false, f.fEDI_cursor_indexLine, f.fEDI_cursor_indexColumn);
     }
 
-    let selectionAnchor = f.INTS[f.fEDI_cursor_selectionAnchor];
-    let selectionEnd = f.INTS[f.fEDI_cursor_selectionEnd];
+    let selectionAnchor = f.fEDI_cursor_selectionAnchor;
+    let selectionEnd = f.fEDI_cursor_selectionEnd;
     let small;
     let large;
     if (selectionAnchor < selectionEnd) {
@@ -1406,26 +1406,26 @@ async function EDI_duplicateSelection() {
 
     let length = large - small;
 
-    f.INTS[f.fEDI_cursor_editPosition] = large;
+    f.fEDI_cursor_editPosition = large;
     EDI_ret_getLineAndColumnIndices_raw(large);
-    let large_lineAndColumnIndices_indexLine = f.INTS[f.fEDI_ret_getLineAndColumnIndices_indexLine];
-    let large_lineAndColumnIndices_indexColumn = f.INTS[f.fEDI_ret_getLineAndColumnIndices_indexColumn];
-    f.INTS[f.fEDI_cursor_editIndexLine] = large_lineAndColumnIndices_indexLine;
-    f.INTS[f.fEDI_cursor_editIndexColumn] = large_lineAndColumnIndices_indexColumn;
-    f.INTS[f.fEDI_cursor_editLength_characters] = length;
-    f.INTS[f.fEDI_cursor_edit_eventCount_occurred]++;
+    let large_lineAndColumnIndices_indexLine = f.fEDI_ret_getLineAndColumnIndices_indexLine;
+    let large_lineAndColumnIndices_indexColumn = f.fEDI_ret_getLineAndColumnIndices_indexColumn;
+    f.fEDI_cursor_editIndexLine = large_lineAndColumnIndices_indexLine;
+    f.fEDI_cursor_editIndexColumn = large_lineAndColumnIndices_indexColumn;
+    f.fEDI_cursor_editLength_characters = length;
+    f.fEDI_cursor_edit_eventCount_occurred++;
 
-    f.INTS[f.fEDI_cursor_indexLine] = large_lineAndColumnIndices_indexLine;
-    f.INTS[f.fEDI_cursor_indexColumn] = large_lineAndColumnIndices_indexColumn;
-    f.INTS[f.fEDI_cursorVisualColumnIndex] = large_lineAndColumnIndices_indexColumn;
+    f.fEDI_cursor_indexLine = large_lineAndColumnIndices_indexLine;
+    f.fEDI_cursor_indexColumn = large_lineAndColumnIndices_indexColumn;
+    f.fEDI_cursorVisualColumnIndex = large_lineAndColumnIndices_indexColumn;
 
-    f.INTS[f.fEDI_editret_cursor_EDI_duplicate_small] = small;
-    f.INTS[f.fEDI_editret_cursor_EDI_duplicate_length] = length;
+    f.fEDI_editret_cursor_EDI_duplicate_small = small;
+    f.fEDI_editret_cursor_EDI_duplicate_length = length;
 
-    f.INTS[f.fEDI_cursor_selectionAnchor] = large;
-    f.INTS[f.fEDI_cursor_selectionIndexAnchorColumnVISUAL] = f.INTS[f.fEDI_cursorVisualColumnIndex];
-    f.INTS[f.fEDI_cursor_selectionEnd] = large + length;
-    f.INTS[f.fEDI_cursor_selectionIndexEndColumnVISUAL] = f.INTS[f.fEDI_cursorVisualColumnIndex];
+    f.fEDI_cursor_selectionAnchor = large;
+    f.fEDI_cursor_selectionIndexAnchorColumnVISUAL = f.fEDI_cursorVisualColumnIndex;
+    f.fEDI_cursor_selectionEnd = large + length;
+    f.fEDI_cursor_selectionIndexEndColumnVISUAL = f.fEDI_cursorVisualColumnIndex;
 
     EDI_read_duplication();
 
