@@ -1,18 +1,20 @@
-const CommandKind_None = 0;
-const CommandKind_Submenu = 1;
-const CommandKind_Copy = 2;
-const CommandKind_CopyAbsolutePath = 3;
-const CommandKind_Cut = 4;
-const CommandKind_Paste = 5;
-const CommandKind_NewFile_Directory = 6;
-const CommandKind_NewFile_File = 7;
-const CommandKind_DeleteFile_Directory = 8;
-const CommandKind_DeleteFile_File = 9;
-const CommandKind_RenameFile_Directory = 10;
-const CommandKind_RenameFile_File = 11;
-const CommandKind_Find = 12;
-const CommandKind_SelectFolder = 13;
-const CommandKind_SelectWorkspace = 14;
+import * as f from './fieldBuffer.js'
+
+export const CommandKind_None = 0;
+export const CommandKind_Submenu = 1;
+export const CommandKind_Copy = 2;
+export const CommandKind_CopyAbsolutePath = 3;
+export const CommandKind_Cut = 4;
+export const CommandKind_Paste = 5;
+export const CommandKind_NewFile_Directory = 6;
+export const CommandKind_NewFile_File = 7;
+export const CommandKind_DeleteFile_Directory = 8;
+export const CommandKind_DeleteFile_File = 9;
+export const CommandKind_RenameFile_Directory = 10;
+export const CommandKind_RenameFile_File = 11;
+export const CommandKind_Find = 12;
+export const CommandKind_SelectFolder = 13;
+export const CommandKind_SelectWorkspace = 14;
 
 const MENUrenderKind_None = 0;
 const MENUrenderKind_Cursor = 1;
@@ -52,37 +54,37 @@ const MENUrenderKind_Hide = 3;
 let MENU_request = null;
 
 function MENU_render_request(renderKind) {
-    if (f.BYTES[byteMENU_queueHead] !== f.BYTES[byteMENU_queueTail]) {
-        const lastAbsoluteIndex = OFFSET_MENU + ((f.BYTES[byteMENU_queueTail] - 1) & UI_SLOT_MASK);
-        if (MASTER_RENDER_BUFFER[lastAbsoluteIndex] === renderKind) {
+    if (f.BYTES[f.byteMENU_queueHead] !== f.BYTES[f.byteMENU_queueTail]) {
+        const lastAbsoluteIndex = f.OFFSET_MENU + ((f.BYTES[f.byteMENU_queueTail] - 1) & UI_SLOT_MASK);
+        if (f.MASTER_RENDER_BUFFER[lastAbsoluteIndex] === renderKind) {
             return;
         }
     }
 
-    const absoluteIndex = OFFSET_MENU + (f.BYTES[byteMENU_queueTail] & UI_SLOT_MASK);
-    MASTER_RENDER_BUFFER[absoluteIndex] = renderKind;
-    if (renderKind === MENUrenderKind_Set) f.INTS[fMENU_renderKind_Set_countOfPendingRequests]++;
-    f.BYTES[byteMENU_queueTail]++;
+    const absoluteIndex = f.OFFSET_MENU + (f.BYTES[f.byteMENU_queueTail] & UI_SLOT_MASK);
+    f.MASTER_RENDER_BUFFER[absoluteIndex] = renderKind;
+    if (renderKind === MENUrenderKind_Set) f.INTS[f.fMENU_renderKind_Set_countOfPendingRequests]++;
+    f.BYTES[f.byteMENU_queueTail]++;
     
-    if (f.BYTES[byteMENU_isRenderPending] === 0) {
-        f.BYTES[byteMENU_isRenderPending] = 1;
+    if (f.BYTES[f.byteMENU_isRenderPending] === 0) {
+        f.BYTES[f.byteMENU_isRenderPending] = 1;
         requestAnimationFrame(MENU_render_do);
     }
 }
 
 function MENU_render_do() {
-    while (f.BYTES[byteMENU_queueHead] !== f.BYTES[byteMENU_queueTail]) {
+    while (f.BYTES[f.byteMENU_queueHead] !== f.BYTES[f.byteMENU_queueTail]) {
         // Uses the exact same masking logic, but reads from the higher memory region
-        const absoluteIndex = OFFSET_MENU + (f.BYTES[byteMENU_queueHead] & UI_SLOT_MASK);
-        const renderKind = MASTER_RENDER_BUFFER[absoluteIndex];
-        f.BYTES[byteMENU_queueHead]++;
+        const absoluteIndex = f.OFFSET_MENU + (f.BYTES[f.byteMENU_queueHead] & UI_SLOT_MASK);
+        const renderKind = f.MASTER_RENDER_BUFFER[absoluteIndex];
+        f.BYTES[f.byteMENU_queueHead]++;
 
         switch (renderKind) {
             case MENUrenderKind_Cursor:
                 MENU_render_do_Cursor();
                 break;
             case MENUrenderKind_Set:
-                if (f.INTS[fMENU_renderKind_Set_countOfPendingRequests]-- > 1) break;
+                if (f.INTS[f.fMENU_renderKind_Set_countOfPendingRequests]-- > 1) break;
                 MENU_render_do_Set();
                 break;
             case MENUrenderKind_Hide:
@@ -90,7 +92,7 @@ function MENU_render_do() {
                 break;
         }
     }
-    f.BYTES[byteMENU_isRenderPending] = 0;
+    f.BYTES[f.byteMENU_isRenderPending] = 0;
 }
 
 function MENU_render_do_Set() {
@@ -139,7 +141,7 @@ function MENU_render_do_Set() {
         MENU_request.elementToFocusOnCompleted = document.activeElement;
     }
     
-    f.INTS[fMENU_ticketId_drawn] = MENU_request.ticket;
+    f.INTS[f.fMENU_ticketId_drawn] = MENU_request.ticket;
 
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
@@ -186,7 +188,7 @@ function MENU_render_do_Set() {
  * @param {boolean} disableFocusOnCompleted 
  * @param {number} index (use this to set the "initiallySelectedIndex", the MenuOption within 'optionList' that should start as the initially selected MenuOption.)
  */
-function menuSet(optionList, left, top, onCompleteAction, target, elementToFocusOnCompleted, disableFocusOnCompleted, index) {
+export function menuSet(optionList, left, top, onCompleteAction, target, elementToFocusOnCompleted, disableFocusOnCompleted, index) {
     if (MENU_request) { MENU_completeForm(true); }
 
     if (!optionList || optionList.length <= 0) {
@@ -201,7 +203,7 @@ function menuSet(optionList, left, top, onCompleteAction, target, elementToFocus
         target: target,
         optionList: optionList,
         index: index ?? 0,
-        ticket: f.INTS[fMENU_ticketId_counter]++,
+        ticket: f.INTS[f.fMENU_ticketId_counter]++,
         ArrayFrom_menuOptionList_children: null,
         elementToFocusOnCompleted: elementToFocusOnCompleted,
         disableFocusOnCompleted: disableFocusOnCompleted
@@ -214,7 +216,7 @@ function MENU_render_do_Hide() {
     const menu = document.getElementById('MENU');
     if (!menu) return;
 
-    f.INTS[fMENU_ticketId_drawn] = 0;
+    f.INTS[f.fMENU_ticketId_drawn] = 0;
     menu.remove();
 }
 
@@ -243,7 +245,7 @@ function MENU_completeForm(forceIsCancelled, changingFocusIsReasonable) {
     if (changingFocusIsReasonable && !local_request.disableFocusOnCompleted && local_request.elementToFocusOnCompleted) {
         local_request.elementToFocusOnCompleted.focus();
     }
-    if (!forceIsCancelled && local_request.ticket !== f.INTS[fMENU_ticketId_drawn]) {
+    if (!forceIsCancelled && local_request.ticket !== f.INTS[f.fMENU_ticketId_drawn]) {
         forceIsCancelled = true;
     }
     let menuOption = undefined;
@@ -383,7 +385,7 @@ function MENU_ensure_boundingClientRect() {
  * @param {any} text
  * @returns {MenuOption} menuOption
  */
-function MENU_MenuOption_factory(commandKind, text) {
+export function MENU_MenuOption_factory(commandKind, text) {
     return {
         commandKind: commandKind,
         text: text

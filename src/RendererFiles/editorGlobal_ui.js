@@ -16,7 +16,8 @@ import {
     EDI_lastReadNumber_scrollLeft,
     EDI_cursor_hasSelection,
     EDI_cursor_cursorTranslateXValue,
-    set_EDI_cursor_cursorTranslateXValue
+    set_EDI_cursor_cursorTranslateXValue,
+    EDI_ret_getLineBoundaryPositions_raw
 } from './editorGlobal_edit.js'
 
 /**
@@ -3682,7 +3683,7 @@ function EDI_draw_cursor_debug() {
 
     text += '(' + f.INTS[f.fEDI_cursor_indexLine] + ', ' + f.INTS[f.fEDI_cursor_indexColumn] + ')';
     
-    if (f.BYTES[byteDIALOG_Settings_editorDebugShowAdjacentCharacters]) {
+    if (f.BYTES[f.byteDIALOG_Settings_editorDebugShowAdjacentCharacters]) {
         //let previous = EDI_getCharacterPrevious(f.INTS[f.fEDI_cursor_indexColumn], EDI_getPositionIndex_cursor_raw());
         //if (previous === '\n') previous = '\\n';
         //else if (previous === '\t') previous = '\\t';
@@ -3690,7 +3691,7 @@ function EDI_draw_cursor_debug() {
         //if (current === '\n') current = '\\n';
         //else if (current === '\t') current = '\\t';
         //text += ' | (' + previous + ', ' + current + ')';
-        text += 'byteDIALOG_Settings_editorDebugShowAdjacentCharacters_is_not_implemented';
+        text += 'f.byteDIALOG_Settings_editorDebugShowAdjacentCharacters_is_not_implemented';
     }
 
     text += ' | (' + f.INTS[f.fEDI_cursorVisualColumnIndex] + ')';
@@ -3743,7 +3744,7 @@ export function EDI_onMouseDown(event) {
         EDI_finalizeEdit();
     }
 
-    if (f.BYTES[byteTOOLTIP_exists] === 1) {
+    if (f.BYTES[f.byteTOOLTIP_exists] === 1) {
         TOOLTIP_hide();
     }
 

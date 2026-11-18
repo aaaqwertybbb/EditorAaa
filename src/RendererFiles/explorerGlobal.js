@@ -1,5 +1,26 @@
 import * as f from "./fieldBuffer.js"
 import {TreeViewComponent, treeViewComponent_staticRunner} from './treeViewComponent.js'
+import {
+    MENU_MenuOption_factory,
+    CommandKind_None,
+    CommandKind_Submenu,
+    CommandKind_Copy,
+    CommandKind_CopyAbsolutePath,
+    CommandKind_Cut,
+    CommandKind_Paste,
+    CommandKind_NewFile_Directory,
+    CommandKind_NewFile_File,
+    CommandKind_DeleteFile_Directory,
+    CommandKind_DeleteFile_File,
+    CommandKind_RenameFile_Directory,
+    CommandKind_RenameFile_File,
+    CommandKind_Find,
+    CommandKind_SelectFolder,
+    CommandKind_SelectWorkspace,
+    menuSet,
+} from './menuGlobal.js'
+
+
 
 /*
 When collapse maybe you reset the length of the longest line or something

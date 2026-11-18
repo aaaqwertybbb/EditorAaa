@@ -3,6 +3,7 @@ import {TrackingUint32MaxHeap} from './editorMaxHeap.js'
 import {UInt32List} from './listTypes.js'
 import * as f from './fieldBuffer.js'
 import {EDI_render_request, EDI_scrollViewport_scroll, EDI_onKeyDown, EDI_onMouseDown, EDI_onResize, EDI_render_do_Resize} from './editorGlobal_ui.js'
+import {CommandKind_Cut, CommandKind_Copy, CommandKind_Paste, CommandKind_Find} from './menuGlobal.js'
 
 /**
  * TODO: long term 'EDI_getEntireLineVisualWidth' should be replaced by a lookup within 'EDI_trackingUint32MaxHeap'...
@@ -2596,7 +2597,7 @@ function EDI_getLastValidIndexColumn_raw(indexLine) {
  * 
  * @returns nothing: the results are stored in 'f.INTS[f.fEDI_ret_getLineBoundaryPositions_start]' inclusive and 'f.INTS[f.fEDI_ret_getLineBoundaryPositions_end]' exclusive.
  */
-function EDI_ret_getLineBoundaryPositions_raw(indexLine) {
+export function EDI_ret_getLineBoundaryPositions_raw(indexLine) {
     if (indexLine < f.INTS[f.fEDI_lineEndPositionList_count]) {
         if (indexLine === 0) {
             f.INTS[f.fEDI_ret_getLineBoundaryPositions_start] = 0;
@@ -3265,7 +3266,7 @@ function EDI_cursorBlinkingTrailingEdge() {
     // ...that updates something more directly related to the text editor itself (i.e.: if you group this text modification with modifying the 'animationPlayState').
     EDI_draw_cursor_debug();
 
-    //if (f.BYTES[byteDIALOG_currentDialogKind] === DialogKind_Debug) {
+    //if (f.BYTES[f.byteDIALOG_currentDialogKind] === DialogKind_Debug) {
     //    sendTransaction_MessageKind_custom_editorGetNodesAdjacentToCursor(EDI_getPositionIndex_cursor_raw());
     //}
 }

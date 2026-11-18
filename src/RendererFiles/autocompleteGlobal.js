@@ -23,14 +23,14 @@ let AUTOCOMPLETE_lastSeen_totalLength_SLICE = 0;
 
 function AUTOCOMPLETE_render_request(renderKind) {
     if (f.BYTES[byteAUTOCOMPLETE_queueHead] !== f.BYTES[byteAUTOCOMPLETE_queueTail]) {
-        const lastAbsoluteIndex = OFFSET_AUTOCOMPLETE + ((f.BYTES[byteAUTOCOMPLETE_queueTail] - 1) & UI_SLOT_MASK);
-        if (MASTER_RENDER_BUFFER[lastAbsoluteIndex] === renderKind) {
+        const lastAbsoluteIndex = f.OFFSET_AUTOCOMPLETE + ((f.BYTES[byteAUTOCOMPLETE_queueTail] - 1) & UI_SLOT_MASK);
+        if (f.MASTER_RENDER_BUFFER[lastAbsoluteIndex] === renderKind) {
             return;
         }
     }
 
-    const absoluteIndex = OFFSET_AUTOCOMPLETE + (f.BYTES[byteAUTOCOMPLETE_queueTail] & UI_SLOT_MASK);
-    MASTER_RENDER_BUFFER[absoluteIndex] = renderKind;
+    const absoluteIndex = f.OFFSET_AUTOCOMPLETE + (f.BYTES[byteAUTOCOMPLETE_queueTail] & UI_SLOT_MASK);
+    f.MASTER_RENDER_BUFFER[absoluteIndex] = renderKind;
     f.BYTES[byteAUTOCOMPLETE_queueTail]++;
     
     if (f.BYTES[byteAUTOCOMPLETE_isRenderPending] === 0) {
@@ -42,8 +42,8 @@ function AUTOCOMPLETE_render_request(renderKind) {
 function AUTOCOMPLETE_render_do() {
     while (f.BYTES[byteAUTOCOMPLETE_queueHead] !== f.BYTES[byteAUTOCOMPLETE_queueTail]) {
         // Uses the exact same masking logic, but reads from the higher memory region
-        const absoluteIndex = OFFSET_AUTOCOMPLETE + (f.BYTES[byteAUTOCOMPLETE_queueHead] & UI_SLOT_MASK);
-        const renderKind = MASTER_RENDER_BUFFER[absoluteIndex];
+        const absoluteIndex = f.OFFSET_AUTOCOMPLETE + (f.BYTES[byteAUTOCOMPLETE_queueHead] & UI_SLOT_MASK);
+        const renderKind = f.MASTER_RENDER_BUFFER[absoluteIndex];
         f.BYTES[byteAUTOCOMPLETE_queueHead]++; 
 
         switch (renderKind) {
