@@ -3,6 +3,162 @@ import {TrackingUint32MaxHeap} from './editorMaxHeap.js'
 import {UInt32List} from './listTypes.js'
 import * as f from './fieldBuffer.js'
 import {CommandKind_Cut, CommandKind_Copy, CommandKind_Paste, CommandKind_Find} from './menuGlobal.js'
+import {sendTransaction_MessageKind_custom_edit_InsertLtr} from './applicationRendererRoot.js'
+
+
+
+class EditorAaaApp {
+    constructor() {
+        let isDark = true;
+    }
+}
+
+
+
+class TextEditor {
+    constructor() {
+        let detailRank = 0;
+        let recentBoundingClientRect_isNull = true;
+        let editorHasFocus = false;
+        let fileStartsWithBom = false;
+
+        let findOverlay_show = false;
+        let findOverlay_wasSearched = false;
+        let findOverlay_options_matchWord = false;
+        
+        let FindAll_options_matchWord = false;
+        
+        let isDark = true;
+
+        
+
+        export const byteDIALOG_Settings_trueTabs_falseSpaces = 9;
+        BYTES[byteDIALOG_Settings_trueTabs_falseSpaces] = 1;
+
+        export const byteDIALOG_Settings_editorDebugShowAdjacentCharacters = 10;
+
+        /** TODO: what is this? */
+        export const byteDIALOG_hasBeenMeasured = 11;
+
+        export const byteDIALOG_windowExists = 12;
+
+        export const byteAUTOCOMPLETE_exists = 13;
+
+        export const byteAUTOCOMPLETE_isRenderPending = 14;
+
+        export const byteAUTOCOMPLETE_rect_isNull = 15;
+        BYTES[byteAUTOCOMPLETE_rect_isNull] = 1;
+
+        export const byteAUTOCOMPLETE_isCheckingTrailingEdge = 16;
+
+        export const byteAUTOCOMPLETE_scrollIsFetchingData = 17;
+
+        export const byteWIDGET_isRenderPending = 18;
+
+        export const byteDIALOG_isRenderPending = 19;
+
+        export const byteTOOLTIP_isRenderPending = 20;
+
+        /**
+         * 0 => None
+         * 1 => Show
+         * 2 => Hide
+         */
+        export const byteTOOLTIP_pending_renderKind = 21;
+
+        export const byteTOOLTIP_exists = 22;
+
+        /** TODO: seemingly could be made obsolete sensibly */
+        export const byteDIALOG_currentDialogKind = 23;
+
+        export const byteMENU_isRenderPending = 24;
+
+        export const byteWIDGET_WidgetKind_drawn = 25;
+
+        // ====
+        export const byteTreeView_byteret_pooledNode_nodeKind = 26;
+        export const byteEDI_byteret_pooledTrackedSyntax_trackedSyntaxKind = 26;
+        // ====
+
+        export const byteEDI_cursor_enterKeyEventKind = 27;
+
+        export const byteEDI_extensionKind = 28;
+
+
+
+        export const byteEDI_isChecking_cursorBlinkTrailingEdge = 29;
+
+        export const byteEDI_cursor_selectionDivExists = 30;
+
+        export const byteEDI_onResize_hasTrailingCall = 31;
+
+
+        export const byteEDI_mousemove_eventListener_isActive = 32;
+
+        export const byteEXPLORER_show = 33;
+        BYTES[byteEXPLORER_show] = 1;
+
+        export const byteEXPLORER_isRenderPending = 34;
+
+        export const byteEXPLORER_isCheckingTrailingEdge = 35;
+
+        export const byteEXPLORER_scrollIsFetchingData = 36;
+
+        export const byteEXPLORER_boundingClientRect_isValid = 37;
+
+
+        export const byteAUTOCOMPLETE_queueHead = 38;
+        export const byteAUTOCOMPLETE_queueTail = 39;
+
+        export const byteDIALOG_queueHead = 40;
+        export const byteDIALOG_queueTail = 41;
+
+        export const byteMENU_queueHead = 42;
+        export const byteMENU_queueTail = 43;
+
+        export const byteWIDGET_queueHead = 44;
+        export const byteWIDGET_queueTail = 45;
+
+        /**
+         * 'await window.myAPI.editorSetClipboard(...);' needs to be followed up with 'BYTES[byteEDI_clipboard_may_have_changed] = 0'
+         * When reading the clipboard use 'await EDI_read_clipboard();'
+         */
+        export const byteEDI_duplication_may_have_changed = 46;
+        BYTES[byteEDI_duplication_may_have_changed] = 1;
+
+        /**
+         * 'await window.myAPI.editorSetClipboard(...);' needs to be followed up with 'BYTES[byteEDI_clipboard_may_have_changed] = 0'
+         * When reading the clipboard use 'await EDI_read_clipboard();'
+         */
+        export const byteEDI_clipboard_may_have_changed = 47;
+        BYTES[byteEDI_clipboard_may_have_changed] = 1;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /**
  * TODO: long term 'EDI_getEntireLineVisualWidth' should be replaced by a lookup within 'EDI_trackingUint32MaxHeap'...
@@ -495,7 +651,7 @@ class EDI_CustomDecoder {
     }
 }
 
-const EDI_encoder = new TextEncoder();
+export const EDI_encoder = new TextEncoder();
 const EDI_decoder = new TextDecoder();
 export const EDI_decoder_CUSTOM = new EDI_CustomDecoder();
 
@@ -1763,7 +1919,7 @@ function EDI_finalizeEdit_InsertLtr(indexLine_editOccurredOn) {
             break;
         }
     }
-    f.EDI_textByteList_insertBytes(f.INTS[f.fEDI_cursor_editPosition], EDI_cursor_textInsertionBuffer, /*offset*/ 0, /*length*/ f.INTS[f.fEDI_cursor_textInsertionBufferCount]);
+    EDI_textByteList_insertBytes(f.INTS[f.fEDI_cursor_editPosition], EDI_cursor_textInsertionBuffer, /*offset*/ 0, /*length*/ f.INTS[f.fEDI_cursor_textInsertionBufferCount]);
     // TODO: ensure 'EDI_styleBuffer' count has 'f.INTS[f.fEDI_cursor_editPosition]' in range / ensure it is equal with 'f.EDI_textByteList' count/capacity?
     if (f.INTS[f.fEDI_styleBuffer_count] !== 0) {
         EDI_styleBuffer_insertBytes(f.INTS[f.fEDI_cursor_editPosition], new Uint8Array(f.INTS[f.fEDI_cursor_textInsertionBufferCount]), 0, f.INTS[f.fEDI_cursor_textInsertionBufferCount]);
@@ -1859,7 +2015,7 @@ function EDI_finalizeEdit_Enter(indexLine_editOccurredOn) {
         }
     }
 
-    f.EDI_textByteList_insertBytes(actualEditPosition, bytes, /*offset*/ 0, length);
+    EDI_textByteList_insertBytes(actualEditPosition, bytes, /*offset*/ 0, length);
     // TODO: ensure 'EDI_styleBuffer' count has 'f.INTS[f.fEDI_cursor_editPosition]' in range / ensure it is equal with 'f.EDI_textByteList' count/capacity?
     if (f.INTS[f.fEDI_styleBuffer_count] !== 0) {
         EDI_styleBuffer_insertBytes(actualEditPosition, new Uint8Array(bytes.length), 0, bytes.length);
@@ -1941,7 +2097,7 @@ function EDI_finalizeEdit_Tab(indexLine_editOccurredOn) {
         }
     }
 
-    f.EDI_textByteList_insertBytes(f.INTS[f.fEDI_cursor_editPosition], bytes, /*offset*/ 0, /*length*/ length);
+    EDI_textByteList_insertBytes(f.INTS[f.fEDI_cursor_editPosition], bytes, /*offset*/ 0, /*length*/ length);
     // TODO: ensure 'EDI_styleBuffer' count has 'f.INTS[f.fEDI_cursor_editPosition]' in range / ensure it is equal with 'f.EDI_textByteList' count/capacity?
     if (f.INTS[f.fEDI_styleBuffer_count] !== 0) {
         EDI_styleBuffer_insertBytes(f.INTS[f.fEDI_cursor_editPosition], new Uint8Array(bytes.length), 0, bytes.length);
@@ -2028,7 +2184,7 @@ function EDI_finalizeEdit_IndentMore(indexLine_editOccurredOn) {
         const line_start = f.INTS[f.fEDI_ret_getLineBoundaryPositions_start];
 
         // # Insert the text on the respective line.
-        f.EDI_textByteList_insertBytes(line_start, bytes, 0 /*offset*/, bytesLength /*length*/);
+        EDI_textByteList_insertBytes(line_start, bytes, 0 /*offset*/, bytesLength /*length*/);
         // TODO: ensure 'EDI_styleBuffer' count has 'f.INTS[f.fEDI_cursor_editPosition]' in range / ensure it is equal with 'f.EDI_textByteList' count/capacity?
         if (f.INTS[f.fEDI_styleBuffer_count] !== 0) {
             EDI_styleBuffer_insertBytes(line_start, perEdit_styleBuffer_changes, 0, bytesLength);
@@ -2192,7 +2348,7 @@ function EDI_finalizeEdit_IndentLess(indexLine_editOccurredOn) {
             }
         }
 
-        f.EDI_textByteList_removeAt(line_start, innerRemoveCount);
+        EDI_textByteList_removeAt(line_start, innerRemoveCount);
         // TODO: ensure 'EDI_styleBuffer' count has 'f.INTS[f.fEDI_cursor_editPosition]' in range / ensure it is equal with 'f.EDI_textByteList' count/capacity?
         if (f.INTS[f.fEDI_styleBuffer_count] !== 0) {
             EDI_styleBuffer_removeAt(line_start, innerRemoveCount);
@@ -2245,7 +2401,7 @@ function EDI_finalizeEdit_Paste(indexLine_editOccurredOn) {
     EDI_ret_getIndexFromColumn_RESET(f.INTS[f.fEDI_cursor_editIndexColumn], f.INTS[f.fEDI_ret_getLineBoundaryPositions_start], f.INTS[f.fEDI_ret_getLineBoundaryPositions_end]);
     let columnVisual = f.INTS[f.fEDI_ret_getIndexFromX_visualColumns];
 
-    f.EDI_textByteList_insertBytes(f.INTS[f.fEDI_cursor_editPosition], EDI_cursor_EDI_paste_clipboardContent_bytes, 0, EDI_cursor_EDI_paste_clipboardContent_bytes.length);
+    EDI_textByteList_insertBytes(f.INTS[f.fEDI_cursor_editPosition], EDI_cursor_EDI_paste_clipboardContent_bytes, 0, EDI_cursor_EDI_paste_clipboardContent_bytes.length);
     // TODO: ensure 'EDI_styleBuffer' count has 'f.INTS[f.fEDI_cursor_editPosition]' in range / ensure it is equal with 'f.EDI_textByteList' count/capacity?
     if (f.INTS[f.fEDI_styleBuffer_count] !== 0) {
         EDI_styleBuffer_insertBytes(f.INTS[f.fEDI_cursor_editPosition], EDI_cursor_EDI_paste_clipboardContent_bytes, 0, EDI_cursor_EDI_paste_clipboardContent_bytes.length);
@@ -2305,7 +2461,7 @@ function EDI_finalizeEdit_Duplicate(indexLine_editOccurredOn) {
     EDI_ret_getIndexFromColumn_RESET(f.INTS[f.fEDI_cursor_editIndexColumn], f.INTS[f.fEDI_ret_getLineBoundaryPositions_start], f.INTS[f.fEDI_ret_getLineBoundaryPositions_end]);
     let columnVisual = f.INTS[f.fEDI_ret_getIndexFromX_visualColumns];
 
-    f.EDI_textByteList_duplicateWithin(small, f.INTS[f.fEDI_cursor_editPosition], length);
+    EDI_textByteList_duplicateWithin(small, f.INTS[f.fEDI_cursor_editPosition], length);
     // TODO: ensure 'EDI_styleBuffer' count has 'f.INTS[f.fEDI_cursor_editPosition]' in range / ensure it is equal with 'f.EDI_textByteList' count/capacity?
     if (f.INTS[f.fEDI_styleBuffer_count] !== 0) {
         EDI_styleBuffer_insertBytes(f.INTS[f.fEDI_cursor_editPosition], new Uint8Array(length), 0, length);
@@ -2412,7 +2568,7 @@ function EDI_finalizeEdit_DeleteLtr_BackspaceRtl_RemoveTextNoBatching(indexLine_
         }
     }
 
-    f.EDI_textByteList_removeAt(f.INTS[f.fEDI_cursor_editPosition], f.INTS[f.fEDI_cursor_editLength_characters]);
+    EDI_textByteList_removeAt(f.INTS[f.fEDI_cursor_editPosition], f.INTS[f.fEDI_cursor_editLength_characters]);
     // TODO: ensure 'EDI_styleBuffer' count has 'f.INTS[f.fEDI_cursor_editPosition]' in range / ensure it is equal with 'f.EDI_textByteList' count/capacity?
     if (f.INTS[f.fEDI_styleBuffer_count] !== 0) {
         EDI_styleBuffer_removeAt(f.INTS[f.fEDI_cursor_editPosition], f.INTS[f.fEDI_cursor_editLength_characters]);
@@ -3565,10 +3721,10 @@ function EDI_textByteList_insertBytes(index, incomingBs, offset, length) {
         );
     }
 
-    f.EDI_textByteList_ensureCapacityForInsertion(index, length);
+    EDI_textByteList_ensureCapacityForInsertion(index, length);
 
     if (index !== f.INTS[f.EDI_textByteList_count]) {
-        f.EDI_textByteList_copyTo(EDI_textByteList_bytes, index, EDI_textByteList_bytes, index + length, f.INTS[f.EDI_textByteList_count] - index);
+        EDI_textByteList_copyTo(EDI_textByteList_bytes, index, EDI_textByteList_bytes, index + length, f.INTS[f.EDI_textByteList_count] - index);
     }
 
     // TODO: Google AI is telling me:
@@ -3598,7 +3754,7 @@ function EDI_textByteList_removeAt(index, count) {
     if (index + count === f.INTS[f.EDI_textByteList_count]) {
         let shiftableCount = f.INTS[f.EDI_textByteList_count] - (index + count);
         if (shiftableCount > 0) {
-            f.EDI_textByteList_copyTo(
+            EDI_textByteList_copyTo(
                 EDI_textByteList_bytes,
                 index + count,
                 EDI_textByteList_bytes,
@@ -3607,7 +3763,7 @@ function EDI_textByteList_removeAt(index, count) {
         }
     }
     else {
-        f.EDI_textByteList_copyTo(
+        EDI_textByteList_copyTo(
             EDI_textByteList_bytes,
             index + count,
             EDI_textByteList_bytes,
@@ -3636,13 +3792,13 @@ function EDI_textByteList_duplicateWithin(sourceStart, destinationStart, length)
         throw new Error('TODO: sourceStart + length > destinationStart');
     }
 
-    f.EDI_textByteList_ensureCapacityForInsertion(destinationStart, length);
+    EDI_textByteList_ensureCapacityForInsertion(destinationStart, length);
 
     if (destinationStart !== f.INTS[f.EDI_textByteList_count]) {
-        f.EDI_textByteList_copyTo(EDI_textByteList_bytes, destinationStart, EDI_textByteList_bytes, destinationStart + length, f.INTS[f.EDI_textByteList_count] - destinationStart);
+        EDI_textByteList_copyTo(EDI_textByteList_bytes, destinationStart, EDI_textByteList_bytes, destinationStart + length, f.INTS[f.EDI_textByteList_count] - destinationStart);
     }
 
-    f.EDI_textByteList_copyTo(EDI_textByteList_bytes, sourceStart, EDI_textByteList_bytes, destinationStart, length);
+    EDI_textByteList_copyTo(EDI_textByteList_bytes, sourceStart, EDI_textByteList_bytes, destinationStart, length);
 
     f.INTS[f.EDI_textByteList_count] += length;
 }
@@ -3681,7 +3837,7 @@ function EDI_textByteList_ensureCapacityForInsertion(index, count) {
 
     // Allocate and copy EXACTLY ONCE
     let bytesNew = new Uint8Array(capacityNew);
-    f.EDI_textByteList_copyTo(EDI_textByteList_bytes, 0, bytesNew, 0, f.INTS[f.EDI_textByteList_count]);
+    EDI_textByteList_copyTo(EDI_textByteList_bytes, 0, bytesNew, 0, f.INTS[f.EDI_textByteList_count]);
 
     // Commit the changes to your global/module state
     EDI_textByteList_bytes = bytesNew;

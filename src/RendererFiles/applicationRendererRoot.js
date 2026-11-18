@@ -1,6 +1,6 @@
 import * as f from "./fieldBuffer.js"
 import {EXPLORER_firstSpanWidth, set_EXPLORER_firstSpanWidth} from './explorerGlobal.js'
-import {EDI_init, EDI_decoder_CUSTOM, EDI_styleBuffer, set_EDI_styleBuffer, EDI_render_request} from './editorGlobal_edit.js'
+import {EDI_init, EDI_encoder, EDI_decoder_CUSTOM, EDI_styleBuffer, set_EDI_styleBuffer, EDI_render_request} from './editorGlobal_edit.js'
 
 export let APP_lineHeightStringWithPx = '';
 
@@ -94,7 +94,7 @@ export function sendTransaction_MessageKind_textDocument_didOpen(filePath) {
   socket.send(send_buffer.subarray(0, index));
 }
 
-function sendTransaction_MessageKind_textDocument_definition(positionIndex) {
+export function sendTransaction_MessageKind_textDocument_definition(positionIndex) {
     if (!socket || socket.readyState !== WebSocket.OPEN) { return; }
 
     if (false && filePath.length > send_buffer.length) { throw new Exception('filePath.length > send_buffer.length'); }
@@ -132,7 +132,7 @@ function sendTransaction_MessageKind_textDocument_definition(positionIndex) {
     socket.send(viewToSend); // Sends raw binary data
 }
 
-function sendTransaction_MessageKind_custom_editorGetNodesAdjacentToCursor(positionIndex) {
+export function sendTransaction_MessageKind_custom_editorGetNodesAdjacentToCursor(positionIndex) {
     if (!socket || socket.readyState !== WebSocket.OPEN) { return; }
 
     if (false && filePath.length > send_buffer.length) { throw new Exception('filePath.length > send_buffer.length'); }
@@ -170,7 +170,7 @@ function sendTransaction_MessageKind_custom_editorGetNodesAdjacentToCursor(posit
     socket.send(viewToSend); // Sends raw binary data
 }
 
-function sendTransaction_MessageKind_custom_saveFile() {
+export function sendTransaction_MessageKind_custom_saveFile() {
     if (!socket || socket.readyState !== WebSocket.OPEN) { return; }
 
     if (false && filePath.length > send_buffer.length) { throw new Exception('filePath.length > send_buffer.length'); }
@@ -208,7 +208,7 @@ function sendTransaction_MessageKind_custom_saveFile() {
     socket.send(viewToSend); // Sends raw binary data
 }
 
-function sendTransaction_MessageKind_custom_edit_InsertLtr(positionIndex, bytes) {
+export function sendTransaction_MessageKind_custom_edit_InsertLtr(positionIndex, bytes) {
     if (!socket || socket.readyState !== WebSocket.OPEN) { return; }
 
     if (false && filePath.length > send_buffer.length) { throw new Exception('filePath.length > send_buffer.length'); }
@@ -253,7 +253,7 @@ function sendTransaction_MessageKind_custom_edit_InsertLtr(positionIndex, bytes)
     socket.send(viewToSend); // Sends raw binary data
 }
 
-function sendTransaction_MessageKind_custom_edit_Remove(positionIndex, length) {
+export function sendTransaction_MessageKind_custom_edit_Remove(positionIndex, length) {
     if (!socket || socket.readyState !== WebSocket.OPEN) { return; }
 
     if (false && filePath.length > send_buffer.length) { throw new Exception('filePath.length > send_buffer.length'); }
