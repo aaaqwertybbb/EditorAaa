@@ -1,4 +1,4 @@
-const WidgetKind = Object.freeze({
+export const WidgetKind = Object.freeze({
     None: 0,
     InputText: 1,
     YesCancel: 2,
@@ -189,7 +189,7 @@ function WIDGET_render_do_Show() {
  * @param {object} target this is stored in the variable 'WIDGET_target'.
  * @param {WIDGET_Callback} callback this is invoked when the widget is either submitted or cancelled.
  */
-async function WIDGET_show(widgetKind, left, top, placeholder, value, target, elementToFocusOnCompleted, disableFocusOnCompleted, callback) {
+export async function WIDGET_show(widgetKind, left, top, placeholder, value, target, elementToFocusOnCompleted, disableFocusOnCompleted, callback) {
     if (WIDGET_request) { await WIDGET_completeForm(true); }
 
     WIDGET_request = {
@@ -264,10 +264,10 @@ function WIDGET_completeForm(forceIsCancelled, changingFocusIsReasonable, result
         }
         if (resultData === null) {
             switch (local_request.widgetKind) {
-                case WidgetKind_InputText:
+                case WidgetKind.InputText:
                     resultData = WidgetKind_InputText_GetResultData();
                     break;
-                case WidgetKind_YesCancel:
+                case WidgetKind.YesCancel:
                     resultData = WidgetKind_YesCancel_GetResultData();
                     break;
             }
