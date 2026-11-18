@@ -288,7 +288,7 @@ class DIALOG_FindAll_TreeViewDirector {
 /** @type {DIALOG_FindAll_TreeViewDirector} */
 let DIALOG_FindAll_TreeViewDirector_instance = null;
 
-function DIALOG_FindAll_Create() {
+export function DIALOG_FindAll_Create() {
     let dialogBody = document.getElementById('DIALOG_body');
 
     let searchTextInput = document.createElement('input');
@@ -335,7 +335,7 @@ function DIALOG_FindAll_Create() {
     dialogBody.appendChild(searchResultsDiv);
 }
 
-function DIALOG_FindAll_Delete() {
+export function DIALOG_FindAll_Delete() {
     let searchTextInput = document.getElementById('DIALOG_FindAll_searchTextInput');
     if (searchTextInput) {
         searchTextInput.removeEventListener('keydown', DIALOG_FindAll_searchTextInput_onkeydown);
@@ -388,7 +388,7 @@ function DIALOG_FindAll_checkboxMatchWord_onchange() {
     }
 }
 
-function DIALOG_Settings_Create() {
+export function DIALOG_Settings_Create() {
     let dialogBody = document.getElementById('DIALOG_body');
     if (!dialogBody) return;
 
@@ -429,7 +429,7 @@ function DIALOG_Settings_Create() {
     dialogBody.appendChild(label_for_checkboxEditorDebugShowAdjacentCharacters);
 }
 
-function DIALOG_Settings_Delete() {
+export function DIALOG_Settings_Delete() {
     let dialogBody = document.getElementById('DIALOG_body');
     if (!dialogBody) return;
     
@@ -495,7 +495,7 @@ function DIALOG_checkboxEditorDebugShowAdjacentCharacters_onchange() {
     EDI_drawCursor(/*NOTscrollCursorIntoView*/ false);
 }
 
-function DIALOG_DocumentSymbol_Create() {
+export function DIALOG_DocumentSymbol_Create() {
     let dialogBody = document.getElementById('DIALOG_body');
     if (!dialogBody) return;
 
@@ -513,7 +513,7 @@ function DIALOG_DocumentSymbol_Create() {
     }
 }
 
-function DIALOG_DocumentSymbol_Delete() {
+export function DIALOG_DocumentSymbol_Delete() {
     let dialogBody = document.getElementById('DIALOG_body');
     if (!dialogBody) return;
     if (EDI_listComponent) {
@@ -523,7 +523,7 @@ function DIALOG_DocumentSymbol_Delete() {
     EDI_documentSymbolResult = null;
 }
 
-function DIALOG_Debug_Create() {
+export function DIALOG_Debug_Create() {
     let dialogBody = document.getElementById('DIALOG_body');
     if (!dialogBody) return;
 
@@ -548,10 +548,10 @@ function DIALOG_Debug_Create() {
     dialogBody.appendChild(afterDiv);
 }
 
-function DIALOG_Debug_Delete() {
+export function DIALOG_Debug_Delete() {
 }
 
-function DIALOG_Debug_Refresh(customEditorGetNodesAdjacentToCursorFromLspRequestResponse) {
+export function DIALOG_Debug_Refresh(customEditorGetNodesAdjacentToCursorFromLspRequestResponse) {
     const beforeDiv = document.getElementById('DEBUG_DIALOG_beforeDiv');
     const amongDiv = document.getElementById('DEBUG_DIALOG_amongDiv');
     const afterDiv = document.getElementById('DEBUG_DIALOG_afterDiv');

@@ -1,4 +1,6 @@
 import * as f from "./fieldBuffer.js"
+import {editor} from './editorGlobal_edit.js'
+import {DIALOG_FindAll_Create, DIALOG_FindAll_Delete, DIALOG_Settings_Create, DIALOG_Settings_Delete, DIALOG_DocumentSymbol_Create, DIALOG_DocumentSymbol_Delete, DIALOG_Debug_Create, DIALOG_Debug_Delete} from './dialogImplementationsGlobal.js'
 
 export const DialogKind = Object.freeze({
     None: 0,
@@ -133,7 +135,7 @@ function DIALOG_render_do_DimensionsChanged() {
 }
 
 function DIALOG_render_do_Show() {
-    if (dialog.currentDialogKind !== DialogKind_None) {
+    if (dialog.currentDialogKind !== DialogKind.None) {
         DIALOG_render_do_Hide();
     }
 
@@ -220,7 +222,7 @@ function DIALOG_render_do_Hide() {
     DIALOG_deleteWindow();
 
     DIALOG_element.remove();
-    dialog.currentDialogKind = DialogKind_None;
+    dialog.currentDialogKind = DialogKind.None;
 }
 
 /**

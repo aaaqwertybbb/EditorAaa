@@ -2,6 +2,7 @@ import * as f from "./fieldBuffer.js"
 import {explorer, set_EXPLORER_firstSpanWidth} from './explorerGlobal.js'
 import {editor, EDI_init, EDI_encoder, EDI_decoder_CUSTOM, EDI_styleBuffer, set_EDI_styleBuffer, EDI_render_request, RenderKind} from './editorGlobal_edit.js'
 import {DIALOG_show, DialogKind} from './dialogGlobal.js'
+import {DIALOG_Debug_Refresh} from './dialogImplementationsGlobal.js'
 
 export let APP_lineHeightStringWithPx = '';
 
@@ -537,7 +538,7 @@ function documentBody_onKeyDown(event) {
             return;
         case 'F':
             if (!event.ctrlKey) return;
-            DIALOG_show(DialogKind_FindAll, null, null);
+            DIALOG_show(DialogKind.FindAll, null, null);
         case 'Escape':
             const editor = document.getElementById('EDITOR_inner_container');
             if (editor) {

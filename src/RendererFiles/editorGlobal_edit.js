@@ -3703,7 +3703,7 @@ export function EDI_cursorBlinkingTrailingEdge() {
     // ...that updates something more directly related to the text editor itself (i.e.: if you group this text modification with modifying the 'animationPlayState').
     EDI_draw_cursor_debug();
 
-    //if (f.byteDIALOG_currentDialogKind === DialogKind_Debug) {
+    //if (f.byteDIALOG_currentDialogKind === DialogKind.Debug) {
     //    sendTransaction_MessageKind_custom_editorGetNodesAdjacentToCursor(EDI_getPositionIndex_cursor_raw());
     //}
 }
@@ -3842,7 +3842,7 @@ function EDI_doEditorGoToDefinitionRequest(ctrlKey) {
         sendTransaction_MessageKind_textDocument_definition(EDI_getPositionIndex_cursor_raw());
     }
     else {
-        DIALOG_show(DialogKind_Debug, /*onResizeAction*/ null, /*elementToFocusOnDialogHideInitiated*/ null);
+        DIALOG_show(DialogKind.Debug, /*onResizeAction*/ null, /*elementToFocusOnDialogHideInitiated*/ null);
     }
 }
 
