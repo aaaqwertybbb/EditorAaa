@@ -1,5 +1,5 @@
 import * as f from './fieldBuffer.js'
-import {APP_lineHeightStringWithPx} from "./applicationRendererRoot.js"
+import {APP_lineHeightStringWithPx, editorAaaApp} from "./applicationRendererRoot.js"
 
 export const CommandKind = Object.freeze({
     None: 0,
@@ -348,7 +348,7 @@ function MENU_state_do_Cursor(index) {
 
 function MENU_setCursorIndex(index) {
     MENU_state_do_Cursor(index);
-    MENU_render_request(MENUrenderKind_Cursor);
+    MENU_render_request(MENUrenderKind.Cursor);
 }
 
 /** TODO: This doesn't work the same way the other validate cursors do? */

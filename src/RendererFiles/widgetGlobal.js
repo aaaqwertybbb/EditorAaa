@@ -103,11 +103,11 @@ function WIDGET_render_do() {
         widget.queueHead++; 
 
         switch (renderKind) {
-            case WIDGETrenderKind_Show:
+            case WIDGETrenderKind.Show:
                 if (f.INTS[fWIDGETrenderKind_Show_countOfPendingRequests]-- > 1) break;
                 WIDGET_render_do_Show();
                 break;
-            case WIDGETrenderKind_Hide:
+            case WIDGETrenderKind.Hide:
                 WIDGET_render_do_Hide();
                 break;
         }
