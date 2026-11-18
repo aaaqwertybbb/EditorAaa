@@ -490,7 +490,7 @@ export class TreeViewComponent {
 
         this.getElementAt(this.cursorIndex);
         let depth = f.fTreeView_poolret_pooledNode_depth;
-        let nodeKind = f.BYTES[f.byteTreeView_byteret_pooledNode_nodeKind];
+        let nodeKind = f.byteTreeView_byteret_pooledNode_nodeKind;
         
         if (nodeKind === TreeViewNodeKind.isExpandable_isExpanded) {
             if (this.cursorIndex + 1 < this.countAbstract) {
@@ -516,7 +516,7 @@ export class TreeViewComponent {
 
         this.getElementAt(this.cursorIndex);
         let depth = f.fTreeView_poolret_pooledNode_depth;
-        let nodeKind = f.BYTES[f.byteTreeView_byteret_pooledNode_nodeKind];
+        let nodeKind = f.byteTreeView_byteret_pooledNode_nodeKind;
         
         if (nodeKind === TreeViewNodeKind.isExpandable_isExpanded) {
             this.expandCollapseIconWasClicked(undefined /*divItem*/, this.cursorIndex, ringBufferIndexItem);
@@ -649,7 +649,7 @@ export class TreeViewComponent {
      */
     getElementAt(index_abstract) {
         let index_literal = index_abstract * this.fieldCount;
-        f.BYTES[f.byteTreeView_byteret_pooledNode_nodeKind] = this.dataLiteral[index_literal + this.nodeKindOffset];
+        f.byteTreeView_byteret_pooledNode_nodeKind = this.dataLiteral[index_literal + this.nodeKindOffset];
         f.fTreeView_poolret_pooledNode_key = this.dataLiteral[index_literal + this.keyOffset];
         f.fTreeView_poolret_pooledNode_depth = this.dataLiteral[index_literal + this.depthOffset];
     }

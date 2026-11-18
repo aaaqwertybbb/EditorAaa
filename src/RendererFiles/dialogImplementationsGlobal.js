@@ -99,7 +99,7 @@ class DIALOG_FindAll_TreeViewDirector {
                 this.nodeList.getElementAt(indexItem);
                 let key = f.fTreeView_poolret_pooledNode_key;
                 depth = f.fTreeView_poolret_pooledNode_depth;
-                nodeKind = f.BYTES[f.byteTreeView_byteret_pooledNode_nodeKind];
+                nodeKind = f.byteTreeView_byteret_pooledNode_nodeKind;
 
                 let textNode = divItem.lastChild;
                 if (textNode.nodeType !== Node.TEXT_NODE) throw new Error('if (textNode.nodeType !== Node.TEXT_NODE)');
@@ -161,7 +161,7 @@ class DIALOG_FindAll_TreeViewDirector {
         this.nodeList.getElementAt(indexItem);
         let key = f.fTreeView_poolret_pooledNode_key;
         let depth = f.fTreeView_poolret_pooledNode_depth;
-        let nodeKind = f.BYTES[f.byteTreeView_byteret_pooledNode_nodeKind];
+        let nodeKind = f.byteTreeView_byteret_pooledNode_nodeKind;
 
         if (nodeKind === TreeViewNodeKind.NOTisExpandable_NOTisExpanded) {
 
@@ -207,7 +207,7 @@ class DIALOG_FindAll_TreeViewDirector {
         this.nodeList.getElementAt(indexItem);
         let key = f.fTreeView_poolret_pooledNode_key;
         let depth = f.fTreeView_poolret_pooledNode_depth;
-        let nodeKind = f.BYTES[f.byteTreeView_byteret_pooledNode_nodeKind];
+        let nodeKind = f.byteTreeView_byteret_pooledNode_nodeKind;
 
         if (nodeKind === TreeViewNodeKind.isExpandable_NOTisExpanded) {
 
@@ -216,7 +216,7 @@ class DIALOG_FindAll_TreeViewDirector {
 
             let searchTextInput = document.getElementById('DIALOG_FindAll_searchTextInput');
             if (!searchTextInput) return;
-            let results = await window.myAPI.findAllGetPositions(divItem.title, searchTextInput.value, f.BYTES[f.byteDIALOG_FindAll_options_matchWord]);
+            let results = await window.myAPI.findAllGetPositions(divItem.title, searchTextInput.value, f.byteDIALOG_FindAll_options_matchWord);
             if (!results) {
                 return;
             }
@@ -310,7 +310,7 @@ function DIALOG_FindAll_Create() {
     let checkboxMatchWord = document.createElement('input');
     checkboxMatchWord.type = 'checkbox';
     checkboxMatchWord.id = 'DIALOG_FindAll_checkboxMatchWord';
-    checkboxMatchWord.checked = f.BYTES[f.byteDIALOG_FindAll_options_matchWord];
+    checkboxMatchWord.checked = f.byteDIALOG_FindAll_options_matchWord;
     checkboxMatchWord.addEventListener('change', DIALOG_FindAll_checkboxMatchWord_onchange);
     divOptions.appendChild(checkboxMatchWord);
     let label_for_checkboxMatchWord = document.createElement('label');
@@ -367,7 +367,7 @@ async function DIALOG_FindAll_searchTextInput_onkeydown(event) {
             return;
         }
 
-        let results = await window.myAPI.findAll(search, f.BYTES[f.byteDIALOG_FindAll_options_matchWord]);
+        let results = await window.myAPI.findAll(search, f.byteDIALOG_FindAll_options_matchWord);
         if (!DIALOG_FindAll_TreeViewDirector_instance) {
             DIALOG_FindAll_TreeViewDirector_instance = new DIALOG_FindAll_TreeViewDirector();
         }
@@ -380,7 +380,7 @@ function DIALOG_FindAll_checkboxMatchWord_onchange() {
 	// for an onchange event, event.target might always be precise?
 	let checkboxMatchWord = document.getElementById('DIALOG_FindAll_checkboxMatchWord');
     if (checkboxMatchWord) {
-    	f.BYTES[f.byteDIALOG_FindAll_options_matchWord] = checkboxMatchWord.checked;
+    	f.byteDIALOG_FindAll_options_matchWord = checkboxMatchWord.checked;
     	let spanNotes = document.getElementById('DIALOG_FindAll_spanNotes');
 	    if (spanNotes) {
 	        spanNotes.textContent = 'NOTE: changing \'matchWord\' here does not re-do the search';
@@ -407,7 +407,7 @@ function DIALOG_Settings_Create() {
     let checkboxTrueTabsFalseSpaces = document.createElement('input');
     checkboxTrueTabsFalseSpaces.type = 'checkbox';
     checkboxTrueTabsFalseSpaces.id = 'SETTINGS_trueTabs_falseSpaces';
-    checkboxTrueTabsFalseSpaces.checked = f.BYTES[f.byteDIALOG_Settings_trueTabs_falseSpaces]; // Optional: sets the initial state to checked
+    checkboxTrueTabsFalseSpaces.checked = f.byteDIALOG_Settings_trueTabs_falseSpaces; // Optional: sets the initial state to checked
     checkboxTrueTabsFalseSpaces.addEventListener('change', DIALOG_checkboxTrueTabsFalseSpaces_onchange);
     dialogBody.appendChild(checkboxTrueTabsFalseSpaces);
 	// -----------------------------------------------------------
@@ -419,7 +419,7 @@ function DIALOG_Settings_Create() {
     let checkboxEditorDebugShowAdjacentCharacters = document.createElement('input');
     checkboxEditorDebugShowAdjacentCharacters.type = 'checkbox';
     checkboxEditorDebugShowAdjacentCharacters.id = 'SETTINGS_editorDebugShowAdjacentCharacters';
-    checkboxEditorDebugShowAdjacentCharacters.checked = f.BYTES[f.byteDIALOG_Settings_editorDebugShowAdjacentCharacters]; // Optional: sets the initial state to checked
+    checkboxEditorDebugShowAdjacentCharacters.checked = f.byteDIALOG_Settings_editorDebugShowAdjacentCharacters; // Optional: sets the initial state to checked
     checkboxEditorDebugShowAdjacentCharacters.addEventListener('change', DIALOG_checkboxEditorDebugShowAdjacentCharacters_onchange);
     dialogBody.appendChild(checkboxEditorDebugShowAdjacentCharacters);
 	// -----------------------------------------------------------
@@ -450,13 +450,13 @@ function DIALOG_Settings_Delete() {
 }
 
 function DIALOG_buttonTheme_onclick() {
-    if (f.BYTES[f.byteDIALOG_Settings_isDark]) {
-        f.BYTES[f.byteDIALOG_Settings_isDark] = 0;
+    if (f.byteDIALOG_Settings_isDark) {
+        f.byteDIALOG_Settings_isDark = 0;
         document.body.classList.remove('dark-theme');
         document.body.classList.add('light-theme');
     }
     else {
-        f.BYTES[f.byteDIALOG_Settings_isDark] = 1;
+        f.byteDIALOG_Settings_isDark = 1;
         document.body.classList.remove('light-theme');
         document.body.classList.add('dark-theme');
     }
@@ -471,8 +471,8 @@ function DIALOG_checkboxTrueTabsFalseSpaces_onchange() {
     if (!checkboxTrueTabsFalseSpaces) return;
 
     EDI_finalizeEdit();
-    f.BYTES[f.byteDIALOG_Settings_trueTabs_falseSpaces] = checkboxTrueTabsFalseSpaces.checked;
-    if (f.BYTES[f.byteDIALOG_Settings_trueTabs_falseSpaces]) {
+    f.byteDIALOG_Settings_trueTabs_falseSpaces = checkboxTrueTabsFalseSpaces.checked;
+    if (f.byteDIALOG_Settings_trueTabs_falseSpaces) {
         EDI_on_tab_bytes = new Uint8Array(1);
         EDI_on_tab_bytes[0] = CONST_EDI_ASCII_TAB;
         f.fEDI_ontab_visualWidth_perCharacter = 4;
@@ -491,7 +491,7 @@ function DIALOG_checkboxEditorDebugShowAdjacentCharacters_onchange() {
     let checkboxEditorDebugShowAdjacentCharacters = document.getElementById('SETTINGS_editorDebugShowAdjacentCharacters');
     if (!checkboxEditorDebugShowAdjacentCharacters) return;
 
-    f.BYTES[f.byteDIALOG_Settings_editorDebugShowAdjacentCharacters] = checkboxEditorDebugShowAdjacentCharacters.checked;
+    f.byteDIALOG_Settings_editorDebugShowAdjacentCharacters = checkboxEditorDebugShowAdjacentCharacters.checked;
     EDI_drawCursor(/*NOTscrollCursorIntoView*/ false);
 }
 
