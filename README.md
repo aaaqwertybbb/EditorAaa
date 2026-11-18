@@ -1,4 +1,6 @@
+> npm install
 
+> npm run start
 
 If you run the C# project 'JSLSApp' from the other repo you get syntax highlighting.
 (you need to start it prior to running the Editor app, and if it wasn't started in time you need to restart the Editor)
