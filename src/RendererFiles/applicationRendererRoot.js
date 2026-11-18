@@ -383,8 +383,8 @@ function APP_socket_onmessage(event) {
             // If the server sent it as text, convert text to a Uint8Array
             view = Uint8Array.fromBase64(event.data);
             set_EDI_styleBuffer(view);
-            f.fEDI_styleBuffer_count = EDI_styleBuffer.length;
-            f.fEDI_styleBuffer_capacity = EDI_styleBuffer.length;
+            editor.styleBuffer_count = EDI_styleBuffer.length;
+            editor.styleBuffer_capacity = EDI_styleBuffer.length;
             
             EDI_render_request(f.RenderKind_SyntaxHighlighting);
             //view = new TextEncoder().encode(event.data);

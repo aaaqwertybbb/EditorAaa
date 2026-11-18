@@ -533,10 +533,10 @@ function AUTOCOMPLETE_events_scroll_render_trailingEdgeDo(filter) {
         f.BYTES[byteAUTOCOMPLETE_scrollIsFetchingData] = 1;
 
         if (filter === undefined) {
-            if (AUTOCOMPLETE_lastSeenFilter === null && f.fEDI_cursor_textInsertionBufferCount > 0) {
+            if (AUTOCOMPLETE_lastSeenFilter === null && editor.cursor_textInsertionBufferCount > 0) {
                 AUTOCOMPLETE_lastSeenFilter = EDI_autocomplete_get_filter();
             }
-            else if (AUTOCOMPLETE_lastSeenFilter !== null && f.fEDI_cursor_textInsertionBufferCount === 0) {
+            else if (AUTOCOMPLETE_lastSeenFilter !== null && editor.cursor_textInsertionBufferCount === 0) {
                 AUTOCOMPLETE_lastSeenFilter = null;
             }
 
