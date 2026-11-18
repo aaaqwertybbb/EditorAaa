@@ -103,9 +103,6 @@ export const CONST_EDI_ASCII_SPACE = 32;
 
 export const CONST_EDI_cursor_htmlId = "EDI_cursor-1";
 
-export const fAUTOCOMPLETE_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING = 108;
-INTS[fAUTOCOMPLETE_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING] = 2;
-
 /**
  * This value ought to be an int (no decimal places) due to its high frequency usage in drawing UI,
  * and visually this having decimal places being of little to no value to the user when you could just ceil whatever height measurement you get.
@@ -113,7 +110,7 @@ INTS[fAUTOCOMPLETE_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING] = 2;
  * TODO: (speculation) I've never liked saying "line height" I believe that deals with the vertical alignment of text within some container is "line height" a good wording.
  * */
 export const fAPP_lineHeight = 109;
-INTS[fAUTOCOMPLETE_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING] = 20;
+fAUTOCOMPLETE_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING = 20;
 
 /**
  * I'm not sure how large I want this, what matters is that I just have a size of anything for the time being, then can change this constant later.
