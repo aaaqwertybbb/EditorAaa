@@ -1,7 +1,4 @@
-//__#__
-// preprocessor.cjs
-import "./fieldBuffer"
-//__#__
+import "./fieldBuffer.js"
 
 const DialogKind_None = 0;
 const DialogKind_FindAll = 1;

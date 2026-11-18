@@ -1,7 +1,4 @@
-//__#__
-// preprocessor.cjs
-import "./fieldBuffer"
-//__#__
+import "./fieldBuffer.js"
 
 let AUTOCOMPLETE_pending_lspResult = null;
 // I don't think 'slice' is in LSP specification but I need to start like this cause it is only way I'll get something "initially working".

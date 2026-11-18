@@ -1,7 +1,4 @@
-//__#__
-// preprocessor.cjs
-import "./fieldBuffer"
-//__#__
+import "./fieldBuffer.js"
 
 /**
  * TODO: long term 'EDI_getEntireLineVisualWidth' should be replaced by a lookup within 'EDI_trackingUint32MaxHeap'...

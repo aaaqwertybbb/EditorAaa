@@ -1,7 +1,4 @@
-//__#__
-// preprocessor.cjs
-import "./fieldBuffer"
-//__#__
+import "./fieldBuffer.js"
 
 /*
 When collapse maybe you reset the length of the longest line or something
