@@ -7,8 +7,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "prebuild": "node preprocessor.cjs",
-    "build": "babel preprocessor/__PREPROCESSEDbundle__.js -o build/__COMPILEDbundle__.js",
     "start": "electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
