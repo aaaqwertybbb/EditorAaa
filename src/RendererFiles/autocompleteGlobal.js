@@ -1,4 +1,5 @@
 import {APP_lineHeightStringWithPx} from "./applicationRendererRoot.js"
+import {explorer} from './explorerGlobal.js'
 
 export const CONST_AUTOCOMPLETE_topPadding = 4;
 
@@ -137,7 +138,7 @@ function AUTOCOMPLETE_render_create_lines(AUTOCOMPLETE_itemList) {
 
     let verticalOffset = CONST_AUTOCOMPLETE_topPadding;
 
-    let widthAttributeValueNumber = Math.ceil((autocomplete.WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING + 2/*padding*/) * f.fEXPLORER_firstSpanWidthValue);
+    let widthAttributeValueNumber = Math.ceil((autocomplete.WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING + 2/*padding*/) * explorer.firstSpanWidthValue);
     let widthAttributeValueString = widthAttributeValueNumber + 'px';
 
     for (let i = 0; i < autocomplete.virtualCount; i++) {
@@ -359,7 +360,7 @@ function AUTOCOMPLETE_slice(lspResult) {
 
     if (NEXT_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING > currentWIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING) {
         autocomplete.WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING = NEXT_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING;
-        let widthAttributeValueNumber = Math.ceil((autocomplete.WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING + 2/*padding*/) * f.fEXPLORER_firstSpanWidthValue);
+        let widthAttributeValueNumber = Math.ceil((autocomplete.WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING + 2/*padding*/) * explorer.firstSpanWidthValue);
 
         // This is actually more complicated you have to track whether you go above the minimum requirement lest you add 1 character over and over in width just to keep redrawing widths.
         //if (widthAttributeValueNumber < this.lastReadNumber_offsetWidth) {
