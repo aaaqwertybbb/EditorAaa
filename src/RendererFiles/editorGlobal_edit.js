@@ -14,11 +14,6 @@ export const CONST_EDI_ASCII_SPACE = 32;
 
 export const CONST_EDI_cursor_htmlId = "EDI_cursor-1";
 
-
-
-
-
-
 export const fAUTOCOMPLETE_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING = 108;
 INTS[fAUTOCOMPLETE_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING] = 2;
 
@@ -30,8 +25,6 @@ INTS[fAUTOCOMPLETE_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING] = 2;
  * */
 export const fAPP_lineHeight = 109;
 INTS[fAUTOCOMPLETE_WIDTH_NODE_DRAWN_NUMBER_IN_CH_UNITS_NO_PADDING] = 20;
-
-
 
 /**
  * I'm not sure how large I want this, what matters is that I just have a size of anything for the time being, then can change this constant later.
@@ -70,27 +63,29 @@ class Autocomplete {
 
         // I don't think 'slice' is in LSP specification but I need to start like this cause it is only way I'll get something "initially working".
         /** TODO: This isn't used only set */
-        export const fAUTOCOMPLETE_items_slice_start = 93;
+        let items_slice_start = 0;
         /** TODO: This isn't used only set */
-        export const fAUTOCOMPLETE_items_slice_end = 94;
-        export const fAUTOCOMPLETE_items_totalLength = 95;
+        let items_slice_end = 0;
+        let items_totalLength = 0;
 
-        export const fAUTOCOMPLETE_cursorIndex = 96;
+        let cursorIndex = 0;
 
-        export const fAUTOCOMPLETE_rectHeight = 97;
-        export const fAUTOCOMPLETE_rectLeft = 98;
+        let rectHeight = 0;
+        let rectLeft = 0;
         /** TODO: This isn't used only set, but it probably will be used for mouse events just that they're not written yet? */
-        export const fAUTOCOMPLETE_rectTop = 99;
+        let rectTop = 0;
 
-        export const fAUTOCOMPLETE_sliceVirtualIndex_SLICE = 100;
-        export const fAUTOCOMPLETE_sliceVirtualCount_SLICE = 101;
-        export const fAUTOCOMPLETE_sliceRingBufferIndexZero_SLICE = 102;
+        let sliceVirtualIndex_SLICE = 0;
+        let sliceVirtualCount_SLICE = 0;
+        let sliceRingBufferIndexZero_SLICE = 0;
 
-        export const fAUTOCOMPLETE_virtualCount = 103;
-        export const fAUTOCOMPLETE_virtualIndex = 104;
-        export const fAUTOCOMPLETE_ringBufferIndexZero = 105;
+        let virtualCount = 0;
+        let virtualIndex = 0;
+        let ringBufferIndexZero = 0;
 
-        export const fAUTOCOMPLETE_scrollTop = 106;
+        let scrollTop = 0;
+
+        let isCheckingTrailingEdgeTimeoutId = 0;
     }
 }
 
@@ -115,12 +110,11 @@ class Widget {
          * 
          * okay yeah it is a ticket dispenser we're good
          */
-        export const fWIDGET_ticketId_counter = 110;
-        INTS[fWIDGET_ticketId_counter] = 1;
+        let ticketId_counter = 1;
 
-        export const fWIDGET_ticketId_drawn = 111;
+        let ticketId_drawn = 0;
 
-        export const fWIDGETrenderKind_Show_countOfPendingRequests = 112;
+        let renderKind_Show_countOfPendingRequests = 0;
     }
 }
 
@@ -145,12 +139,11 @@ class Menu {
         let queueHead = 0;
         let queueTail = 0;
 
-        export const fMENU_ticketId_counter = 113;
-        INTS[fMENU_ticketId_counter] = 1;
+        let ticketId_counter = 1;
 
-        export const fMENU_ticketId_drawn = 114;
+        let ticketId_drawn = 0;
 
-        export const fMENU_renderKind_Set_countOfPendingRequests = 115;
+        let renderKind_Set_countOfPendingRequests = 0;
     }
 }
 
@@ -204,15 +197,6 @@ class TextEditor {
          * When reading the clipboard use 'await EDI_read_clipboard();'
          */
         let clipboard_may_have_changed = true;
-
-
-
-
-
-
-
-
-
 
         let lineHeight = 20;
 
@@ -292,13 +276,11 @@ class TextEditor {
         let recentBoundingClientRect_top = 0;
 
         // ====
-        export const fTreeView_poolret_pooledNode_key = 28;
         /** TODO: obsolete */
-        export const fEDI_poolret_pooledTrackedSyntax_start = 28;
+        let poolret_pooledTrackedSyntax_start = 0;
 
-        export const fTreeView_poolret_pooledNode_depth = 29;
         /** TODO: obsolete */
-        export const fEDI_poolret_pooledTrackedSyntax_length = 29;
+        let poolret_pooledTrackedSyntax_length = 0;
         // ====
 
         let cursor_indexLine = 0;
@@ -413,87 +395,83 @@ class TextEditor {
 
         // ====
         /** 'ret_' will overwrite one another do not mix the function invocations without having read the values first */
-        export const fEDI_ret_getLineAndColumnIndices_indexLine = 68;
+        let ret_getLineAndColumnIndices_indexLine = 0;
         /** 'ret_' will overwrite one another do not mix the function invocations without having read the values first */
-        export const fEDI_ret_getLineBoundaryPositions_start = 68;
+        let ret_getLineBoundaryPositions_start = 0;
         /** 'ret_' will overwrite one another do not mix the function invocations without having read the values first */
-        export const fEDI_ret_getIndexFromX_indexColumn = 68;
+        let ret_getIndexFromX_indexColumn = 0;
 
         /** 'ret_' will overwrite one another do not mix the function invocations without having read the values first */
-        export const fEDI_ret_getLineAndColumnIndices_indexColumn = 69;
+        let ret_getLineAndColumnIndices_indexColumn = 0;
         /** 'ret_' will overwrite one another do not mix the function invocations without having read the values first */
-        export const fEDI_ret_getLineBoundaryPositions_end = 69;
+        let ret_getLineBoundaryPositions_end = 0;
         /** 'ret_' will overwrite one another do not mix the function invocations without having read the values first */
-        export const fEDI_ret_getIndexFromX_visualColumns = 69;
+        let ret_getIndexFromX_visualColumns = 0;
         // ====
 
         let cursorVisualColumnIndex = 0;
 
-        export const fAUTOCOMPLETE_isCheckingTrailingEdgeTimeoutId = 71;
+        let ontab_visualWidth_perCharacter = 0;
 
-        export const fEDI_ontab_visualWidth_perCharacter = 72;
+        let cursor_selectionIndexAnchorColumnVISUAL = 0;
+        let cursor_selectionIndexEndColumnVISUAL = 0;
 
-        export const fEDI_cursor_selectionIndexAnchorColumnVISUAL = 73;
-        export const fEDI_cursor_selectionIndexEndColumnVISUAL = 74;
+        let cursor_selectionIndexAnchorColumnVISUAL_DRAWN = 0;
+        let cursor_selectionIndexEndColumnVISUAL_DRAWN = 0;
 
-        export const fEDI_cursor_selectionIndexAnchorColumnVISUAL_DRAWN = 75;
-        export const fEDI_cursor_selectionIndexEndColumnVISUAL_DRAWN = 76;
+        let detail_smallColumnVisual = 0;
+        let detail_largeColumnVisual = 0;
 
-        export const fEDI_detail_smallColumnVisual = 77;
-        export const fEDI_detail_largeColumnVisual = 78;
+        let cursor_cached_indentation_string_visualWidth = 0;
 
-        export const fEDI_cursor_cached_indentation_string_visualWidth = 79;
+        let cursor_editLengthVisual = 0;
 
-        export const fEDI_cursor_editLengthVisual = 80;
+        let textByteList_capacity = 0;
+        let textByteList_count = 0;
 
-        export const EDI_textByteList_capacity = 81;
-        export const EDI_textByteList_count = 82;
-
-        export const fEDI_lineEndPositionList_capacity = 83;
+        let lineEndPositionList_capacity = 0;
 
         // ====
         /** 'editret_' will overwrite one another do not mix the function invocations without having read the values first */
-        export const fEDI_editret_cursor_EDI_duplicate_small = 84;
+        let editret_cursor_EDI_duplicate_small = 0;
         /** 'editret_' will overwrite one another do not mix the function invocations without having read the values first */
-        export const fEDI_editret_RemoveSelection_smallPosition = 84;
+        let editret_RemoveSelection_smallPosition = 0;
         /** 'editret_' will overwrite one another do not mix the function invocations without having read the values first */
-        export const fEDI_editret_indentLess_startingLinePos_end = 84;
+        let editret_indentLess_startingLinePos_end = 0;
         /** 'editret_' will overwrite one another do not mix the function invocations without having read the values first */
-        export const fEDI_editret_cursor_gapBufferWriteToSpanElement_SpanTextContentRelativeIndex = 84;
+        let editret_cursor_gapBufferWriteToSpanElement_SpanTextContentRelativeIndex = 0;
 
         /** 'editret_' will overwrite one another do not mix the function invocations without having read the values first */
-        export const fEDI_editret_cursor_EDI_duplicate_length = 85;
+        let editret_cursor_EDI_duplicate_length = 0;
         /** 'editret_' will overwrite one another do not mix the function invocations without having read the values first */
-        export const fEDI_editret_RemoveSelection_largePosition = 85;
+        let editret_RemoveSelection_largePosition = 0;
 
         /** 'editret_' will overwrite one another do not mix the function invocations without having read the values first */
-        export const fEDI_editret_RemoveSelection_smallLineAndColumnIndices_small_indexLine = 86;
+        let editret_RemoveSelection_smallLineAndColumnIndices_small_indexLine = 0;
 
         /** 'editret_' will overwrite one another do not mix the function invocations without having read the values first */
-        export const fEDI_editret_RemoveSelection_smallLineAndColumnIndices_small_indexColumn = 87;
+        let editret_RemoveSelection_smallLineAndColumnIndices_small_indexColumn = 0;
         // ====
 
-        export const fEDI_priorToLastJump_indexLine = 88;
-        export const fEDI_priorToLastJump_indexColumn = 89;
+        let priorToLastJump_indexLine = 0;
+        let priorToLastJump_indexColumn = 0;
 
-        export const fEDI_styleBuffer_capacity = 90;
+        let styleBuffer_capacity = 0;
 
         /**
          * When reading the clipboard use 'await EDI_read_clipboard();' and then read the result from this variable.
          * 
          * editPosition + this[i]
          */
-        export const fEDI_cursor_EDI_duplication_totalLineEndCount = 91;
+        let cursor_EDI_duplication_totalLineEndCount = 0;
 
         /**
          * When reading the clipboard use 'await EDI_read_clipboard();' and then read the result from this variable.
          * editPosition + this[i]
          */
-        export const fEDI_cursor_EDI_paste_clipboardContent_totalLineEndCount = 92;
+        let cursor_EDI_paste_clipboardContent_totalLineEndCount = 0;
 
-
-
-        export const fEDI_cursor_editLength_bytes = 107;
+        let cursor_editLength_bytes = 0;
     }
 }
 

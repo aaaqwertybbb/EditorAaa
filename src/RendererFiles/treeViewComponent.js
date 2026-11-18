@@ -1,5 +1,8 @@
 import * as f from './fieldBuffer.js'
 
+export const fTreeView_poolret_pooledNode_key = 28;
+export const fTreeView_poolret_pooledNode_depth = 29;
+
 const TREEVIEWrenderKind_None = 0;
 const TREEVIEWrenderKind_Cursor = 1;
 const TREEVIEWrenderKind_Create = 2;
