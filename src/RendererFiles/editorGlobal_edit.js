@@ -426,6 +426,8 @@ class TextEditor {
         this.text = this.baseElement.children[1].children[1];
         this.text_canvas = this.baseElement.children[1].children[1].children[0];
         this.cursor_canvas = this.baseElement.children[1].children[1].children[1];
+
+        this.textTopPadding = 3;
     }
 }
 
@@ -535,7 +537,6 @@ export function set_EDI_characterWidth(value) {
 //let EDI_character_count_that_fits_view = 100;
 
 //let EDI_verticalCenterPadding = 0;
-let EDI_textTopPadding = 3;
 
 export let EDI_cursor_cursorTranslateXValue = 0;
 export function set_EDI_cursor_cursorTranslateXValue(value) {
