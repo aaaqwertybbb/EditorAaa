@@ -58,7 +58,6 @@ const CharacterKind = Object.freeze({
     LetterOrDigit: 3,
 });
 
-/** @enum {number} */
 export const RenderKind = Object.freeze({
     None: 0,
     Scroll: 1,
@@ -6860,7 +6859,7 @@ function EDI_render_do_RemoveSelection() {
     LanguageServer2 wasn't forgetting the state of the previous websocket connection so to speak.
     So I was getting these "weird" errors but I fixed that just now.
 
-    if (nodeKind === TreeViewNodeKind_isExpandable_isExpanded)
+    if (nodeKind === TreeViewNodeKind.isExpandable_isExpanded)
     
     explorerGlobal.js:CollapseAnExpandedNode | editorGlobal_ui.js:RemoveSelection
     -----------------------------------------------------------------------------

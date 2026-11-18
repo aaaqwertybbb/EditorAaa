@@ -86,13 +86,13 @@ class TreeViewComponent_staticRunner {
             if (!component) continue; // Component was removed before frame fired
 
             switch (renderKind) {
-                case TREEVIEWrenderKind_Scroll:
+                case TREEVIEWrenderKind.Scroll:
                     component.renderScroll();
                     break;
-                case TREEVIEWrenderKind_Cursor:
+                case TREEVIEWrenderKind.Cursor:
                     component.TreeViewComponent_render_do_Cursor();
                     break;
-                case TREEVIEWrenderKind_Resize:
+                case TREEVIEWrenderKind.Resize:
                     component.renderResize();
                     break;
                 // ... remaining cases
@@ -629,13 +629,13 @@ export class TreeViewComponent {
      * TODO: intra-app resizes or movements will also invoke this; i.e.: if a list is shown in a dialog and the dialog is resized or moved.
      */
     event_windowResize() {
-        this.treeViewComponent_staticRunner.TreeViewComponent_render_request(TREEVIEWrenderKind_Resize, this.runnerId);
+        this.treeViewComponent_staticRunner.TreeViewComponent_render_request(TREEVIEWrenderKind.Resize, this.runnerId);
     }
 
     event_scroll() {
         this.scrollLeft = this.scrollViewport.scrollLeft;
         this.scrollTop = this.scrollViewport.scrollTop;
-        this.treeViewComponent_staticRunner.TreeViewComponent_render_request(TREEVIEWrenderKind_Scroll, this.runnerId);
+        this.treeViewComponent_staticRunner.TreeViewComponent_render_request(TREEVIEWrenderKind.Scroll, this.runnerId);
     }
 
     // tvnl_

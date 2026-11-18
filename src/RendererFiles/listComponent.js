@@ -89,10 +89,10 @@ class ListComponent {
         // Synchronously exhaust the item queue for this animation frame
         while (renderKind = this.LIST_renderKindArray.shift()) {
             switch (renderKind) {
-                case LISTrenderKind_Cursor:
+                case LISTrenderKind.Cursor:
                     this.LIST_render_do_Cursor();
                     break;
-                case LISTrenderKind_Scroll:
+                case LISTrenderKind.Scroll:
                     this.LIST_render_do_Scroll();
             }
         }
@@ -414,7 +414,7 @@ class ListComponent {
     event_scroll_WRAPIT() {
         this.lastSeenScrollTop = this.scroll_viewport.scrollTop;
         this.lastSeenScrollLeft = this.scroll_viewport.scrollLeft;
-        this.LIST_render_request(LISTrenderKind_Scroll);
+        this.LIST_render_request(LISTrenderKind.Scroll);
     }
     
     LIST_render_do_Scroll() {
@@ -462,7 +462,7 @@ class ListComponent {
     state_cursor_setIndex(indexItem) {
         if (this.cursorIndex === indexItem) return;
         this.cursorIndex = indexItem;
-        this.LIST_render_request(LISTrenderKind_Cursor);
+        this.LIST_render_request(LISTrenderKind.Cursor);
     }
 
     /**
