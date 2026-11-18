@@ -1,1 +1,14 @@
-Code is completely broken for a moment while I change things
+
+
+If you run the C# project 'JSLSApp' from the other repo you get syntax highlighting.
+(you need to start it prior to running the Editor app, and if it wasn't started in time you need to restart the Editor)
+
+- [ ] TreeView context menu doesn't work
+- [ ] A lot of things are kinda scuffed I need to eat something
+
+
+
+
+
+
+

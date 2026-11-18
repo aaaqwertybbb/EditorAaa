@@ -483,7 +483,7 @@ const EDI_lineEndPositionList_PENDING = new UInt32List(128);
 /** Be wary to the possibility of pending edits causing this to not be up to date. */
 export let EDI_lineEndPositionList_data = new Uint32Array(editor.lineEndPositionList_capacity);
 
-let EDI_textSourceIdentifier = '';
+export let EDI_textSourceIdentifier = '';
 let EDI_FORMATTED_textSourceIdentifier = '';
 
 let EDI_lineEndString = null;
@@ -3918,7 +3918,7 @@ function EDI_onblur() {
  * @param {*} NOTfinalizePendingEdits if there is a pending edit, it needs to be finalized in order to see the updated text. The default behavior is to finalize the pending edits. To use default behavior, do NOT provide the parameter, or provide a falsey expression like 'null'.
  * @returns
  */
-function EDI_getFinalizedEditsAndRawSaveFileData(NOTfinalizePendingEdits) {
+export function EDI_getFinalizedEditsAndRawSaveFileData(NOTfinalizePendingEdits) {
     if (!NOTfinalizePendingEdits) {
         EDI_finalizeEdit();
     }

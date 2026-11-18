@@ -1,6 +1,6 @@
 import * as f from "./fieldBuffer.js"
 import {explorer, set_EXPLORER_firstSpanWidth} from './explorerGlobal.js'
-import {editor, EDI_init, EDI_encoder, EDI_decoder_CUSTOM, EDI_styleBuffer, set_EDI_styleBuffer, EDI_render_request, RenderKind, EDI_moveCursor_position} from './editorGlobal_edit.js'
+import {editor, EDI_init, EDI_encoder, EDI_decoder_CUSTOM, EDI_styleBuffer, set_EDI_styleBuffer, EDI_render_request, RenderKind, EDI_moveCursor_position, EDI_textSourceIdentifier, EDI_getFinalizedEditsAndRawSaveFileData} from './editorGlobal_edit.js'
 import {DIALOG_show, DialogKind} from './dialogGlobal.js'
 import {DIALOG_Debug_Refresh} from './dialogImplementationsGlobal.js'
 
