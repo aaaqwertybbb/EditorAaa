@@ -1341,9 +1341,6 @@ TreeView Explorer
   - [ ] simple
   - [ ] complex
 -----------------
-- [ ] Copy
-  - [ ] simple
-  - [ ] complex
 - [ ] Delete
   - [ ] complex
 - [ ] Rename

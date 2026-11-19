@@ -600,7 +600,7 @@ async function EXPLORER_MenuOnClick(isCancelled, menuOption, menuRequest) {
             await window.myAPI.setClipboard(entry.absolutePath);
             break;
         case CommandKind.Paste:
-            await CommandKind.Paste_MenuOnClick_Paste(entry, menuRequest);
+            await CommandKind_Paste_MenuOnClick_Paste(entry, menuRequest);
             break;
         case CommandKind.NewFile_Directory:
             await WIDGET_show(WidgetKind.InputText, explorer.menuOptionX, explorer.menuOptionY, 'filename', entry, menuRequest.target, menuRequest.elementToFocusOnCompleted, false, NewFile_Directory_WIDGET_InputText_callback);
@@ -700,9 +700,8 @@ async function CommandKind_Paste_MenuOnClick_Paste(entry, menuRequest) {
         }
     }
 
-    explorer.itemHeightTotal = EXPLORER_treeViewNodes.count_abstract * explorer.itemHeightNumber;
-    EXPLORER_scrollbar_space_generator.style.height = explorer.itemHeightTotal + 'px';
-    EXPLORER_draw_BATCH_request(explorer.virtualIndex_ofScrollTop, explorer.virtualCount, 3);
+    EXPLORER_treeViewComponent.drawScrollbarHeight();
+    EXPLORER_treeViewComponent.forceFullscreen_renderScroll();
 }
 
 async function NewFile_Directory_WIDGET_InputText_callback(widgetResult) {
