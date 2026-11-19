@@ -174,6 +174,16 @@ function EXPLORER_renderLines(lineIndexLower, lineIndexUpper, ringBufferIndex, d
         ctx.fillRect(0, cursorY, EXPLORER_treeViewComponent.canvas.width, EXPLORER_treeViewComponent.itemHeightNumber);
     }
 
+    if (EXPLORER_menuOptionPaste_object !== null && EXPLORER_menuOptionPaste_object !== undefined) {
+        if (EXPLORER_menuOptionPaste_object.indexItem !== null && EXPLORER_menuOptionPaste_object.indexItem !== undefined) {
+            if (lineIndexLower <= EXPLORER_menuOptionPaste_object.indexItem && LINE_INDEX_UPPER > EXPLORER_menuOptionPaste_object.indexItem) {
+                ctx.fillStyle = '#845a17';
+                const y = (EXPLORER_menuOptionPaste_object.indexItem - lineIndexLower) * EXPLORER_treeViewComponent.itemHeightNumber;
+                ctx.fillRect(0, y, EXPLORER_treeViewComponent.canvas.width, EXPLORER_treeViewComponent.itemHeightNumber);
+            }
+        }
+    }
+
     ctx.fillStyle = '#d4d4d4';
 
     let previousDepthString = '';
@@ -227,16 +237,6 @@ function EXPLORER_renderLines(lineIndexLower, lineIndexUpper, ringBufferIndex, d
 
         ctx.fillText(LINE_CACHE[ringBufferIndex], 0, vertical); // There's a max width argument in the fillText?
         vertical += ITEM_HEIGHT_NUMBER;
-    }
-
-    if (EXPLORER_menuOptionPaste_object !== null && EXPLORER_menuOptionPaste_object !== undefined) {
-        if (EXPLORER_menuOptionPaste_object.indexItem !== null && EXPLORER_menuOptionPaste_object.indexItem !== undefined) {
-            if (lineIndexLower <= EXPLORER_menuOptionPaste_object.indexItem && LINE_INDEX_UPPER > EXPLORER_menuOptionPaste_object.indexItem) {
-                ctx.fillStyle = '#a17329';
-                const y = (EXPLORER_menuOptionPaste_object.indexItem - lineIndexLower) * EXPLORER_treeViewComponent.itemHeightNumber;
-                ctx.fillRect(0, y, EXPLORER_treeViewComponent.canvas.width, EXPLORER_treeViewComponent.itemHeightNumber);
-            }
-        }
     }
 }
 
@@ -661,6 +661,7 @@ async function EXPLORER_MenuOnClick(isCancelled, menuOption, menuRequest) {
                 // TODO: ^ every possible way to edit the treeView needs to iterated over with respect to the target being the cut node's parent.
                 // TODO: Consider a root tree view node, I believe this will work regardless
             };
+            EXPLORER_treeViewComponent.forceFullscreen_renderScroll();
             await window.myAPI.setClipboard(text);
             break;
         case CommandKind.CopyAbsolutePath:
