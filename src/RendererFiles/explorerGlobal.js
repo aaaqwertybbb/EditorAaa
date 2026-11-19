@@ -655,45 +655,54 @@ async function CommandKind_Paste_MenuOnClick_Paste(entry, menuRequest) {
         nodeKind = TreeViewNodeKind.NOTisExpandable_NOTisExpanded;
     }
 
-    if (isCollapsed) { return; } // TODO: This is wrong, if you did a cut->paste you will erroneously return without checking whether the source treeViewNode needs to be removed?
-    
-    let targetDepth = depthOfTheParent + 1;
+    let theUiChanged = false;
+
     let someIndex = menuRequest.target.indexItem + 1;
 
-    // TODO: 'i_targetDepth' is a bad variable name, you're looping a minimum of until 'pasteResult.indexOf' and each loop you check
-    // whether that sibling is expanded, if so you skip all the children of the sibling.
-    //
-    for (let i_targetDepth = 0; i_targetDepth < pasteResult.indexOf; i_targetDepth++) {
-        EXPLORER_treeViewComponent.getElementAt(someIndex);
-        let nodeKind = treeViewComponent_staticRunner.byteTreeView_byteret_pooledNode_nodeKind;
-        let isCollapsed = nodeKind === TreeViewNodeKind.isExpandable_NOTisExpanded || nodeKind === TreeViewNodeKind.NOTisExpandable_NOTisExpanded;
+    // TODO: What if you collapse in the other direction?
 
-        let d_of_presumed_correct_depth = treeViewComponent_staticRunner.fTreeView_poolret_pooledNode_depth;
-        if (d_of_presumed_correct_depth !== targetDepth) {
-            // Validate the target you paste into's child count
-            break;
-        }
+    // if destination is not collapsed
+    if (!isCollapsed) {
+        theUiChanged = true;
 
-        someIndex++;
+        let targetDepth = depthOfTheParent + 1;
+        // 'someIndex' variable declared outside if statement so accessible
 
-        if (!isCollapsed) {
-            while (someIndex < EXPLORER_treeViewComponent.countAbstract) {
-                let d_of_perhaps_too_large_depth = EXPLORER_treeViewComponent.getDepth(someIndex);
-                if (d_of_perhaps_too_large_depth > targetDepth) {
-                    someIndex++;
-                }
-                else {
-                    break;
-                }
-                // TODO: Check if depth is less than targetDepth? This would only happen if the tree view were somehow in an incorrect state.
+        // TODO: 'i_targetDepth' is a bad variable name, you're looping a minimum of until 'pasteResult.indexOf' and each loop you check
+        // whether that sibling is expanded, if so you skip all the children of the sibling.
+        //
+        for (let i_targetDepth = 0; i_targetDepth < pasteResult.indexOf; i_targetDepth++) {
+            EXPLORER_treeViewComponent.getElementAt(someIndex);
+            let nodeKind = treeViewComponent_staticRunner.byteTreeView_byteret_pooledNode_nodeKind;
+            let isCollapsed = nodeKind === TreeViewNodeKind.isExpandable_NOTisExpanded || nodeKind === TreeViewNodeKind.NOTisExpandable_NOTisExpanded;
+
+            let d_of_presumed_correct_depth = treeViewComponent_staticRunner.fTreeView_poolret_pooledNode_depth;
+            if (d_of_presumed_correct_depth !== targetDepth) {
+                // Validate the target you paste into's child count
+                break;
             }
+
+            someIndex++;
+
+            if (!isCollapsed) {
+                while (someIndex < EXPLORER_treeViewComponent.countAbstract) {
+                    let d_of_perhaps_too_large_depth = EXPLORER_treeViewComponent.getDepth(someIndex);
+                    if (d_of_perhaps_too_large_depth > targetDepth) {
+                        someIndex++;
+                    }
+                    else {
+                        break;
+                    }
+                    // TODO: Check if depth is less than targetDepth? This would only happen if the tree view were somehow in an incorrect state.
+                }
+            }
+
+            // TODO: You're missing a 'someIndex < EXPLORER_treeViewComponent.countAbstract' check for after the while loop.
         }
 
-        // TODO: You're missing a 'someIndex < EXPLORER_treeViewComponent.countAbstract' check for after the while loop.
+        EXPLORER_treeViewComponent.insert(someIndex, nodeKind, pasteResult.pathId, menuRequest.target.depth + 1);
+        EXPLORER_pathIdToDisplayNameMap.set(pasteResult.pathId, local_EXPLORER_menuOptionPaste_object.basename);
     }
-
-    EXPLORER_treeViewComponent.insert(someIndex, nodeKind, pasteResult.pathId, menuRequest.target.depth + 1);
-    EXPLORER_pathIdToDisplayNameMap.set(pasteResult.pathId, local_EXPLORER_menuOptionPaste_object.basename);
 
     if (pasteResult.sourceFileWasDeleted) {
         let indexItem = local_EXPLORER_menuOptionPaste_object.indexItem;
@@ -709,6 +718,9 @@ async function CommandKind_Paste_MenuOnClick_Paste(entry, menuRequest) {
             // Some other treeViewNode may now exist at that index within treeViewComponent.dataLiteral.
             // dataLiteral tracks the treeViewNodes that are possibly visible not every file on the operating system.
             // so if you cut then collapse you still will delete the file on the OS side just that there is nothing to do on the UI side cause the node isn't possibly visible.
+
+            theUiChanged = true;
+
             if (pasteResult.isDirectory) {
                 let countChanges = EXPLORER_removeFromNodeList(indexItem);
             }
@@ -718,8 +730,10 @@ async function CommandKind_Paste_MenuOnClick_Paste(entry, menuRequest) {
         }
     }
 
-    EXPLORER_treeViewComponent.drawScrollbarHeight();
-    EXPLORER_treeViewComponent.forceFullscreen_renderScroll();
+    if (theUiChanged) {
+        EXPLORER_treeViewComponent.drawScrollbarHeight();
+        EXPLORER_treeViewComponent.forceFullscreen_renderScroll();
+    }
 }
 
 async function NewFile_Directory_WIDGET_InputText_callback(widgetResult) {
