@@ -1355,7 +1355,7 @@ TreeView Explorer
   - [ ] simple
   - [ ] complex
 - [ ] Delete
-  - [ ] simple
+  - [x] simple
   - [ ] complex
 - [ ] Rename
   - [ ] simple
@@ -1438,4 +1438,21 @@ TreeView Explorer
 TreeView FindAll
 - [ ] ...
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Consider for IndentMore that if your selection encompasses empty lines you don't indent those empty lines, only the ones that contained text.
 

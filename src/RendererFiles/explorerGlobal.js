@@ -234,7 +234,7 @@ async function EXPLORER_expandCollapseIconWasClicked(divItem, indexItem, ringBuf
 
         const childFilesystemEntries = await window.myAPI.getFilesystemEntries_argumentIsId(key);
         const insertionCount = childFilesystemEntries.length;
-        if (insertionCount === 0) { return; }
+        if (insertionCount === 0) { EXPLORER_treeViewComponent.forceFullscreen_renderScroll(); return; }
 
         for (let i = 0; i < insertionCount; i++) {
             const entry = childFilesystemEntries[i];
@@ -246,19 +246,17 @@ async function EXPLORER_expandCollapseIconWasClicked(divItem, indexItem, ringBuf
             EXPLORER_pathIdToDisplayNameMap.set(entry.id, entry.basename);
         }
 
-        EXPLORER_treeViewComponent.itemHeightTotal = EXPLORER_treeViewComponent.countAbstract * EXPLORER_treeViewComponent.itemHeightNumber;
-        EXPLORER_treeViewComponent.scrollbarSpaceGenerator.style.height = EXPLORER_treeViewComponent.itemHeightTotal + 'px';
-
+        EXPLORER_treeViewComponent.drawScrollbarHeight();
         EXPLORER_treeViewComponent.forceFullscreen_renderScroll();
     }
     else if (nodeKind === TreeViewNodeKind.isExpandable_isExpanded) {
         EXPLORER_treeViewComponent.setNodeKind(indexItem, TreeViewNodeKind.isExpandable_NOTisExpanded);
-        EXPLORER_treeViewComponent.forceFullscreen_renderScroll();
 
         let countChildren = 0;
         for (let i = indexItem + 1; i < EXPLORER_treeViewComponent.countAbstract; i++) {
             // If currentDepth < ithElementDepth; // then current is a parent of ithElement.
             if (depth < EXPLORER_treeViewComponent.getDepth(i)) {
+                EXPLORER_pathIdToDisplayNameMap.delete(EXPLORER_treeViewComponent.getKey(i));
                 countChildren++;
             }
             else {
@@ -266,13 +264,11 @@ async function EXPLORER_expandCollapseIconWasClicked(divItem, indexItem, ringBuf
             }
         }
 
-        if (countChildren === 0) { return; }
+        if (countChildren === 0) { EXPLORER_treeViewComponent.forceFullscreen_renderScroll(); return; }
 
         EXPLORER_treeViewComponent.removeAt(indexItem + 1, countChildren);
         
-        EXPLORER_treeViewComponent.itemHeightTotal = EXPLORER_treeViewComponent.countAbstract * EXPLORER_treeViewComponent.itemHeightNumber;
-        EXPLORER_treeViewComponent.scrollbarSpaceGenerator.style.height = EXPLORER_treeViewComponent.itemHeightTotal + 'px';
-
+        EXPLORER_treeViewComponent.drawScrollbarHeight();
         EXPLORER_treeViewComponent.forceFullscreen_renderScroll();
     }
 }
@@ -346,7 +342,8 @@ function EXPLORER_oncontextmenu(divItem, indexItem, event_button, event_clientX,
  * @returns 
  */
 function EXPLORER_removeFromNodeList(indexItem) {
-    EXPLORER_treeViewNodes.getElementAt(indexItem);
+    EXPLORER_treeViewComponent.getElementAt(indexItem);
+    let key = treeViewComponent_staticRunner.fTreeView_poolret_pooledNode_key;
     let depth = treeViewComponent_staticRunner.fTreeView_poolret_pooledNode_depth;
     let nodeKind = treeViewComponent_staticRunner.byteTreeView_byteret_pooledNode_nodeKind;
 
@@ -355,12 +352,15 @@ function EXPLORER_removeFromNodeList(indexItem) {
         return;
     }
 
+    EXPLORER_pathIdToDisplayNameMap.delete(key);
+
     let countChildren = 0;
 
-    if (nodeKind === TreeViewNodeKind.isExpandable_isExpanded) {
-        for (let i = indexItem + 1; i < EXPLORER_treeViewNodes.count_abstract; i++) {
+    if (nodeKind === TreeViewNodeKind.isExpandable_isExpanded || nodeKind === TreeViewNodeKind.NOTisExpandable_isExpanded) {
+        for (let i = indexItem + 1; i < EXPLORER_treeViewComponent.countAbstract; i++) {
             // If currentDepth < ithElementDepth; then current is a parent of ithElement.
-            if (depth < EXPLORER_treeViewNodes.getDepth(i)) {
+            if (depth < EXPLORER_treeViewComponent.getDepth(i)) {
+                EXPLORER_pathIdToDisplayNameMap.delete(EXPLORER_treeViewComponent.getKey(i));
                 countChildren++;
             }
             else {
@@ -369,9 +369,7 @@ function EXPLORER_removeFromNodeList(indexItem) {
         }
     }
 
-    EXPLORER_treeViewNodes.removeAt(indexItem, 1 + countChildren);
-    explorer.itemHeightTotal = EXPLORER_treeViewNodes.count_abstract * explorer.itemHeightNumber;
-    EXPLORER_scrollbar_space_generator.style.height = explorer.itemHeightTotal + 'px';
+    EXPLORER_treeViewComponent.removeAt(indexItem, 1 + countChildren);
     return 1 + countChildren;
 }
 
@@ -837,9 +835,8 @@ async function DeleteFile_Directory_YesCancel_callback(widgetResult) {
 
     let countChanges = EXPLORER_removeFromNodeList(target.indexItem);
 
-    explorer.itemHeightTotal = EXPLORER_treeViewNodes.count_abstract * explorer.itemHeightNumber;
-    EXPLORER_scrollbar_space_generator.style.height = explorer.itemHeightTotal + 'px';
-    EXPLORER_draw_BATCH_request(explorer.virtualIndex_ofScrollTop, explorer.virtualCount, 3);
+    EXPLORER_treeViewComponent.drawScrollbarHeight();
+    EXPLORER_treeViewComponent.forceFullscreen_renderScroll();
 }
 
 async function DeleteFile_File_YesCancel_callback(widgetResult) {
