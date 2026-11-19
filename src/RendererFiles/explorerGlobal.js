@@ -616,6 +616,11 @@ async function EXPLORER_MenuOnClick(isCancelled, menuOption, menuRequest) {
             await window.myAPI.setClipboard('file:///' + entry.absolutePath);
             break;
         case CommandKind.Cut:
+            let parentPathId = null;
+            let parentItemIndex = EXPLORER_treeViewComponent.getParentItemIndex(menuRequest.target.indexItem);
+            if (parentItemIndex !== -1) {
+                parentPathId = EXPLORER_treeViewComponent.getKey(parentItemIndex);
+            }
             const text = 'file:///' + entry.absolutePath; // TODO: id: text????... I see id is the absolute path maybe that is ultimately the final source of truth and is better than pathId? I'm not sure.
             EXPLORER_menuOptionPaste_object = {
                 id: text,
@@ -623,8 +628,9 @@ async function EXPLORER_MenuOnClick(isCancelled, menuOption, menuRequest) {
                 indexItem: menuRequest.target.indexItem,
                 divRelativeIndex: menuRequest.target.divRelativeIndex,
                 pathId: menuRequest.target.id, // pathId tracks whether the source of an absolute path came from the main process by checking a sqlite database. Here is used to double check that the tree view node which was cut had not changed since the cut event occurred.
-                parentPathId: null // this is used to track whether the cut node is visible. For copy, this is just set to null.
+                parentPathId: parentPathId // this is used to track whether the cut node is visible. For copy, this is just set to null.
                 // TODO: ^ every possible way to edit the treeView needs to iterated over with respect to the target being the cut node's parent.
+                // TODO: Consider a root tree view node, I believe this will work regardless
             };
             await window.myAPI.setClipboard(text);
             break;

@@ -555,6 +555,31 @@ export class TreeViewComponent {
         this.dblClick_or_space_or_enter(key, this.cursorIndex, ringBufferIndexItem);
     }
 
+    /** Returns the parent index or -1 if no parent could be found. */
+    getParentItemIndex(index) {
+        let originalDepth = this.getDepth(index);
+
+        let foundParent = false;
+        let distanceToParent = 0;
+        for (let i = index - 1; i >= 0; i--) {
+            // If ithElementDepth < currentDepth; // then ithElement is the parent of current.
+            if (this.getDepth(i) < originalDepth) {
+                distanceToParent++;
+                foundParent = true;
+                break;
+            }
+            else {
+                distanceToParent++;
+            }
+        }
+        if (foundParent) {
+            return index - distanceToParent;
+        }
+        else {
+            return -1;
+        }
+    }
+
     /**
      * @param {HTMLElement} parent 
      * @param {HTMLElement?} beforeChild for the `insertBefore` invocation, `null` will result in an append.
