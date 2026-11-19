@@ -420,7 +420,7 @@ export function set_EXPLORER_firstSpanWidth(value) {
  * followed up with a paste or etc... then you have like 3 active menu cut objects sitting around eventually, you probably want them to overwrite eachother.
  * You'd need to track the source of the cut menu object though if you were to do this.
  */
-let EXPLORER_menuOptionCut_object = null;
+let EXPLORER_menuOptionPaste_object = null;
 
 // function EXPLORER_init
 // V8 can optimize away these initialization statements that exist at the module scope but not an "initialization function"
@@ -574,8 +574,8 @@ async function EXPLORER_MenuOnClick(isCancelled, menuOption, menuRequest) {
     const commandKind = menuOption.commandKind;
     if (!commandKind) { return; }
 
-    if (commandKind !== CommandKind.Cut && commandKind !== CommandKind.Paste) {
-        EXPLORER_menuOptionCut_object = null;
+    if (commandKind !== CommandKind.Copy && commandKind !== CommandKind.Cut && commandKind !== CommandKind.Paste) {
+        EXPLORER_menuOptionPaste_object = null;
     }
 
     if (!menuRequest.target.id) return;
@@ -585,12 +585,19 @@ async function EXPLORER_MenuOnClick(isCancelled, menuOption, menuRequest) {
 
     switch (commandKind) {
         case CommandKind.Copy:
+            EXPLORER_menuOptionPaste_object = {
+                id: null, // This id is only used when doing a cut->paste in order to determine whether the source file matches and should be deleted. If id is null then it was a copy->paste
+                basename: entry.basename,
+                indexItem: menuRequest.target.indexItem,
+                divRelativeIndex: menuRequest.target.divRelativeIndex
+            };
             await window.myAPI.setClipboard('file:///' + entry.absolutePath);
             break;
         case CommandKind.Cut:
-            const text = 'file:///' + entry.absolutePath;
-            EXPLORER_menuOptionCut_object = {
+            const text = 'file:///' + entry.absolutePath; // TODO: id: text????... I see id is the absolute path maybe that is ultimately the final source of truth and is better than pathId? I'm not sure.
+            EXPLORER_menuOptionPaste_object = {
                 id: text,
+                basename: entry.basename,
                 indexItem: menuRequest.target.indexItem,
                 divRelativeIndex: menuRequest.target.divRelativeIndex
             };
@@ -625,14 +632,16 @@ async function EXPLORER_MenuOnClick(isCancelled, menuOption, menuRequest) {
 }
 
 async function CommandKind_Paste_MenuOnClick_Paste(entry, menuRequest) {
-    EXPLORER_treeViewNodes.getElementAt(menuRequest.target.indexItem);
+    let local_EXPLORER_menuOptionPaste_object = EXPLORER_menuOptionPaste_object;
+    EXPLORER_menuOptionPaste_object = null;
+    if (local_EXPLORER_menuOptionPaste_object === null || local_EXPLORER_menuOptionPaste_object === undefined) { return; }
+
+    EXPLORER_treeViewComponent.getElementAt(menuRequest.target.indexItem);
     let nodeKind = treeViewComponent_staticRunner.byteTreeView_byteret_pooledNode_nodeKind;
     let depthOfTheParent = treeViewComponent_staticRunner.fTreeView_poolret_pooledNode_depth;
     let isCollapsed = nodeKind === TreeViewNodeKind.isExpandable_NOTisExpanded || nodeKind === TreeViewNodeKind.NOTisExpandable_NOTisExpanded;
 
-    let local_EXPLORER_menuOptionCut_object = EXPLORER_menuOptionCut_object;
-    EXPLORER_menuOptionCut_object = null;
-    const pasteResult = await window.myAPI.pasteClipboardAbsolutePathToDirectory(entry.absolutePath, local_EXPLORER_menuOptionCut_object?.id);
+    const pasteResult = await window.myAPI.pasteClipboardAbsolutePathToDirectory(entry.absolutePath, local_EXPLORER_menuOptionPaste_object.id);
     if (!pasteResult.success) { return; }
 
     // TODO: I belive this final paste logic that comes after this comment and within this scope is extremely similar to the new file logic...
@@ -653,7 +662,7 @@ async function CommandKind_Paste_MenuOnClick_Paste(entry, menuRequest) {
     // whether that sibling is expanded, if so you skip all the children of the sibling.
     //
     for (let i_targetDepth = 0; i_targetDepth < pasteResult.indexOf; i_targetDepth++) {
-        EXPLORER_treeViewNodes.getElementAt(someIndex);
+        EXPLORER_treeViewComponent.getElementAt(someIndex);
         let nodeKind = treeViewComponent_staticRunner.byteTreeView_byteret_pooledNode_nodeKind;
         let isCollapsed = nodeKind === TreeViewNodeKind.isExpandable_NOTisExpanded || nodeKind === TreeViewNodeKind.NOTisExpandable_NOTisExpanded;
 
@@ -666,8 +675,8 @@ async function CommandKind_Paste_MenuOnClick_Paste(entry, menuRequest) {
         someIndex++;
 
         if (!isCollapsed) {
-            while (someIndex < EXPLORER_treeViewNodes.count_abstract) {
-                let d_of_perhaps_too_large_depth = EXPLORER_treeViewNodes.getDepth(someIndex);
+            while (someIndex < EXPLORER_treeViewComponent.countAbstract) {
+                let d_of_perhaps_too_large_depth = EXPLORER_treeViewComponent.getDepth(someIndex);
                 if (d_of_perhaps_too_large_depth > targetDepth) {
                     someIndex++;
                 }
@@ -678,15 +687,16 @@ async function CommandKind_Paste_MenuOnClick_Paste(entry, menuRequest) {
             }
         }
 
-        // TODO: You're missing a 'someIndex < EXPLORER_treeViewNodes.count_abstract' check for after the while loop.
+        // TODO: You're missing a 'someIndex < EXPLORER_treeViewComponent.countAbstract' check for after the while loop.
     }
 
-    EXPLORER_treeViewNodes.insert(someIndex, nodeKind, pasteResult.pathId, menuRequest.target.depth + 1);
+    EXPLORER_treeViewComponent.insert(someIndex, nodeKind, pasteResult.pathId, menuRequest.target.depth + 1);
+    EXPLORER_pathIdToDisplayNameMap.set(pasteResult.pathId, local_EXPLORER_menuOptionPaste_object.basename);
 
     if (pasteResult.sourceFileWasDeleted) {
-        let indexItem = local_EXPLORER_menuOptionCut_object.indexItem;
+        let indexItem = local_EXPLORER_menuOptionPaste_object.indexItem;
 
-        // TODO: clear 'EXPLORER_menuOptionCut_object' if paste clear flag cut if not same id
+        // TODO: clear 'EXPLORER_menuOptionPaste_object' if paste clear flag cut if not same id
 
         if (someIndex <= indexItem) {
             indexItem += 1;
@@ -696,7 +706,7 @@ async function CommandKind_Paste_MenuOnClick_Paste(entry, menuRequest) {
             let countChanges = EXPLORER_removeFromNodeList(indexItem);
         }
         else {
-            EXPLORER_treeViewNodes.removeAt(indexItem, 1);
+            EXPLORER_treeViewComponent.removeAt(indexItem, 1);
         }
     }
 
