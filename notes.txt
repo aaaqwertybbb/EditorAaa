@@ -1347,8 +1347,7 @@ TreeView Explorer
 - [ ] Delete
   - [ ] complex
 - [ ] Rename
-  - [ ] simple
-  - [ ] complex
+  - [ ] complex /** TODO: after renaming the file, probably should sort and ensure you have focus on that renamed one and scroll it into view if after the sort that becomes needed. */
 - [ ] Paste
   - [ ] simple
   - [ ] complex

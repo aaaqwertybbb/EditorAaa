@@ -375,7 +375,7 @@ function EXPLORER_removeFromNodeList(indexItem) {
 
 /** TODO: any usage of this needs to respect the actual zeroth UI div not the literal. */
 function EXPLORER_setNodeListEntryId(indexItem, pathId) {
-    EXPLORER_treeViewNodes.setKey(indexItem, pathId);
+    EXPLORER_treeViewComponent.setKey(indexItem, pathId);
 }
 
 function EXPLORER_addSpecificMenuOptionsForTarget(optionList, divItem, target) {
@@ -853,6 +853,7 @@ async function DeleteFile_File_YesCancel_callback(widgetResult) {
     EXPLORER_treeViewComponent.forceFullscreen_renderScroll();
 }
 
+/** TODO: after renaming the file, probably should sort and ensure you have focus on that renamed one and scroll it into view if after the sort that becomes needed. */
 async function RenameFile_Directory_InputText_callback(widgetResult) {
     if (widgetResult.isCancelled) return;
     // TODO: Confusing, hacky, upsetting: 'WIDGET_target.entry / WIDGET_target.MENU_target'
@@ -862,10 +863,13 @@ async function RenameFile_Directory_InputText_callback(widgetResult) {
     if (!renameFileResult.success) { return; }
 
     EXPLORER_setNodeListEntryId(target.indexItem, renameFileResult.pathId);
-    const textNode = EXPLORER_itemListElement.children[target.divRelativeIndex].firstChild;
-    textNode.replaceData(1, textNode.length - 1, widgetResult.resultData);
+
+    EXPLORER_pathIdToDisplayNameMap.delete(target.id);
+    EXPLORER_pathIdToDisplayNameMap.set(renameFileResult.pathId, widgetResult.resultData);
+    EXPLORER_treeViewComponent.forceFullscreen_renderScroll();
 }
 
+/** TODO: after renaming the file, probably should sort and ensure you have focus on that renamed one and scroll it into view if after the sort that becomes needed. */
 async function RenameFile_File_InputText_callback(widgetResult) {
     if (widgetResult.isCancelled) return;
     // TODO: Confusing, hacky, upsetting: 'WIDGET_target.entry / WIDGET_target.MENU_target'
@@ -875,8 +879,10 @@ async function RenameFile_File_InputText_callback(widgetResult) {
     if (!renameFileResult.success) { return; }
 
     EXPLORER_setNodeListEntryId(target.indexItem, renameFileResult.pathId);
-    const textNode = EXPLORER_itemListElement.children[target.divRelativeIndex].firstChild;
-    textNode.replaceData(1, textNode.length - 1, widgetResult.resultData);
+    
+    EXPLORER_pathIdToDisplayNameMap.delete(target.id);
+    EXPLORER_pathIdToDisplayNameMap.set(renameFileResult.pathId, widgetResult.resultData);
+    EXPLORER_treeViewComponent.forceFullscreen_renderScroll();
 }
 
 // TODO: look at the "async" events because its nonsensical
