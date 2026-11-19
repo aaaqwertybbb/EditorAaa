@@ -940,6 +940,8 @@ export function EDI_init() {
     EDI_state_setText_byteArray(new Uint8Array(16), /*textByteLength*/ 0, /*fileStartsWithBom*/ false, /*textSourceIdentifier*/ null, /*FORMATTED_textSourceIdentifier*/ null, /*extensionKind*/ 0, /*lineEndString*/ '\n', /*lineEndCount*/ 0);
     EDI_registerHandlers();
     EDI_render_do_Resize();
+
+    EDI_draw_cursor_debug();
 }
 
 function EDI_createViewport() {
