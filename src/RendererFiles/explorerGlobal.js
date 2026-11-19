@@ -589,7 +589,8 @@ async function EXPLORER_MenuOnClick(isCancelled, menuOption, menuRequest) {
                 id: null, // This id is only used when doing a cut->paste in order to determine whether the source file matches and should be deleted. If id is null then it was a copy->paste
                 basename: entry.basename,
                 indexItem: menuRequest.target.indexItem,
-                divRelativeIndex: menuRequest.target.divRelativeIndex
+                divRelativeIndex: menuRequest.target.divRelativeIndex,
+                pathId: menuRequest.target.id // pathId tracks whether the source of an absolute path came from the main process by checking a sqlite database. Here is used to double check that the tree view node which was cut had not changed since the cut event occurred.
             };
             await window.myAPI.setClipboard('file:///' + entry.absolutePath);
             break;
@@ -599,7 +600,8 @@ async function EXPLORER_MenuOnClick(isCancelled, menuOption, menuRequest) {
                 id: text,
                 basename: entry.basename,
                 indexItem: menuRequest.target.indexItem,
-                divRelativeIndex: menuRequest.target.divRelativeIndex
+                divRelativeIndex: menuRequest.target.divRelativeIndex,
+                pathId: menuRequest.target.id // pathId tracks whether the source of an absolute path came from the main process by checking a sqlite database. Here is used to double check that the tree view node which was cut had not changed since the cut event occurred.
             };
             await window.myAPI.setClipboard(text);
             break;
@@ -653,7 +655,7 @@ async function CommandKind_Paste_MenuOnClick_Paste(entry, menuRequest) {
         nodeKind = TreeViewNodeKind.NOTisExpandable_NOTisExpanded;
     }
 
-    if (isCollapsed) { return; }
+    if (isCollapsed) { return; } // TODO: This is wrong, if you did a cut->paste you will erroneously return without checking whether the source treeViewNode needs to be removed?
     
     let targetDepth = depthOfTheParent + 1;
     let someIndex = menuRequest.target.indexItem + 1;
@@ -696,17 +698,23 @@ async function CommandKind_Paste_MenuOnClick_Paste(entry, menuRequest) {
     if (pasteResult.sourceFileWasDeleted) {
         let indexItem = local_EXPLORER_menuOptionPaste_object.indexItem;
 
-        // TODO: clear 'EXPLORER_menuOptionPaste_object' if paste clear flag cut if not same id
-
+        // I think this says "if the pasted node's index comes prior to that of the cut node then the cut node needs to be given an offset of '+1' from the original position."
         if (someIndex <= indexItem) {
             indexItem += 1;
         }
 
-        if (pasteResult.isDirectory) {
-            let countChanges = EXPLORER_removeFromNodeList(indexItem);
-        }
-        else {
-            EXPLORER_treeViewComponent.removeAt(indexItem, 1);
+        if (EXPLORER_treeViewComponent.getKey(indexItem) === local_EXPLORER_menuOptionPaste_object.pathId) {
+            // This can happen but only if the user modifies the TreeView state without doing so through a menu option.
+            // For example, if you cut a treeViewNode and then collapse its parent.
+            // Some other treeViewNode may now exist at that index within treeViewComponent.dataLiteral.
+            // dataLiteral tracks the treeViewNodes that are possibly visible not every file on the operating system.
+            // so if you cut then collapse you still will delete the file on the OS side just that there is nothing to do on the UI side cause the node isn't possibly visible.
+            if (pasteResult.isDirectory) {
+                let countChanges = EXPLORER_removeFromNodeList(indexItem);
+            }
+            else {
+                EXPLORER_treeViewComponent.removeAt(indexItem, 1);
+            }
         }
     }
 
