@@ -278,6 +278,11 @@ async function EXPLORER_expandCollapseIconWasClicked(divItem, indexItem, ringBuf
         // you're wrong^.
         // The expand collapse logic is currently very simple.
         // You'd actually only need to track whether the immediate parent is re-expanded at any point.
+        //
+        // Even then^
+        // if you had expand collapse that remembered children expanded collapse state while they were collapsed.
+        // you'd only need to track the node you just collapsed that resulted in the cut target being no longer "possibly visible"
+        // furthermore it is the wording "possibly visible" it being in the viewport doesn't make a difference. (it is in dataLiteral)
         if (indexItem + 1 < EXPLORER_menuOptionPaste_object.indexItem) {
             EXPLORER_menuOptionPaste_object.indexItem -= countChildren;
         }
