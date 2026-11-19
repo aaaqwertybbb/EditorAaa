@@ -733,6 +733,9 @@ async function CommandKind_Paste_MenuOnClick_Paste(entry, menuRequest) {
         // that only 'parentPathId' is needed to determine whether the cut node came back into view.
         // You determine this by checking whether the expand-collapse event node target's pathId is equal to 'EXPLORER_menuOptionPaste_object.parentPathId'
         // if so you set the 'EXPLORER_menuOptionPaste_object.indexItem' during the event.
+        //
+        // for clarification you use 'parentPathId' only when expanding
+        // the collapse needs to be relative to a collapse of ANY ancestor so you check the intersection
 
         let indexItem = local_EXPLORER_menuOptionPaste_object.indexItem;
 
