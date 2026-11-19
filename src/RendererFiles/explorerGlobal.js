@@ -609,7 +609,9 @@ async function EXPLORER_MenuOnClick(isCancelled, menuOption, menuRequest) {
                 basename: entry.basename,
                 indexItem: menuRequest.target.indexItem,
                 divRelativeIndex: menuRequest.target.divRelativeIndex,
-                pathId: menuRequest.target.id // pathId tracks whether the source of an absolute path came from the main process by checking a sqlite database. Here is used to double check that the tree view node which was cut had not changed since the cut event occurred.
+                pathId: menuRequest.target.id, // pathId tracks whether the source of an absolute path came from the main process by checking a sqlite database. Here is used to double check that the tree view node which was cut had not changed since the cut event occurred.
+                parentPathId: null // this is used to track whether the cut node is visible. For copy, this is just set to null.
+                // TODO: ^ every possible way to edit the treeView needs to iterated over with respect to the target being the cut node's parent.
             };
             await window.myAPI.setClipboard('file:///' + entry.absolutePath);
             break;
@@ -620,7 +622,9 @@ async function EXPLORER_MenuOnClick(isCancelled, menuOption, menuRequest) {
                 basename: entry.basename,
                 indexItem: menuRequest.target.indexItem,
                 divRelativeIndex: menuRequest.target.divRelativeIndex,
-                pathId: menuRequest.target.id // pathId tracks whether the source of an absolute path came from the main process by checking a sqlite database. Here is used to double check that the tree view node which was cut had not changed since the cut event occurred.
+                pathId: menuRequest.target.id, // pathId tracks whether the source of an absolute path came from the main process by checking a sqlite database. Here is used to double check that the tree view node which was cut had not changed since the cut event occurred.
+                parentPathId: null // this is used to track whether the cut node is visible. For copy, this is just set to null.
+                // TODO: ^ every possible way to edit the treeView needs to iterated over with respect to the target being the cut node's parent.
             };
             await window.myAPI.setClipboard(text);
             break;
@@ -722,7 +726,14 @@ async function CommandKind_Paste_MenuOnClick_Paste(entry, menuRequest) {
         EXPLORER_pathIdToDisplayNameMap.set(pasteResult.pathId, local_EXPLORER_menuOptionPaste_object.basename);
     }
 
-    if (pasteResult.sourceFileWasDeleted) {
+    if (pasteResult.sourceFileWasDeleted && local_EXPLORER_menuOptionPaste_object.indexItem !== null && local_EXPLORER_menuOptionPaste_object.indexItem !== undefined) {
+        // ^when the cut node is removed from dataLiteral due to a "collapse of an ancestor", the 'EXPLORER_menuOptionPaste_object.indexItem' is set to null.
+        // 
+        // Furthermore, given the current simplistic expand-collase implementation that doesn't remember the expand-collapse state of the children when removing them from the dataLiteral due to a "collapse of an ancestor":
+        // that only 'parentPathId' is needed to determine whether the cut node came back into view.
+        // You determine this by checking whether the expand-collapse event node target's pathId is equal to 'EXPLORER_menuOptionPaste_object.parentPathId'
+        // if so you set the 'EXPLORER_menuOptionPaste_object.indexItem' during the event.
+
         let indexItem = local_EXPLORER_menuOptionPaste_object.indexItem;
 
         // I think this says "if the pasted node's index comes prior to that of the cut node then the cut node needs to be given an offset of '+1' from the original position."
