@@ -246,6 +246,10 @@ async function EXPLORER_expandCollapseIconWasClicked(divItem, indexItem, ringBuf
             EXPLORER_pathIdToDisplayNameMap.set(entry.id, entry.basename);
         }
 
+        if (EXPLORER_menuOptionPaste_object.indexItem >= indexItem + 1) {
+            EXPLORER_menuOptionPaste_object.indexItem += insertionCount;
+        }
+
         EXPLORER_treeViewComponent.drawScrollbarHeight();
         EXPLORER_treeViewComponent.forceFullscreen_renderScroll();
     }
@@ -267,6 +271,12 @@ async function EXPLORER_expandCollapseIconWasClicked(divItem, indexItem, ringBuf
         if (countChildren === 0) { EXPLORER_treeViewComponent.forceFullscreen_renderScroll(); return; }
 
         EXPLORER_treeViewComponent.removeAt(indexItem + 1, countChildren);
+
+        // TODO: track the parent (likely the entire ancestry because if you collapse a parent and then show it again you'll muck it all up... maybe just do a different tactic)...
+        // ...because tracking when it disappears or appears again is probably more overhead than looping the viewport to see if there is a match.
+        if (indexItem + 1 < EXPLORER_menuOptionPaste_object.indexItem) {
+            EXPLORER_menuOptionPaste_object.indexItem -= countChildren;
+        }
         
         EXPLORER_treeViewComponent.drawScrollbarHeight();
         EXPLORER_treeViewComponent.forceFullscreen_renderScroll();
@@ -641,7 +651,7 @@ async function CommandKind_Paste_MenuOnClick_Paste(entry, menuRequest) {
     EXPLORER_treeViewComponent.getElementAt(menuRequest.target.indexItem);
     let nodeKind = treeViewComponent_staticRunner.byteTreeView_byteret_pooledNode_nodeKind;
     let depthOfTheParent = treeViewComponent_staticRunner.fTreeView_poolret_pooledNode_depth;
-    let isCollapsed = nodeKind === TreeViewNodeKind.isExpandable_NOTisExpanded || nodeKind === TreeViewNodeKind.NOTisExpandable_NOTisExpanded;
+    let destinationIsCollapsed = nodeKind === TreeViewNodeKind.isExpandable_NOTisExpanded || nodeKind === TreeViewNodeKind.NOTisExpandable_NOTisExpanded;
 
     const pasteResult = await window.myAPI.pasteClipboardAbsolutePathToDirectory(entry.absolutePath, local_EXPLORER_menuOptionPaste_object.id);
     if (!pasteResult.success) { return; }
@@ -661,8 +671,7 @@ async function CommandKind_Paste_MenuOnClick_Paste(entry, menuRequest) {
 
     // TODO: What if you collapse in the other direction?
 
-    // if destination is not collapsed
-    if (!isCollapsed) {
+    if (!destinationIsCollapsed) {
         theUiChanged = true;
 
         let targetDepth = depthOfTheParent + 1;
