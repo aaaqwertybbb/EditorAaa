@@ -249,7 +249,7 @@ async function EXPLORER_expandCollapseIconWasClicked(divItem, indexItem, ringBuf
         if (EXPLORER_menuOptionPaste_object !== null && EXPLORER_menuOptionPaste_object !== undefined) {
             if (EXPLORER_menuOptionPaste_object.indexItem === null || EXPLORER_menuOptionPaste_object.indexItem === undefined) {
                 if (EXPLORER_menuOptionPaste_object.parentPathId === key) {
-                    EXPLORER_findCutTreeViewNodeAmongChildren();
+                    EXPLORER_findCutTreeViewNodeAmongChildren(indexItem + 1, insertionCount);
                 }
             }
             else if (EXPLORER_menuOptionPaste_object.indexItem >= indexItem + 1) {
@@ -281,17 +281,6 @@ async function EXPLORER_expandCollapseIconWasClicked(divItem, indexItem, ringBuf
 
         EXPLORER_treeViewComponent.removeAt(startIndex, countChildren);
 
-        // TODO: track the parent (likely the entire ancestry because if you collapse a parent and then show it again you'll muck it all up... maybe just do a different tactic)...
-        // ...because tracking when it disappears or appears again is probably more overhead than looping the viewport to see if there is a match.
-        //
-        // you're wrong^.
-        // The expand collapse logic is currently very simple.
-        // You'd actually only need to track whether the immediate parent is re-expanded at any point.
-        //
-        // Even then^
-        // if you had expand collapse that remembered children expanded collapse state while they were collapsed.
-        // you'd only need to track the node you just collapsed that resulted in the cut target being no longer "possibly visible"
-        // furthermore it is the wording "possibly visible" it being in the viewport doesn't make a difference. (it is in dataLiteral)
         if (EXPLORER_menuOptionPaste_object !== null && EXPLORER_menuOptionPaste_object !== undefined) {
             if (EXPLORER_menuOptionPaste_object.indexItem !== null && EXPLORER_menuOptionPaste_object.indexItem !== undefined) {
                 // check if you need to make it null
@@ -309,8 +298,17 @@ async function EXPLORER_expandCollapseIconWasClicked(divItem, indexItem, ringBuf
     }
 }
 
-function EXPLORER_findCutTreeViewNodeAmongChildren() {
+function EXPLORER_findCutTreeViewNodeAmongChildren(startIndex, insertionCount) {
+    const upperLimit = startIndex + insertionCount;
+    let pathId = EXPLORER_menuOptionPaste_object.pathId;
+    for (let i = startIndex; i < upperLimit; i++) {
+        if (EXPLORER_treeViewComponent.getKey(i) === pathId) {
+            EXPLORER_menuOptionPaste_object.indexItem = i;
+            break;
+        }
+    }
 
+    // TODO: If not found clear the 'EXPLORER_menuOptionPaste_object' entirely?
 }
 
 async function EXPLORER_dblClick_or_space_or_enter(eventKey, indexItem, ringBufferIndexItem) {
