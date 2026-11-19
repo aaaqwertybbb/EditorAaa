@@ -33,8 +33,14 @@ class Explorer {
 
         this.virtualIndex_ofScrollTop = 0;
 
-        /** Hacky: Must initialize to a number other than 0 or else nothing renders. */
+        /**
+         * Hacky: Must initialize to a number other than 0 or else nothing renders.
+         * 
+         * TODO: This is no longer true because there is a function named 'forceFullscreen_renderScroll' so change this comment.
+         */
         this.virtualCount = 1;
+
+        this.unknownIdCounter = 1;
 
         this.lastReadNumber_scrollTop = 0;
 
@@ -79,6 +85,20 @@ NO ASYNC EVENTS
 - higher likelihood of memory leaking PerformanceEventTiming due to inability for browser to clear buffer on time requiring manual clearing of the long term buffer.
 */
 
+/**
+ * If a TreeView contains the same "file" rendered as two separate "tree view nodes".
+ * When you collapse such that one of those nodes is no longer part of the EXPLORER_treeViewComponent.dataLiteral
+ * then the pathId will be removed from this map,
+ * and that second node will proceed to render as unknown_{explorer.unknownIdCounter++}.
+ * 
+ * For this specific UI the behavior is intentional.
+ * For a TreeView where showing the same "data" as two separate nodes at the same time is a reasonable use case,
+ * one such way of handling this is to map the pathId to a { filename: string, links: int }.
+ * 
+ * The consumer of a TreeViewComponent has control over the expand/collapse logic,
+ * and thus the consumer may decide to increment and decrement the links field in order to know when
+ * all TreeView nodes of that data are no longer part of dataLiteral.
+ */
 const EXPLORER_pathIdToDisplayNameMap = new Map();
 
 /**
@@ -165,7 +185,11 @@ function EXPLORER_renderLines(lineIndexLower, lineIndexUpper, ringBufferIndex, d
                 const depth = treeViewComponent_staticRunner.fTreeView_poolret_pooledNode_depth;
                 const nodeKind = treeViewComponent_staticRunner.byteTreeView_byteret_pooledNode_nodeKind;
 
-                let name = STRINGS_MAP_BY_PATH_ID.get(key) ?? `unknown_${i}`;
+                let name = STRINGS_MAP_BY_PATH_ID.get(key);
+                if (name === null || name === undefined) {
+                    name = `unknown_${explorer.unknownIdCounter++}`;
+                    STRINGS_MAP_BY_PATH_ID.set(key, name);
+                }
                 let chevronRepresentation = '';
                 switch (nodeKind) {
                     case TreeViewNodeKind.isExpandable_isExpanded:
@@ -724,7 +748,7 @@ async function NewFile_Directory_WIDGET_InputText_callback(widgetResult) {
 
             if (!isCollapsed) {
                 while (someIndex < EXPLORER_treeViewComponent.countAbstract) {
-                    let d_of_perhaps_too_large_depth = EXPLORER_treeViewNodes.getDepth(someIndex);
+                    let d_of_perhaps_too_large_depth = EXPLORER_treeViewComponent.getDepth(someIndex);
                     if (d_of_perhaps_too_large_depth > targetDepth) {
                         someIndex++;
                     }
@@ -735,7 +759,7 @@ async function NewFile_Directory_WIDGET_InputText_callback(widgetResult) {
                 }
             }
 
-            // TODO: You're missing a 'someIndex < EXPLORER_treeViewNodes.count_abstract' check for after the while loop.
+            // TODO: You're missing a 'someIndex < EXPLORER_treeViewComponent.countAbstract' check for after the while loop.
         }
 
         EXPLORER_treeViewComponent.insert(someIndex, nodeKind, newFileResult.pathId, target.depth + 1);
@@ -795,7 +819,7 @@ async function NewFile_File_WIDGET_InputText_callback(widgetResult) {
             }
         }
 
-        // TODO: You're missing a 'someIndex < EXPLORER_treeViewComponent.count_abstract' check for after the while loop.
+        // TODO: You're missing a 'someIndex < EXPLORER_treeViewComponent.countAbstract' check for after the while loop.
     }
 
     EXPLORER_treeViewComponent.insert(someIndex, nodeKind, newFileResult.pathId, target.depth + 1);
