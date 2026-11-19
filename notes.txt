@@ -1330,7 +1330,6 @@ and have read the code related to each task in order to make a minor improvement
 TreeView Explorer
 =================
 - [ ] Don't show menu if they right click the explorer without having selected a workspace or folder.
-  - [x] simple
   - [ ] complex
 - [ ] Horizontal width
   - [ ] simple
@@ -1349,13 +1348,10 @@ TreeView Explorer
   - [ ] simple
   - [ ] complex
 - [ ] NewFile
-  - [x] simple
-  - [ ] complex
+  - [ ] complex (if the parent directory contains a child directory which is located at an earlier immediate child index than what the new file's immediate child index will be. And that child directory is expanded with a child length of its own that is greater than 1, you need to walk that child directories children.)
 - [ ] NewDirectory
-  - [ ] simple
-  - [ ] complex
+  - [ ] complex (if the parent directory contains a child directory which is located at an earlier immediate child index than what the new directory's immediate child index will be. And that child directory is expanded with a child length of its own that is greater than 1, you need to walk that child directories children.)
 - [ ] Delete
-  - [x] simple
   - [ ] complex
 - [ ] Rename
   - [ ] simple
