@@ -246,8 +246,15 @@ async function EXPLORER_expandCollapseIconWasClicked(divItem, indexItem, ringBuf
             EXPLORER_pathIdToDisplayNameMap.set(entry.id, entry.basename);
         }
 
-        if (EXPLORER_menuOptionPaste_object.indexItem >= indexItem + 1) {
-            EXPLORER_menuOptionPaste_object.indexItem += insertionCount;
+        if (EXPLORER_menuOptionPaste_object !== null && EXPLORER_menuOptionPaste_object !== undefined) {
+            if (EXPLORER_menuOptionPaste_object.indexItem === null || EXPLORER_menuOptionPaste_object.indexItem === undefined) {
+                if (EXPLORER_menuOptionPaste_object.parentPathId === key) {
+                    EXPLORER_findCutTreeViewNodeAmongChildren();
+                }
+            }
+            else if (EXPLORER_menuOptionPaste_object.indexItem >= indexItem + 1) {
+                EXPLORER_menuOptionPaste_object.indexItem += insertionCount;
+            }
         }
 
         EXPLORER_treeViewComponent.drawScrollbarHeight();
@@ -256,8 +263,10 @@ async function EXPLORER_expandCollapseIconWasClicked(divItem, indexItem, ringBuf
     else if (nodeKind === TreeViewNodeKind.isExpandable_isExpanded) {
         EXPLORER_treeViewComponent.setNodeKind(indexItem, TreeViewNodeKind.isExpandable_NOTisExpanded);
 
+        const startIndex = indexItem + 1;
+
         let countChildren = 0;
-        for (let i = indexItem + 1; i < EXPLORER_treeViewComponent.countAbstract; i++) {
+        for (let i = startIndex; i < EXPLORER_treeViewComponent.countAbstract; i++) {
             // If currentDepth < ithElementDepth; // then current is a parent of ithElement.
             if (depth < EXPLORER_treeViewComponent.getDepth(i)) {
                 EXPLORER_pathIdToDisplayNameMap.delete(EXPLORER_treeViewComponent.getKey(i));
@@ -270,7 +279,7 @@ async function EXPLORER_expandCollapseIconWasClicked(divItem, indexItem, ringBuf
 
         if (countChildren === 0) { EXPLORER_treeViewComponent.forceFullscreen_renderScroll(); return; }
 
-        EXPLORER_treeViewComponent.removeAt(indexItem + 1, countChildren);
+        EXPLORER_treeViewComponent.removeAt(startIndex, countChildren);
 
         // TODO: track the parent (likely the entire ancestry because if you collapse a parent and then show it again you'll muck it all up... maybe just do a different tactic)...
         // ...because tracking when it disappears or appears again is probably more overhead than looping the viewport to see if there is a match.
@@ -283,13 +292,25 @@ async function EXPLORER_expandCollapseIconWasClicked(divItem, indexItem, ringBuf
         // if you had expand collapse that remembered children expanded collapse state while they were collapsed.
         // you'd only need to track the node you just collapsed that resulted in the cut target being no longer "possibly visible"
         // furthermore it is the wording "possibly visible" it being in the viewport doesn't make a difference. (it is in dataLiteral)
-        if (indexItem + 1 < EXPLORER_menuOptionPaste_object.indexItem) {
-            EXPLORER_menuOptionPaste_object.indexItem -= countChildren;
+        if (EXPLORER_menuOptionPaste_object !== null && EXPLORER_menuOptionPaste_object !== undefined) {
+            if (EXPLORER_menuOptionPaste_object.indexItem !== null && EXPLORER_menuOptionPaste_object.indexItem !== undefined) {
+                // check if you need to make it null
+                if (startIndex <= EXPLORER_menuOptionPaste_object.indexItem && startIndex + countChildren > EXPLORER_menuOptionPaste_object.indexItem) {
+                    EXPLORER_menuOptionPaste_object.indexItem = null;
+                }
+            }
+            else if (startIndex < EXPLORER_menuOptionPaste_object.indexItem) {
+                EXPLORER_menuOptionPaste_object.indexItem -= countChildren;
+            }
         }
         
         EXPLORER_treeViewComponent.drawScrollbarHeight();
         EXPLORER_treeViewComponent.forceFullscreen_renderScroll();
     }
+}
+
+function EXPLORER_findCutTreeViewNodeAmongChildren() {
+
 }
 
 async function EXPLORER_dblClick_or_space_or_enter(eventKey, indexItem, ringBufferIndexItem) {
