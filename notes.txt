@@ -1311,9 +1311,118 @@ And then black jeans.
 I'ma eat my breakfast while watching TheReportOfTheWeek eat the 'Sweet Heat Smokehouse Pizza'
 for company.
 
+====
+
+The checkboxes "
+- [ ] simple
+- [ ] complex
+" mean nothing in particular.
+It is a behavioral trick to reduce procrastination by ensuring
+you at least start looking at the code so you can check off simple.
+Maybe you get 1 tiny detail working that wasn't previously you check off simple.
+If you're up to it you go for the complex on that same task.
+Otherwise you keep going to the next task and do something to get credit on the simple checkbox
+repeat over and over
+
+Even if the first pass you just do the simple checkbox for each task you've just found a relevant line of code for each task,
+and have read the code related to each task in order to make a minor improvement to it.
+
+TreeView Explorer
+=================
+- [ ] Copy
+  - [ ] simple
+  - [ ] complex
+- [ ] Copy Absolute Path
+  - [ ] simple
+  - [ ] complex
+- [ ] NewFile
+  - [ ] simple
+  - [ ] complex
+- [ ] NewDirectory
+  - [ ] simple
+  - [ ] complex
+- [ ] Delete
+  - [ ] simple
+  - [ ] complex
+- [ ] Rename
+  - [ ] simple
+  - [ ] complex
+- [ ] Paste
+  - [ ] simple
+  - [ ] complex
+- [ ] Cut
+  - [ ] simple
+  - [ ] complex
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+TreeView FindAll
+- [ ] ...
 
 
