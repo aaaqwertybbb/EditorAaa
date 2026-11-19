@@ -166,7 +166,7 @@ function EXPLORER_renderLines(lineIndexLower, lineIndexUpper, ringBufferIndex, d
                 const nodeKind = treeViewComponent_staticRunner.byteTreeView_byteret_pooledNode_nodeKind;
 
                 let name = STRINGS_MAP_BY_PATH_ID.get(key) ?? `unknown_${i}`;
-                let chevronRepresentation = ' ';
+                let chevronRepresentation = '';
                 switch (nodeKind) {
                     case TreeViewNodeKind.isExpandable_isExpanded:
                         chevronRepresentation = '-';
@@ -175,10 +175,10 @@ function EXPLORER_renderLines(lineIndexLower, lineIndexUpper, ringBufferIndex, d
                         chevronRepresentation = '+';
                         break;
                     case TreeViewNodeKind.NOTisExpandable_isExpanded:
-                        chevronRepresentation = '';
+                        chevronRepresentation = ' ';
                         break;
                     case TreeViewNodeKind.NOTisExpandable_NOTisExpanded:
-                        chevronRepresentation = '';
+                        chevronRepresentation = ' ';
                         break;
                 }
                 // I see what I was doing here now. I don't want to query depth in order to render something that was already cached with respect to text...
@@ -689,7 +689,7 @@ async function NewFile_Directory_WIDGET_InputText_callback(widgetResult) {
     const entry = widgetResult.request.value;
     const target = widgetResult.request.target;
 
-    EXPLORER_treeViewNodes.getElementAt(target.indexItem);
+    EXPLORER_treeViewComponent.getElementAt(target.indexItem);
     let nodeKind = treeViewComponent_staticRunner.byteTreeView_byteret_pooledNode_nodeKind;
     let depthOfTheParent = treeViewComponent_staticRunner.fTreeView_poolret_pooledNode_depth;
     let isCollapsed = nodeKind === TreeViewNodeKind.isExpandable_NOTisExpanded || nodeKind === TreeViewNodeKind.NOTisExpandable_NOTisExpanded;
@@ -710,7 +710,7 @@ async function NewFile_Directory_WIDGET_InputText_callback(widgetResult) {
         // whether that sibling is expanded, if so you skip all the children of the sibling.
         //
         for (let i_targetDepth = 0; i_targetDepth < newFileResult.indexOf; i_targetDepth++) {
-            EXPLORER_treeViewNodes.getElementAt(someIndex);
+            EXPLORER_treeViewComponent.getElementAt(someIndex);
             let nodeKind = treeViewComponent_staticRunner.byteTreeView_byteret_pooledNode_nodeKind;
             let isCollapsed = nodeKind === TreeViewNodeKind.isExpandable_NOTisExpanded || nodeKind === TreeViewNodeKind.NOTisExpandable_NOTisExpanded;
 
@@ -723,7 +723,7 @@ async function NewFile_Directory_WIDGET_InputText_callback(widgetResult) {
             someIndex++;
 
             if (!isCollapsed) {
-                while (someIndex < EXPLORER_treeViewNodes.count_abstract) {
+                while (someIndex < EXPLORER_treeViewComponent.countAbstract) {
                     let d_of_perhaps_too_large_depth = EXPLORER_treeViewNodes.getDepth(someIndex);
                     if (d_of_perhaps_too_large_depth > targetDepth) {
                         someIndex++;
@@ -738,11 +738,10 @@ async function NewFile_Directory_WIDGET_InputText_callback(widgetResult) {
             // TODO: You're missing a 'someIndex < EXPLORER_treeViewNodes.count_abstract' check for after the while loop.
         }
 
-        EXPLORER_treeViewNodes.insert(someIndex, nodeKind, newFileResult.pathId, target.depth + 1);
-
-        explorer.itemHeightTotal = EXPLORER_treeViewNodes.count_abstract * explorer.itemHeightNumber;
-        EXPLORER_scrollbar_space_generator.style.height = explorer.itemHeightTotal + 'px';
-        EXPLORER_draw_BATCH_request(explorer.virtualIndex_ofScrollTop, explorer.virtualCount, 3);
+        EXPLORER_treeViewComponent.insert(someIndex, nodeKind, newFileResult.pathId, target.depth + 1);
+        EXPLORER_pathIdToDisplayNameMap.set(newFileResult.pathId, widgetResult.resultData);
+        EXPLORER_treeViewComponent.drawScrollbarHeight();
+        EXPLORER_treeViewComponent.forceFullscreen_renderScroll();
     }
 }
 
