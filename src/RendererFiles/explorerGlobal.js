@@ -13,6 +13,13 @@ import {set_shouldUseCSharpToSaveFileWhenPossible, sendTransaction_MessageKind_t
 import {EDI_state_setText_byteArray, EDI_toExtensionKind, EDI_onResize} from './editorGlobal_edit.js'
 import {WidgetKind, WIDGET_show} from './widgetGlobal.js'
 
+/**
+ * TODO: Only use a single menuOptionCut_object that is located in "MENU_" to reduce the chance of memory leaks due to a 'cut' that never gets
+ * followed up with a paste or etc... then you have like 3 active menu cut objects sitting around eventually, you probably want them to overwrite eachother.
+ * You'd need to track the source of the cut menu object though if you were to do this.
+ */
+let EXPLORER_menuOptionPaste_object = null;
+
 class Explorer {
     constructor() {
         /**
@@ -220,6 +227,16 @@ function EXPLORER_renderLines(lineIndexLower, lineIndexUpper, ringBufferIndex, d
 
         ctx.fillText(LINE_CACHE[ringBufferIndex], 0, vertical); // There's a max width argument in the fillText?
         vertical += ITEM_HEIGHT_NUMBER;
+    }
+
+    if (EXPLORER_menuOptionPaste_object !== null && EXPLORER_menuOptionPaste_object !== undefined) {
+        if (EXPLORER_menuOptionPaste_object.indexItem !== null && EXPLORER_menuOptionPaste_object.indexItem !== undefined) {
+            if (lineIndexLower <= EXPLORER_menuOptionPaste_object.indexItem && LINE_INDEX_UPPER > EXPLORER_menuOptionPaste_object.indexItem) {
+                ctx.fillStyle = '#a17329';
+                const y = (EXPLORER_menuOptionPaste_object.indexItem - lineIndexLower) * EXPLORER_treeViewComponent.itemHeightNumber;
+                ctx.fillRect(0, y, EXPLORER_treeViewComponent.canvas.width, EXPLORER_treeViewComponent.itemHeightNumber);
+            }
+        }
     }
 }
 
@@ -452,13 +469,6 @@ export let EXPLORER_firstSpanWidth = '8px';
 export function set_EXPLORER_firstSpanWidth(value) {
     EXPLORER_firstSpanWidth = value;
 }
-
-/**
- * TODO: Only use a single menuOptionCut_object that is located in "MENU_" to reduce the chance of memory leaks due to a 'cut' that never gets
- * followed up with a paste or etc... then you have like 3 active menu cut objects sitting around eventually, you probably want them to overwrite eachother.
- * You'd need to track the source of the cut menu object though if you were to do this.
- */
-let EXPLORER_menuOptionPaste_object = null;
 
 // function EXPLORER_init
 // V8 can optimize away these initialization statements that exist at the module scope but not an "initialization function"
