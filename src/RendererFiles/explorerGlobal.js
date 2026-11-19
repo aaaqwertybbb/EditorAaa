@@ -271,6 +271,11 @@ async function EXPLORER_dblClick_or_space_or_enter(eventKey, indexItem, ringBuff
 }
 
 function EXPLORER_oncontextmenu(divItem, indexItem, event_button, event_clientX, event_clientY, relativeIndex) {
+
+    if (EXPLORER_treeViewComponent.countAbstract === 0) {
+        return;
+    }
+
     let optionList = [
         MENU_MenuOption_factory(CommandKind.Copy, 'Copy'),
         MENU_MenuOption_factory(CommandKind.CopyAbsolutePath, 'Copy Absolute Path'),

@@ -1329,6 +1329,16 @@ and have read the code related to each task in order to make a minor improvement
 
 TreeView Explorer
 =================
+- [ ] Don't show menu if they right click the explorer without having selected a workspace or folder.
+  - [x] simple
+  - [ ] complex
+- [ ] Horizontal width
+  - [ ] simple
+  - [ ] complex
+- [ ] Smooth scrolling
+  - [ ] simple
+  - [ ] complex
+-----------------
 - [ ] Copy
   - [ ] simple
   - [ ] complex
