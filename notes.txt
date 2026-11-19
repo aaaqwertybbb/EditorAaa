@@ -1338,6 +1338,9 @@ TreeView Explorer
 - [ ] Smooth scrolling
   - [ ] simple
   - [ ] complex
+- [ ] Scrolling keeps event positions accurate
+  - [ ] simple
+  - [ ] complex
 -----------------
 - [ ] Copy
   - [ ] simple
@@ -1346,7 +1349,7 @@ TreeView Explorer
   - [ ] simple
   - [ ] complex
 - [ ] NewFile
-  - [ ] simple
+  - [x] simple
   - [ ] complex
 - [ ] NewDirectory
   - [ ] simple
