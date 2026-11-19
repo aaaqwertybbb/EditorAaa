@@ -300,13 +300,12 @@ async function EXPLORER_expandCollapseIconWasClicked(divItem, indexItem, ringBuf
 
         if (EXPLORER_menuOptionPaste_object !== null && EXPLORER_menuOptionPaste_object !== undefined) {
             if (EXPLORER_menuOptionPaste_object.indexItem !== null && EXPLORER_menuOptionPaste_object.indexItem !== undefined) {
-                // check if you need to make it null
                 if (startIndex <= EXPLORER_menuOptionPaste_object.indexItem && startIndex + countChildren > EXPLORER_menuOptionPaste_object.indexItem) {
                     EXPLORER_menuOptionPaste_object.indexItem = null;
                 }
-            }
-            else if (startIndex < EXPLORER_menuOptionPaste_object.indexItem) {
-                EXPLORER_menuOptionPaste_object.indexItem -= countChildren;
+                else if (startIndex < EXPLORER_menuOptionPaste_object.indexItem) { // TODO: Is this else if redundant can it just be an else I just don't have the energy to think about it right now
+                    EXPLORER_menuOptionPaste_object.indexItem -= countChildren;
+                }
             }
         }
         
