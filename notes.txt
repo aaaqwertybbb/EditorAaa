@@ -1346,8 +1346,6 @@ TreeView Explorer
 - [ ] Rename
   - [ ] complex /** TODO: after renaming the file, probably should sort and ensure you have focus on that renamed one and scroll it into view if after the sort that becomes needed. */
     - [ ] The simplest way is likely for the main process to include a field that states how much you need to shift the renamed node amongst its siblings.
-- [ ] Paste (this implies a copy->paste)
-  - [ ] complex
 - [ ] Cut (this implies a cut->paste)
   - [ ] simple
   - [ ] complex
