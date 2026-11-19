@@ -846,11 +846,11 @@ async function DeleteFile_File_YesCancel_callback(widgetResult) {
     const deleteFileResult = await window.myAPI.deleteFile(entry.absolutePath, /*isDirectory*/ false);
     if (!deleteFileResult) { return; }
 
-    EXPLORER_treeViewNodes.removeAt(target.indexItem, 1);
+    EXPLORER_treeViewComponent.removeAt(target.indexItem, 1);
+    EXPLORER_pathIdToDisplayNameMap.delete(target.id);
 
-    explorer.itemHeightTotal = EXPLORER_treeViewNodes.count_abstract * explorer.itemHeightNumber;
-    EXPLORER_scrollbar_space_generator.style.height = explorer.itemHeightTotal + 'px';
-    EXPLORER_draw_BATCH_request(explorer.virtualIndex_ofScrollTop, explorer.virtualCount, 3);
+    EXPLORER_treeViewComponent.drawScrollbarHeight();
+    EXPLORER_treeViewComponent.forceFullscreen_renderScroll();
 }
 
 async function RenameFile_Directory_InputText_callback(widgetResult) {
