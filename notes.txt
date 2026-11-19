@@ -1344,9 +1344,6 @@ TreeView Explorer
 - [ ] Copy
   - [ ] simple
   - [ ] complex
-- [ ] Copy Absolute Path
-  - [ ] simple
-  - [ ] complex
 - [ ] Delete
   - [ ] complex
 - [ ] Rename
