@@ -274,6 +274,10 @@ async function EXPLORER_expandCollapseIconWasClicked(divItem, indexItem, ringBuf
 
         // TODO: track the parent (likely the entire ancestry because if you collapse a parent and then show it again you'll muck it all up... maybe just do a different tactic)...
         // ...because tracking when it disappears or appears again is probably more overhead than looping the viewport to see if there is a match.
+        //
+        // you're wrong^.
+        // The expand collapse logic is currently very simple.
+        // You'd actually only need to track whether the immediate parent is re-expanded at any point.
         if (indexItem + 1 < EXPLORER_menuOptionPaste_object.indexItem) {
             EXPLORER_menuOptionPaste_object.indexItem -= countChildren;
         }
