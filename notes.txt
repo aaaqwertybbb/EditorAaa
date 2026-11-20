@@ -16,5 +16,12 @@ so you use a paper plate to microwave 20? chicken nuggets every morning so that 
 
 But then in the process you are now deliberately damaging your own health by trying to avoid some insignificant
 
+=====
 
+The reality is that old generation can handle 300 Smis regardless of whether they're at the global scope and need to be traversed
+at some point during old gen collections.
+
+Similarly your body can handle tiny amounts of residue that are left over on dishes after they've been cleaned.
+
+But what your body cannot handle is the nutritional deficiency of abstaining from eating anything other than 20 chicken nuggets every morning
 
