@@ -166,7 +166,8 @@ It perfectly fulfills the absurdism
 ==========
 
 - [ ] orientation 4 to 6 PM
-- [ ] Mom bought me clothes for my new job and I need to try them on so she can return them if needed
+- [/] Mom bought me clothes for my new job and I need to try them on so she can return them if needed
+    - [ ] I can't figure out how to put on the slip resistant sketchers so I gotta wait for her to get back home.
 - [ ] Find all tree view
 
 
