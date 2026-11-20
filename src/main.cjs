@@ -611,6 +611,9 @@ async function readClipboard(event) {
 	}
 }
 
+/**
+ * TODO: one should probably use ripgrep but I wanna mess around with this myself nevertheless at the least initially.
+ */
 async function findAll(event, search, matchWord) {
 	try {
 		// TODO: I need a quickfix list when I { 'Ctrl' + 'Shift' + 'f' }.
