@@ -27,6 +27,33 @@ let openedDirectory = null;
 let openedWorkspace = null;
 let workspaceDirectories = null;
 
+const FIND_ALL_IGNORED_DIRS = new Set(['.vs', '.vscode', '.git', 'node_modules', 'bin', 'obj']);
+/*
+if (childList[i].name === 'node_modules') {
+	console.log('do not recurse into node_modules');
+}
+else if (childList[i].name === '.git') {
+	console.log('do not recurse into .git');
+}
+else if (childList[i].name === '.vscode') {
+	console.log('do not recurse into .vscode');
+}
+else if (childList[i].name === 'out') {
+	console.log('do not recurse into out');
+}
+else if (childList[i].name === 'build') {
+	console.log('do not recurse into build');
+}
+else if (childList[i].name === 'preprocessor') {
+	console.log('do not recurse into preprocessor');
+}
+else {
+	// TODO: Presumably there is an API that would provide this more optimally
+	let absolutePathOfChild = path.join(childList[i].parentPath, childList[i].name);
+	await searchRecursive(absolutePathOfChild);
+}
+*/
+
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
 	app.quit();
