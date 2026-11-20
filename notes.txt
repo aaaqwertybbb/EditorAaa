@@ -149,7 +149,11 @@ I want to finish an entire IDE whether anyone is watching or not
 
 I literally cry while writing code
 
+=====
 
+There is more to life I agree.
+
+But making an IDE is a task that you check off and then you're done.
 
 
 
