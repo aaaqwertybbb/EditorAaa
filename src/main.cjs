@@ -679,7 +679,7 @@ function findAll(event, search, matchWord) {
 		let childEntries = null;
 
 		const withFileTypesOption = { withFileTypes: true };
-		// let stackEntryPoolEntry = null; TODO: Consider a push pop pool of a single object deep causes allocations but breadth re-uses?
+		// let stackEntryPoolEntry = null; TODO: Consider a push pop pool of a single object deep causes allocations but (single depth directories that appear one after another) will re-use.
 		
 		if (openedDirectory) {
 			childEntries = fs.readdirSync(openedDirectory, withFileTypesOption);
