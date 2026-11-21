@@ -675,6 +675,7 @@ function findAll(event, searchString, matchWord) {
 	try {
 		if (!openedDirectory && !workspaceDirectories) return;
 
+		const results = [];
 		const search = (new TextEncoder()).encode(searchString);
 
 		let targetDirectory = undefined; // The first loop will have this be undefined so that workspaces can function.
