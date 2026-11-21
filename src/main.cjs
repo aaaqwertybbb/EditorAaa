@@ -671,9 +671,11 @@ async function readClipboard(event) {
  * Maybe if you streamed it and the UI supported that it could be good.
  * But I'm 99% sure the UI locks up anyways at the moment
  */
-function findAll(event, search, matchWord) {
+function findAll(event, searchString, matchWord) {
 	try {
 		if (!openedDirectory && !workspaceDirectories) return;
+
+		const search = (new TextEncoder()).encode(searchString);
 
 		let targetDirectory = undefined; // The first loop will have this be undefined so that workspaces can function.
 		let childEntries = null;
@@ -733,7 +735,7 @@ function findAll(event, search, matchWord) {
 					results.push({
 						filename: entry.name,
 						absolutePath: absolutePathOfChild,
-						count: _findAllState.count
+						count: count
 					});
 				}
 			}
