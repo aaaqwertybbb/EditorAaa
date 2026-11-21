@@ -41,8 +41,11 @@ let workspaceDirectories = null;
 //
 const FIND_ALL_IGNORED_DIRS = new Set(['.vs', '.vscode', '.git', 'node_modules', 'bin', 'obj', 'out', 'build', 'preprocessor']);
 let _findAllGetPositions_lambda_one_state = null;
-let _findAllState = null;
 let _findAllStack = [];
+/**
+ * @type {Buffer}
+ */
+let _findAllBuffer = null;
 /*
 if (childList[i].name === 'node_modules') {
 	console.log('do not recurse into node_modules');
@@ -669,14 +672,11 @@ async function readClipboard(event) {
  * But I'm 99% sure the UI locks up anyways at the moment
  */
 function findAll(event, search, matchWord) {
-
-
 	try {
 		if (!openedDirectory && !workspaceDirectories) return;
 
-		let childEntries = null;
-
 		let targetDirectory = null; // The first loop will have this be null.
+		let childEntries = null;
 
 		const withFileTypesOption = { withFileTypes: true };
 
@@ -704,8 +704,8 @@ function findAll(event, search, matchWord) {
 
 			if (entry.isDirectory()) {
 				if (FIND_ALL_IGNORED_DIRS.has(entry.name)) continue;
-				let absolutePathOfChild = path.join(entry.parentPath, entry.name); // TODO: Presumably there is an API that would provide this more optimally
-				let possibleNextEntries = fs.readdirSync(absolutePathOfChild, withFileTypesOption);
+				const absolutePathOfChild = path.join(entry.parentPath, entry.name); // TODO: Presumably there is an API that would provide this more optimally
+				const possibleNextEntries = fs.readdirSync(absolutePathOfChild, withFileTypesOption);
 				if (possibleNextEntries.length !== 0) {
 					_findAllStack.push({
 						targetDirectory: targetDirectory,
@@ -718,8 +718,9 @@ function findAll(event, search, matchWord) {
 				}
 			}
 			else {
-				let absolutePathOfChild = path.join(entry.parentPath, entry.name); // TODO: Presumably there is an API that would provide this more optimally
+				const absolutePathOfChild = path.join(entry.parentPath, entry.name); // TODO: Presumably there is an API that would provide this more optimally
 
+				findAll_searchFile();
 				//await findAll_searchRecusive_someInnerFunction(absolutePathOfChild); // TODO: Is it possible to allocate a Promise 'one time' and re-use it? this is being done within a loop over all text files and recursively descends from the "workspace directory".
 
 				if (_findAllState.count > 0) {
@@ -751,26 +752,59 @@ function findAll(event, search, matchWord) {
 				break;
 			}
 		}
-	
-		//const basename = path.basename(absolutePath);
-		//const extension = path.extname(absolutePath);
-		//const paddingLength = 1024;
-	//
-		//// 1. Get file stats and open a file descriptor
-		//const stat = fs.statSync(absolutePath);
-		//const fileSize = stat.size;
-		//fd = fs.openSync(absolutePath, 'r');
-	//
-		//// 2. Allocate ONE single buffer with the exact tail padding built in
-		//const totalCapacity = fileSize + paddingLength;
-		//const rawBuffer = Buffer.allocUnsafe(totalCapacity);
-	//
-		//// 3. Read the file bytes directly into the beginning of our padded buffer
-		//fs.readSync(fd, rawBuffer, 0, fileSize, 0);
 	}
 	catch (err) {
 		console.error("Error during find-all:", err);
 		return [];
+	}
+	finally {
+		_findAllBuffer = null;
+	}
+}
+
+function findAll_searchFile(absolutePath) {
+	let fd = null;
+
+	try {
+		// Get file stats and open a file descriptor
+		const stat = fs.statSync(absolutePath);
+		const fileSize = stat.size;
+		fd = fs.openSync(absolutePath, 'r');
+
+		if (_findAllBuffer === null || _findAllBuffer === undefined || fileSize > _findAllBuffer.length) {
+			_findAllBuffer = Buffer.allocUnsafe(totalCapacity); // TODO: how do you rent a buffer.
+		}
+
+		const buffer = _findAllBuffer; // If I'm going to loop over every character I do feel it reasonable to get the local reference rather than risking the overhead of multiple global scope lookups but to be honest idk
+		
+		fs.readSync(fd, buffer, 0, fileSize, 0);
+
+		let hadBomMark = false;
+		let dataStartIndex = 0;
+
+		// Detect the BOM
+		if (fileSize >= 3 &&
+			buffer[0] === 0xEF &&
+			buffer[1] === 0xBB &&
+			buffer[2] === 0xBF) {
+
+				hadBomMark = true;
+				dataStartIndex = 3;
+		}
+
+		let targetIndex = 0;
+
+		for (let i = dataStartIndex; i < fileSize; i++) {
+			const b = buffer[i];
+		}
+	}
+	catch (error) {
+		console.error("Error during findAll_searchFile:", err);
+	}
+	finally {
+		if (fd !== null) {
+			try { fs.closeSync(fd); } catch (_) {}
+		}
 	}
 }
 
