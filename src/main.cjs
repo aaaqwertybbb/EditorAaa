@@ -40,6 +40,8 @@ let workspaceDirectories = null;
 // so sitting here worried about each one of these is just pointless.
 //
 const FIND_ALL_IGNORED_DIRS = new Set(['.vs', '.vscode', '.git', 'node_modules', 'bin', 'obj', 'out', 'build', 'preprocessor']);
+let _findAllGetPositions_lambda_one_state = null;
+let _findAllState = null;
 /*
 if (childList[i].name === 'node_modules') {
 	console.log('do not recurse into node_modules');
@@ -652,6 +654,15 @@ async function readClipboard(event) {
 
 /**
  * TODO: one should probably use ripgrep but I wanna mess around with this myself nevertheless at the least initially.
+ * 
+ * 
+ * This code was written very early on it is a mess...
+ * 
+ * Streaming it feels like the wrong approach especially if you're gonna...
+ * Essentially I think this would be better if you just did it synchronously and rented a buffer and re-used that buffer each time you read the file.
+ * You could then read all the text into the buffer.
+ * 
+ * I still don't think that's all too great but it is probably better than whatever this is...
  */
 async function findAll(event, search, matchWord) {
 	try {
@@ -659,225 +670,105 @@ async function findAll(event, search, matchWord) {
 		// TODO: I need to be able to convert my { 'Ctrl' + 'f' } to a quickfix list.
 		if (!openedDirectory && !workspaceDirectories) return;
 
-		let results = [];
-
-		async function searchRecursive(absolutePath) {
-			// TODO: need to enumerate the children rather than getting an array allocated.
-              
-			let childList = fs.readdirSync(absolutePath, { withFileTypes: true });
-			for (var i = 0; i < childList.length; i++) {
-				const entry = childList[i];
-				// if (IGNORED_DIRS.has(entry.name)) continue;
-				if (entry.isDirectory()) {
-					if (FIND_ALL_IGNORED_DIRS.has(entry.name)) continue;
-					// TODO: Presumably there is an API that would provide this more optimally
-					let absolutePathOfChild = path.join(entry.parentPath, entry.name);
-					await searchRecursive(absolutePathOfChild);
-				}
-				else {
-					// TODO: Presumably there is an API that would provide this more optimally
-					let absolutePathOfChild = path.join(childList[i].parentPath, childList[i].name);
-
-					const readableStream = fs.createReadStream(absolutePathOfChild, { encoding: 'utf8' });
-
-					// TODO: Is it possible to allocate a Promise 'one time' and re-use it?...
-					// ...this is being done within a loop over all text files and recursively descends from the "workspace directory".
-					let promise = new Promise((resolve, reject) => {
-						let count = 0;
-						let offset = 0;
-						// TODO: Come up with a case that verifies this code works...
-						let previousChunkNeedsWordVerification = false;
-
-						readableStream.on('data', (chunk) => {
-							if (matchWord && ((search[0] >= 'a' && search[0] <= 'z') || (search[0] >= 'A' && search[0] <= 'Z') || (search[0] >= '0' && search[0] <= '9') || (search[0] === '_'))) { // if is letter or digit ('a' to 'z') || ('A' to 'Z') || ('0' to '9') || ('_') all bounds inclusive)
-								if (previousChunkNeedsWordVerification) {
-									previousChunkNeedsWordVerification = false;
-									if (chunk.length > 0 && ((chunk[0] >= 'a' && chunk[0] <= 'z') || (chunk[0] >= 'A' && chunk[0] <= 'Z') || (chunk[0] >= '0' && chunk[0] <= '9') || (chunk[0] === '_'))) {
-										count--;
-									}
-								}
-								for (let i = 0; i < chunk.length; i++) {
-									if ((chunk[i] >= 'a' && chunk[i] <= 'z') || (chunk[i] >= 'A' && chunk[i] <= 'Z') || (chunk[i] >= '0' && chunk[i] <= '9') || (chunk[i] === '_')) {
-										if (chunk[i] === search[0]) {
-											while (i < chunk.length) { // context switch to checking match
-												if (chunk[i] === search[offset]) {
-													if (offset === 0) {
-														posStartOfMatch = i;
-													}
-													offset++;
-													if (offset === search.length) { // found "possible match"
-														if (i + 1 >= chunk.length ||
-															!((chunk[i + 1] >= 'a' && chunk[i + 1] <= 'z') || (chunk[i + 1] >= 'A' && chunk[i + 1] <= 'Z') || (chunk[i + 1] >= '0' && chunk[i + 1] <= '9') || (chunk[i + 1] === '_'))) { // ends on a word, therefore take match
-																if (i + 1 >= chunk.length) {
-																	previousChunkNeedsWordVerification = true;
-																}
-																count++;
-																offset = 0;
-																break;
-															}
-															else { // does NOT end on a word, therefore ignore match
-																offset = 0;
-																while (i < chunk.length) { // move pos to next NON(letterOrDigit) or EOF
-																	if (!((chunk[i] >= 'a' && chunk[i] <= 'z') || (chunk[i] >= 'A' && chunk[i] <= 'Z') || (chunk[i] >= '0' && chunk[i] <= '9') || (chunk[i] === '_'))) {
-																		i--; // backtrack by one due to outer for loop's incrementation step
-																		break;
-																	}
-																	i++;
-																}
-																break;
-															}
-														}
-													i++;
-												}
-												else {
-													offset = 0;
-													while (i < chunk.length) { // move pos to next NON(letterOrDigit) or EOF
-														if (!((chunk[i] >= 'a' && chunk[i] <= 'z') || (chunk[i] >= 'A' && chunk[i] <= 'Z') || (chunk[i] >= '0' && chunk[i] <= '9') || (chunk[i] === '_'))) {
-															i--; // backtrack by one due to outer for loop's incrementation step
-															break;
-														}
-														i++;
-													}
-													break;
-												}
-											}
-										}
-										else {
-											while (i < chunk.length) { // move pos to next NON(letterOrDigit) or EOF
-												if (!((chunk[i] >= 'a' && chunk[i] <= 'z') || (chunk[i] >= 'A' && chunk[i] <= 'Z') || (chunk[i] >= '0' && chunk[i] <= '9') || (chunk[i] === '_'))) {
-													i--; // backtrack by one due to outer for loop's incrementation step
-													break;
-												}
-												i++;
-											}
-										}
-									}
-									else {
-										while (i < chunk.length) { // move pos to next letterOrDigit or EOF
-											if ((chunk[i] >= 'a' && chunk[i] <= 'z') || (chunk[i] >= 'A' && chunk[i] <= 'Z') || (chunk[i] >= '0' && chunk[i] <= '9') || (chunk[i] === '_')) {
-												i--; // backtrack by one due to outer for loop's incrementation step
-												break;
-											}
-											i++;
-										}
-									}
-								}
-							}
-							else {
-								for (let i = 0; i < chunk.length; i++) {
-									if (chunk[i] === search[offset]) {
-										offset++;
-										if (offset === search.length) {
-											count++;
-											offset = 0;
-										}
-									}
-									else {
-										offset = 0;
-									}
-								}
-							}
-						});
-						readableStream.on('end', () => {
-							resolve(count);
-						});
-						readableStream.on('error', (error) => {
-							reject(error);
-						});
-					});
-					let count = await promise;
-
-					if (count > 0) {
-						database.addAbsolutePath(absolutePathOfChild, childList[i].name);
-						results.push({
-							filename: childList[i].name,
-							absolutePath: absolutePathOfChild,
-							count: count
-						});
-					}
-				}
-			}
+		if (_findAllState !== null && _findAllState !== undefined) {
+			throw new Error();
 		}
 
+		_findAllState = {
+			search: search,
+			matchWord: matchWord,
+			count: 0,
+			offset: 0,
+			previousChunkNeedsWordVerification: false, // TODO: Come up with a case that verifies this code works...
+			results: []
+		};
+
 		if (openedDirectory) {
-			await searchRecursive(openedDirectory);
+			await findAll_searchRecursive(openedDirectory);
 			return results;
 		}
 		else if (workspaceDirectories) {
 			for (let i = 0; i < workspaceDirectories.length; i++) {
-				await searchRecursive(workspaceDirectories[i].absolutePath);
+				await findAll_searchRecursive(workspaceDirectories[i].absolutePath);
 			}
-			return results;
+			return _findAllState.results;
 		}
 	}
 	catch (err) {
 		console.error("Error during find-all:", err);
 		return [];
 	}
+	finally {
+		_findAllState = null;
+	}
 }
 
-async function findAllGetPositions(event, absolutePath, search, matchWord) {
-	if(!isValidAbsolutePath(absolutePath)) return;
+async function findAll_searchRecursive(absolutePath) {
+	const childList = fs.readdirSync(absolutePath, { withFileTypes: true }); // TODO: need to enumerate the children rather than getting an array allocated.
+	for (var i = 0; i < childList.length; i++) {
+		const entry = childList[i];
+		if (entry.isDirectory()) {
+			if (FIND_ALL_IGNORED_DIRS.has(entry.name)) continue;
+			let absolutePathOfChild = path.join(entry.parentPath, entry.name); // TODO: Presumably there is an API that would provide this more optimally
+			await findAll_searchRecursive(absolutePathOfChild);
+		}
+		else {
+			let absolutePathOfChild = path.join(entry.parentPath, entry.name); // TODO: Presumably there is an API that would provide this more optimally
 
-	try {
-		let results = [];
+			await findAll_searchRecusive_someInnerFunction(); // TODO: Is it possible to allocate a Promise 'one time' and re-use it? this is being done within a loop over all text files and recursively descends from the "workspace directory".
 
-		const readableStream = fs.createReadStream(absolutePath, { encoding: 'utf8' });
-                    
-		let aaa = new Promise((resolve, reject) => {
-			let offset = 0;
-			let posStartOfMatch = 0;
-			// TODO: Come up with a case that verifies this code works...
-			let previousChunkNeedsWordVerification = false;
-			
-			let indexLine = 0;
-			let hasDecidedLineEndKind = false;
-			/** I don't want to deal with '\r\n' where '\r' ends a chunk and then '\n' immediately starts the next chunk. If I consistently only track either '\r' or '\n' then I can avoid this. */
-			let trueCarriageReturn_falseLineFeed = true;
-  
-			readableStream.on('data', (chunk) => {
-				if (matchWord && ((search[0] >= 'a' && search[0] <= 'z') || (search[0] >= 'A' && search[0] <= 'Z') || (search[0] >= '0' && search[0] <= '9') || (search[0] === '_'))) { // if is letter or digit ('a' to 'z') || ('A' to 'Z') || ('0' to '9') || ('_') all bounds inclusive)
-					if (previousChunkNeedsWordVerification) {
-						previousChunkNeedsWordVerification = false;
-						if (chunk.length > 0 && ((chunk[0] >= 'a' && chunk[0] <= 'z') || (chunk[0] >= 'A' && chunk[0] <= 'Z') || (chunk[0] >= '0' && chunk[0] <= '9') || (chunk[0] === '_'))) {
-							results.length--;
-						}
-					}
-					for (let i = 0; i < chunk.length; i++) {
-						if ((chunk[i] >= 'a' && chunk[i] <= 'z') || (chunk[i] >= 'A' && chunk[i] <= 'Z') || (chunk[i] >= '0' && chunk[i] <= '9') || (chunk[i] === '_')) {
-							if (chunk[i] === search[0]) {
-								while (i < chunk.length) { // context switch to checking match
-									if (chunk[i] === search[offset]) {
-										if (offset === 0) {
-											posStartOfMatch = i;
+			if (count > 0) {
+				database.addAbsolutePath(absolutePathOfChild, childList[i].name);
+				results.push({
+					filename: childList[i].name,
+					absolutePath: absolutePathOfChild,
+					count: _findAllState.count
+				});
+			}
+			_findAllState.count = 0;
+		}
+	}
+}
+
+async function findAll_searchRecusive_someInnerFunction(resolve, reject) {
+	const readableStream = fs.createReadStream(absolutePathOfChild, { encoding: 'utf8' });
+	readableStream.on('data', findAll_searchRecursive_on_data);
+	readableStream.on('end', () => { resolve(count); });
+	readableStream.on('error', (error) => { reject(error); });
+}
+
+/**
+ * TODO: Is 'findAll_searchRecursive_on_data' the same as 'findAllGetPositions_lambda_on_data'
+ * @param {*} chunk 
+ */
+async function findAll_searchRecursive_on_data(chunk) {
+	if (matchWord && ((search[0] >= 'a' && search[0] <= 'z') || (search[0] >= 'A' && search[0] <= 'Z') || (search[0] >= '0' && search[0] <= '9') || (search[0] === '_'))) { // if is letter or digit ('a' to 'z') || ('A' to 'Z') || ('0' to '9') || ('_') all bounds inclusive)
+		if (previousChunkNeedsWordVerification) {
+			previousChunkNeedsWordVerification = false;
+			if (chunk.length > 0 && ((chunk[0] >= 'a' && chunk[0] <= 'z') || (chunk[0] >= 'A' && chunk[0] <= 'Z') || (chunk[0] >= '0' && chunk[0] <= '9') || (chunk[0] === '_'))) {
+				count--;
+			}
+		}
+		for (let i = 0; i < chunk.length; i++) {
+			if ((chunk[i] >= 'a' && chunk[i] <= 'z') || (chunk[i] >= 'A' && chunk[i] <= 'Z') || (chunk[i] >= '0' && chunk[i] <= '9') || (chunk[i] === '_')) {
+				if (chunk[i] === search[0]) {
+					while (i < chunk.length) { // context switch to checking match
+						if (chunk[i] === search[offset]) {
+							if (offset === 0) {
+								posStartOfMatch = i;
+							}
+							offset++;
+							if (offset === search.length) { // found "possible match"
+								if (i + 1 >= chunk.length ||
+									!((chunk[i + 1] >= 'a' && chunk[i + 1] <= 'z') || (chunk[i + 1] >= 'A' && chunk[i + 1] <= 'Z') || (chunk[i + 1] >= '0' && chunk[i + 1] <= '9') || (chunk[i + 1] === '_'))) { // ends on a word, therefore take match
+										if (i + 1 >= chunk.length) {
+											previousChunkNeedsWordVerification = true;
 										}
-										offset++;
-										if (offset === search.length) { // found "possible match"
-											if (i + 1 >= chunk.length ||
-												!((chunk[i + 1] >= 'a' && chunk[i + 1] <= 'z') || (chunk[i + 1] >= 'A' && chunk[i + 1] <= 'Z') || (chunk[i + 1] >= '0' && chunk[i + 1] <= '9') || (chunk[i + 1] === '_'))) { // ends on a word, therefore take match
-													if (i + 1 >= chunk.length) {
-														previousChunkNeedsWordVerification = true;
-													}
-													//results.push(posStartOfMatch);
-													results.push(indexLine);
-													offset = 0;
-													break;
-											}
-											else { // does NOT end on a word, therefore ignore match
-												offset = 0;
-												while (i < chunk.length) { // move pos to next NON(letterOrDigit) or EOF
-													if (!((chunk[i] >= 'a' && chunk[i] <= 'z') || (chunk[i] >= 'A' && chunk[i] <= 'Z') || (chunk[i] >= '0' && chunk[i] <= '9') || (chunk[i] === '_'))) {
-														i--; // backtrack by one due to outer for loop's incrementation step
-														break;
-													}
-													i++;
-												}
-												break;
-											}
-										}
-										i++;
+										count++;
+										offset = 0;
+										break;
 									}
-									else {
+									else { // does NOT end on a word, therefore ignore match
 										offset = 0;
 										while (i < chunk.length) { // move pos to next NON(letterOrDigit) or EOF
 											if (!((chunk[i] >= 'a' && chunk[i] <= 'z') || (chunk[i] >= 'A' && chunk[i] <= 'Z') || (chunk[i] >= '0' && chunk[i] <= '9') || (chunk[i] === '_'))) {
@@ -889,101 +780,236 @@ async function findAllGetPositions(event, absolutePath, search, matchWord) {
 										break;
 									}
 								}
-							}
-							else {
-								while (i < chunk.length) { // move pos to next NON(letterOrDigit) or EOF
-									if (!((chunk[i] >= 'a' && chunk[i] <= 'z') || (chunk[i] >= 'A' && chunk[i] <= 'Z') || (chunk[i] >= '0' && chunk[i] <= '9') || (chunk[i] === '_'))) {
-										i--; // backtrack by one due to outer for loop's incrementation step
-										break;
-									}
-									i++;
-								}
-							}
+							i++;
 						}
 						else {
-							while (i < chunk.length) { // move pos to next letterOrDigit or EOF
-								if ((chunk[i] >= 'a' && chunk[i] <= 'z') || (chunk[i] >= 'A' && chunk[i] <= 'Z') || (chunk[i] >= '0' && chunk[i] <= '9') || (chunk[i] === '_')) {
+							offset = 0;
+							while (i < chunk.length) { // move pos to next NON(letterOrDigit) or EOF
+								if (!((chunk[i] >= 'a' && chunk[i] <= 'z') || (chunk[i] >= 'A' && chunk[i] <= 'Z') || (chunk[i] >= '0' && chunk[i] <= '9') || (chunk[i] === '_'))) {
 									i--; // backtrack by one due to outer for loop's incrementation step
 									break;
 								}
-								switch (chunk[i]) {
-									case '\r':
-										if (!hasDecidedLineEndKind) {
-											hasDecidedLineEndKind = true;
-											trueCarriageReturn_falseLineFeed = true;
-										}
-										if (trueCarriageReturn_falseLineFeed) {
-											indexLine++;
-										}
-										break;
-									case '\n':
-										if (!hasDecidedLineEndKind) {
-											hasDecidedLineEndKind = true;
-											trueCarriageReturn_falseLineFeed = false;
-										}
-										if (!trueCarriageReturn_falseLineFeed) {
-											indexLine++;
-										}
-										break;
-								}
 								i++;
 							}
+							break;
 						}
 					}
 				}
 				else {
-					for (let i = 0; i < chunk.length; i++) {
-						
-						switch (chunk[i]) {
-							case '\r':
-								if (!hasDecidedLineEndKind) {
-									hasDecidedLineEndKind = true;
-									trueCarriageReturn_falseLineFeed = true;
-								}
-								if (trueCarriageReturn_falseLineFeed) {
-									indexLine++;
-								}
-								break;
-							case '\n':
-								if (!hasDecidedLineEndKind) {
-									hasDecidedLineEndKind = true;
-									trueCarriageReturn_falseLineFeed = false;
-								}
-								if (!trueCarriageReturn_falseLineFeed) {
-									indexLine++;
-								}
-								break;
+					while (i < chunk.length) { // move pos to next NON(letterOrDigit) or EOF
+						if (!((chunk[i] >= 'a' && chunk[i] <= 'z') || (chunk[i] >= 'A' && chunk[i] <= 'Z') || (chunk[i] >= '0' && chunk[i] <= '9') || (chunk[i] === '_'))) {
+							i--; // backtrack by one due to outer for loop's incrementation step
+							break;
 						}
+						i++;
+					}
+				}
+			}
+			else {
+				while (i < chunk.length) { // move pos to next letterOrDigit or EOF
+					if ((chunk[i] >= 'a' && chunk[i] <= 'z') || (chunk[i] >= 'A' && chunk[i] <= 'Z') || (chunk[i] >= '0' && chunk[i] <= '9') || (chunk[i] === '_')) {
+						i--; // backtrack by one due to outer for loop's incrementation step
+						break;
+					}
+					i++;
+				}
+			}
+		}
+	}
+	else {
+		for (let i = 0; i < chunk.length; i++) {
+			if (chunk[i] === search[offset]) {
+				offset++;
+				if (offset === search.length) {
+					count++;
+					offset = 0;
+				}
+			}
+			else {
+				offset = 0;
+			}
+		}
+	}
+}
 
+/** TODO:...
+ * add a parameter of the count that previously existed so you can pre-allocate a "probably correctly sized" array.
+ * The find all currently has two parts.
+ * Part 1 returns the files that contain at least one match. Foreach file it tells you how many matches were found,
+ * and you can expand the treeViewNode in order to make a second request that gets the exact position of each match.
+ * 
+ * ^Perhaps this is foolish but nevertheless that is how it currently works.
+ * */
+async function findAllGetPositions(event, absolutePath, search, matchWord) {
+	if(!isValidAbsolutePath(absolutePath)) return;
+
+	try {
+		if (_findAllGetPositions_lambda_one_state !== null && _findAllGetPositions_lambda_one_state !== undefined) {
+			throw new Error();
+		}
+		_findAllGetPositions_lambda_one_state = {
+			offset: 0,
+			posStartOfMatch: 0,
+			previousChunkNeedsWordVerification: false, // TODO: Come up with a case that verifies this code works...
+			indexLine: 0,
+			hasDecidedLineEndKind: false,
+			trueCarriageReturn_falseLineFeed: true, /** I don't want to deal with '\r\n' where '\r' ends a chunk and then '\n' immediately starts the next chunk. If I consistently only track either '\r' or '\n' then I can avoid this. */
+			results: [],
+		};
+		let promise = new Promise(findAllGetPositions_lambda_one);
+		return await promise;
+	}
+	catch (err) {
+		console.error("Error during find-all-getPositions:", err);
+		return [];
+	}
+	finally {
+		_findAllGetPositions_lambda_one_state = null;
+	}
+}
+
+async function findAllGetPositions_lambda_one(resolve, reject) {
+	const readableStream = fs.createReadStream(absolutePath, { encoding: 'utf8' });
+	readableStream.on('data', findAllGetPositions_lambda_on_data);
+	readableStream.on('end', () => { resolve(results); });
+	readableStream.on('error', (error) => { reject(error); });
+}
+
+async function findAllGetPositions_lambda_on_data(chunk) {
+	if (matchWord && ((search[0] >= 'a' && search[0] <= 'z') || (search[0] >= 'A' && search[0] <= 'Z') || (search[0] >= '0' && search[0] <= '9') || (search[0] === '_'))) { // if is letter or digit ('a' to 'z') || ('A' to 'Z') || ('0' to '9') || ('_') all bounds inclusive)
+		if (previousChunkNeedsWordVerification) {
+			previousChunkNeedsWordVerification = false;
+			if (chunk.length > 0 && ((chunk[0] >= 'a' && chunk[0] <= 'z') || (chunk[0] >= 'A' && chunk[0] <= 'Z') || (chunk[0] >= '0' && chunk[0] <= '9') || (chunk[0] === '_'))) {
+				results.length--;
+			}
+		}
+		for (let i = 0; i < chunk.length; i++) {
+			if ((chunk[i] >= 'a' && chunk[i] <= 'z') || (chunk[i] >= 'A' && chunk[i] <= 'Z') || (chunk[i] >= '0' && chunk[i] <= '9') || (chunk[i] === '_')) {
+				if (chunk[i] === search[0]) {
+					while (i < chunk.length) { // context switch to checking match
 						if (chunk[i] === search[offset]) {
 							if (offset === 0) {
 								posStartOfMatch = i;
 							}
 							offset++;
-							if (offset === search.length) {
-								//results.push(posStartOfMatch);
-								results.push(indexLine);
-								offset = 0;
+							if (offset === search.length) { // found "possible match"
+								if (i + 1 >= chunk.length ||
+									!((chunk[i + 1] >= 'a' && chunk[i + 1] <= 'z') || (chunk[i + 1] >= 'A' && chunk[i + 1] <= 'Z') || (chunk[i + 1] >= '0' && chunk[i + 1] <= '9') || (chunk[i + 1] === '_'))) { // ends on a word, therefore take match
+										if (i + 1 >= chunk.length) {
+											previousChunkNeedsWordVerification = true;
+										}
+										//results.push(posStartOfMatch);
+										results.push(indexLine);
+										offset = 0;
+										break;
+								}
+								else { // does NOT end on a word, therefore ignore match
+									offset = 0;
+									while (i < chunk.length) { // move pos to next NON(letterOrDigit) or EOF
+										if (!((chunk[i] >= 'a' && chunk[i] <= 'z') || (chunk[i] >= 'A' && chunk[i] <= 'Z') || (chunk[i] >= '0' && chunk[i] <= '9') || (chunk[i] === '_'))) {
+											i--; // backtrack by one due to outer for loop's incrementation step
+											break;
+										}
+										i++;
+									}
+									break;
+								}
 							}
+							i++;
 						}
 						else {
 							offset = 0;
+							while (i < chunk.length) { // move pos to next NON(letterOrDigit) or EOF
+								if (!((chunk[i] >= 'a' && chunk[i] <= 'z') || (chunk[i] >= 'A' && chunk[i] <= 'Z') || (chunk[i] >= '0' && chunk[i] <= '9') || (chunk[i] === '_'))) {
+									i--; // backtrack by one due to outer for loop's incrementation step
+									break;
+								}
+								i++;
+							}
+							break;
 						}
 					}
 				}
-			});
-			readableStream.on('end', () => {
-				resolve(results);
-			});
-			readableStream.on('error', (error) => {
-				reject(error);
-			});
-		});
-		return await aaa;
+				else {
+					while (i < chunk.length) { // move pos to next NON(letterOrDigit) or EOF
+						if (!((chunk[i] >= 'a' && chunk[i] <= 'z') || (chunk[i] >= 'A' && chunk[i] <= 'Z') || (chunk[i] >= '0' && chunk[i] <= '9') || (chunk[i] === '_'))) {
+							i--; // backtrack by one due to outer for loop's incrementation step
+							break;
+						}
+						i++;
+					}
+				}
+			}
+			else {
+				while (i < chunk.length) { // move pos to next letterOrDigit or EOF
+					if ((chunk[i] >= 'a' && chunk[i] <= 'z') || (chunk[i] >= 'A' && chunk[i] <= 'Z') || (chunk[i] >= '0' && chunk[i] <= '9') || (chunk[i] === '_')) {
+						i--; // backtrack by one due to outer for loop's incrementation step
+						break;
+					}
+					switch (chunk[i]) {
+						case '\r':
+							if (!hasDecidedLineEndKind) {
+								hasDecidedLineEndKind = true;
+								trueCarriageReturn_falseLineFeed = true;
+							}
+							if (trueCarriageReturn_falseLineFeed) {
+								indexLine++;
+							}
+							break;
+						case '\n':
+							if (!hasDecidedLineEndKind) {
+								hasDecidedLineEndKind = true;
+								trueCarriageReturn_falseLineFeed = false;
+							}
+							if (!trueCarriageReturn_falseLineFeed) {
+								indexLine++;
+							}
+							break;
+					}
+					i++;
+				}
+			}
+		}
 	}
-	catch (err) {
-		console.error("Error during find-all-getPositions:", err);
-		return [];
+	else {
+		for (let i = 0; i < chunk.length; i++) {
+			
+			switch (chunk[i]) {
+				case '\r':
+					if (!hasDecidedLineEndKind) {
+						hasDecidedLineEndKind = true;
+						trueCarriageReturn_falseLineFeed = true;
+					}
+					if (trueCarriageReturn_falseLineFeed) {
+						indexLine++;
+					}
+					break;
+				case '\n':
+					if (!hasDecidedLineEndKind) {
+						hasDecidedLineEndKind = true;
+						trueCarriageReturn_falseLineFeed = false;
+					}
+					if (!trueCarriageReturn_falseLineFeed) {
+						indexLine++;
+					}
+					break;
+			}
+
+			if (chunk[i] === search[offset]) {
+				if (offset === 0) {
+					posStartOfMatch = i;
+				}
+				offset++;
+				if (offset === search.length) {
+					//results.push(posStartOfMatch);
+					results.push(indexLine);
+					offset = 0;
+				}
+			}
+			else {
+				offset = 0;
+			}
+		}
 	}
 }
 
