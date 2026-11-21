@@ -700,21 +700,22 @@ function findAll(event, search, matchWord) {
 		let childIndex = 0;
 
 		while (true) {
-
 			const entry = childEntries[childIndex++];
 
 			if (entry.isDirectory()) {
 				if (FIND_ALL_IGNORED_DIRS.has(entry.name)) continue;
 				let absolutePathOfChild = path.join(entry.parentPath, entry.name); // TODO: Presumably there is an API that would provide this more optimally
-				_findAllStack.push({
-					targetDirectory: targetDirectory,
-					childEntries,
-					childIndex
-				});
-				targetDirectory = absolutePathOfChild;
-				childEntries = fs.readdirSync(targetDirectory, withFileTypesOption);
-
-				//await findAll_searchRecursive(absolutePathOfChild);
+				let possibleNextEntries = fs.readdirSync(absolutePathOfChild, withFileTypesOption);
+				if (possibleNextEntries.length !== 0) {
+					_findAllStack.push({
+						targetDirectory: targetDirectory,
+						childEntries,
+						childIndex
+					});
+					targetDirectory = absolutePathOfChild;
+					childEntries = possibleNextEntries;
+					childIndex = 0;
+				}
 			}
 			else {
 				let absolutePathOfChild = path.join(entry.parentPath, entry.name); // TODO: Presumably there is an API that would provide this more optimally
@@ -732,90 +733,44 @@ function findAll(event, search, matchWord) {
 				_findAllState.count = 0;
 			}
 
-			//if () {
-//
-			//}
-			_findAllStack.push({
-				targetDirectory: targetDirectory,
-				childEntries,
-				childIndex
-			});
+			if (childIndex >= childEntries.length) {
+				if (_findAllStack.length > 0) {
+					let stackEntry = _findAllStack.pop();
+					targetDirectory = stackEntry.targetDirectory;
+					childEntries = stackEntry.childEntries;
+					childIndex = stackEntry.childIndex;
+				}
+				else {
+					targetDirectory = null;
+					childEntries = null;
+					childIndex = null;
+				}
+			}
 
 			if (targetDirectory === null || targetDirectory === undefined) {
 				break;
 			}
 		}
-
-
 	
-	
-		const basename = path.basename(absolutePath);
-		const extension = path.extname(absolutePath);
-		const paddingLength = 1024;
-	
-		// 1. Get file stats and open a file descriptor
-		const stat = fs.statSync(absolutePath);
-		const fileSize = stat.size;
-		fd = fs.openSync(absolutePath, 'r');
-	
-		// 2. Allocate ONE single buffer with the exact tail padding built in
-		const totalCapacity = fileSize + paddingLength;
-		const rawBuffer = Buffer.allocUnsafe(totalCapacity);
-	
-		// 3. Read the file bytes directly into the beginning of our padded buffer
-		fs.readSync(fd, rawBuffer, 0, fileSize, 0);
+		//const basename = path.basename(absolutePath);
+		//const extension = path.extname(absolutePath);
+		//const paddingLength = 1024;
+	//
+		//// 1. Get file stats and open a file descriptor
+		//const stat = fs.statSync(absolutePath);
+		//const fileSize = stat.size;
+		//fd = fs.openSync(absolutePath, 'r');
+	//
+		//// 2. Allocate ONE single buffer with the exact tail padding built in
+		//const totalCapacity = fileSize + paddingLength;
+		//const rawBuffer = Buffer.allocUnsafe(totalCapacity);
+	//
+		//// 3. Read the file bytes directly into the beginning of our padded buffer
+		//fs.readSync(fd, rawBuffer, 0, fileSize, 0);
 	}
 	catch (err) {
 		console.error("Error during find-all:", err);
 		return [];
-	}
-
-
-
-
-
-
-
-
-
-
-
-
-	try {
-		// TODO: I need a quickfix list when I { 'Ctrl' + 'Shift' + 'f' }.
-		// TODO: I need to be able to convert my { 'Ctrl' + 'f' } to a quickfix list.
-		
-
-		if (_findAllState !== null && _findAllState !== undefined) {
-			throw new Error();
-		}
-
-		_findAllState = {
-			search: search,
-			matchWord: matchWord,
-			count: 0,
-			offset: 0,
-			previousChunkNeedsWordVerification: false, // TODO: Come up with a case that verifies this code works...
-			results: []
-		};
-
-		///if (openedDirectory) {
-		///	await findAll_searchRecursive(openedDirectory);
-		///	return results;
-		///}
-		///else if (workspaceDirectories) {
-		///	for (let i = 0; i < workspaceDirectories.length; i++) {
-		///		await findAll_searchRecursive(workspaceDirectories[i].absolutePath);
-		///	}
-		///	return _findAllState.results;
-		///}
-	}
-	catch (err) {
-		console.error("Error during find-all:", err);
-		return [];
-	}
-	finally {
-		_findAllState = null; // this is not gonna work properly
 	}
 }
 
