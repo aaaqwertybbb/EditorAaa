@@ -8,6 +8,11 @@ class DIALOG_FindAll_TreeViewDirector {
         /** @type {Array} object or string */
         this.actualData = null;
 
+        // TODO: DIALOG_FindAll_TreeViewDirector...
+        // ...I checked the result and it is correct at this point.
+        // That being said this class follows an old pattern for how I'm doing the TreeView UI and needs to be updated. (thus this class doesn't work)
+
+
         /**
          * @type {TreeViewNodeList}
          * */

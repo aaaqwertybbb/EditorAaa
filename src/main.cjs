@@ -759,6 +759,8 @@ function findAll(event, searchString, matchWord) {
 				break;
 			}
 		}
+
+		return results;
 	}
 	catch (err) {
 		console.error("Error during find-all:", err);
