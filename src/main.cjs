@@ -686,9 +686,10 @@ function findAll(event, search, matchWord) {
 		}
 		else if (workspaceDirectories) {
 			childEntries = new Array(workspaceDirectories.length);
-			let isDirectoryForcefully = () => true;
+			const isDirectoryForcefully = () => true;
 			for (let i = 0; i < workspaceDirectories.length; i++) {
 				childEntries[i] = {
+					name: workspaceDirectories[i].basename,
 					absolutePath: workspaceDirectories[i].absolutePath,
 					isDirectory: isDirectoryForcefully
 				}
