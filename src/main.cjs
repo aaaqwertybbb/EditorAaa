@@ -27,7 +27,19 @@ let openedDirectory = null;
 let openedWorkspace = null;
 let workspaceDirectories = null;
 
-const FIND_ALL_IGNORED_DIRS = new Set(['.vs', '.vscode', '.git', 'node_modules', 'bin', 'obj']);
+// I feel anxious about this because this isn't great no matter what at the moment.
+// And I worry "should I include 'build' should I include 'out'"...
+// 
+// ultimately my goal is to get any amount of find all to begin working again.
+// currently there is 0 find all working.
+// 
+// The previous version contained 'build'
+// 
+// The goal is NOT to optimize ignored directories.
+// The true answer for this is likely to just read .gitignore
+// so sitting here worried about each one of these is just pointless.
+//
+const FIND_ALL_IGNORED_DIRS = new Set(['.vs', '.vscode', '.git', 'node_modules', 'bin', 'obj', 'out', 'build', 'preprocessor']);
 /*
 if (childList[i].name === 'node_modules') {
 	console.log('do not recurse into node_modules');
