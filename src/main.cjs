@@ -663,6 +663,9 @@ async function readClipboard(event) {
  * You could then read all the text into the buffer.
  * 
  * I still don't think that's all too great but it is probably better than whatever this is...
+ * 
+ * Maybe if you streamed it an the UI supported that it could be good.
+ * But I'm 99% sure the UI locks up anyways at the moment
  */
 async function findAll(event, search, matchWord) {
 	try {
