@@ -719,19 +719,15 @@ function findAll(event, search, matchWord) {
 			}
 			else {
 				const absolutePathOfChild = path.join(entry.parentPath, entry.name); // TODO: Presumably there is an API that would provide this more optimally
-
-				findAll_searchFile();
-				//await findAll_searchRecusive_someInnerFunction(absolutePathOfChild); // TODO: Is it possible to allocate a Promise 'one time' and re-use it? this is being done within a loop over all text files and recursively descends from the "workspace directory".
-
-				if (_findAllState.count > 0) {
-					database.addAbsolutePath(absolutePathOfChild, childList[i].name);
+				const count = findAll_searchFile(absolutePathOfChild, search, matchWord);
+				if (count > 0) {
+					database.addAbsolutePath(absolutePathOfChild, entry.name);
 					results.push({
 						filename: childList[i].name,
 						absolutePath: absolutePathOfChild,
 						count: _findAllState.count
 					});
 				}
-				_findAllState.count = 0;
 			}
 
 			if (childIndex >= childEntries.length) {
@@ -762,7 +758,7 @@ function findAll(event, search, matchWord) {
 	}
 }
 
-function findAll_searchFile(absolutePath) {
+function findAll_searchFile(absolutePath, searchArgument, matchWord) {
 	let fd = null;
 
 	try {
@@ -776,10 +772,10 @@ function findAll_searchFile(absolutePath) {
 		}
 
 		const buffer = _findAllBuffer; // If I'm going to loop over every character I do feel it reasonable to get the local reference rather than risking the overhead of multiple global scope lookups but to be honest idk
+		const search = searchArgument; // ^ similar comment to the above i.e.: "idk'
 		
 		fs.readSync(fd, buffer, 0, fileSize, 0);
 
-		let hadBomMark = false;
 		let dataStartIndex = 0;
 
 		// Detect the BOM
@@ -787,19 +783,30 @@ function findAll_searchFile(absolutePath) {
 			buffer[0] === 0xEF &&
 			buffer[1] === 0xBB &&
 			buffer[2] === 0xBF) {
-
-				hadBomMark = true;
 				dataStartIndex = 3;
 		}
 
-		let targetIndex = 0;
+		let offset = 0;
+		let count = 0;
 
 		for (let i = dataStartIndex; i < fileSize; i++) {
-			const b = buffer[i];
+			if (buffer[i] === search[offset]) {
+				offset++;
+				if (offset === search.length) {
+					count++;
+					offset = 0;
+				}
+			}
+			else {
+				offset = 0;
+			}
 		}
+
+		return count;
 	}
 	catch (error) {
 		console.error("Error during findAll_searchFile:", err);
+		return 0;
 	}
 	finally {
 		if (fd !== null) {
