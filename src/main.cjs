@@ -675,12 +675,12 @@ function findAll(event, search, matchWord) {
 	try {
 		if (!openedDirectory && !workspaceDirectories) return;
 
-		let targetDirectory = null; // The first loop will have this be null.
+		let targetDirectory = undefined; // The first loop will have this be undefined so that workspaces can function.
 		let childEntries = null;
 
 		const withFileTypesOption = { withFileTypes: true };
+		// let stackEntryPoolEntry = null; TODO: Consider a push pop pool of a single object deep causes allocations but breadth re-uses?
 		
-
 		if (openedDirectory) {
 			childEntries = fs.readdirSync(openedDirectory, withFileTypesOption);
 		}
@@ -750,7 +750,7 @@ function findAll(event, search, matchWord) {
 				}
 			}
 
-			if (targetDirectory === null || targetDirectory === undefined) {
+			if (targetDirectory === null) {
 				break;
 			}
 		}
