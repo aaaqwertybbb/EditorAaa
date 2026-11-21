@@ -679,14 +679,19 @@ function findAll(event, search, matchWord) {
 		let childEntries = null;
 
 		const withFileTypesOption = { withFileTypes: true };
+		
 
 		if (openedDirectory) {
 			childEntries = fs.readdirSync(openedDirectory, withFileTypesOption);
 		}
 		else if (workspaceDirectories) {
 			childEntries = new Array(workspaceDirectories.length);
+			let isDirectoryForcefully = () => true;
 			for (let i = 0; i < workspaceDirectories.length; i++) {
-				childEntries[i] = workspaceDirectories[i].absolutePath;
+				childEntries[i] = {
+					absolutePath: workspaceDirectories[i].absolutePath,
+					isDirectory: isDirectoryForcefully
+				}
 			}
 		}
 		else {
@@ -704,7 +709,7 @@ function findAll(event, search, matchWord) {
 
 			if (entry.isDirectory()) {
 				if (FIND_ALL_IGNORED_DIRS.has(entry.name)) continue;
-				const absolutePathOfChild = path.join(entry.parentPath, entry.name); // TODO: Presumably there is an API that would provide this more optimally
+				const absolutePathOfChild = entry.absolutePath ?? path.join(entry.parentPath, entry.name); // TODO: Presumably there is an API that would provide this more optimally
 				const possibleNextEntries = fs.readdirSync(absolutePathOfChild, withFileTypesOption);
 				if (possibleNextEntries.length !== 0) {
 					_findAllStack.push({
@@ -813,40 +818,6 @@ function findAll_searchFile(absolutePath, searchArgument, matchWord) {
 			try { fs.closeSync(fd); } catch (_) {}
 		}
 	}
-}
-
-async function findAll_searchRecursive(absolutePath) {
-	const childList = fs.readdirSync(absolutePath, { withFileTypes: true }); // TODO: need to enumerate the children rather than getting an array allocated.
-	for (var i = 0; i < childList.length; i++) {
-		const entry = childList[i];
-		if (entry.isDirectory()) {
-			if (FIND_ALL_IGNORED_DIRS.has(entry.name)) continue;
-			let absolutePathOfChild = path.join(entry.parentPath, entry.name); // TODO: Presumably there is an API that would provide this more optimally
-			await findAll_searchRecursive(absolutePathOfChild);
-		}
-		else {
-			let absolutePathOfChild = path.join(entry.parentPath, entry.name); // TODO: Presumably there is an API that would provide this more optimally
-
-			await findAll_searchRecusive_someInnerFunction(absolutePathOfChild); // TODO: Is it possible to allocate a Promise 'one time' and re-use it? this is being done within a loop over all text files and recursively descends from the "workspace directory".
-
-			if (_findAllState.count > 0) {
-				database.addAbsolutePath(absolutePathOfChild, childList[i].name);
-				results.push({
-					filename: childList[i].name,
-					absolutePath: absolutePathOfChild,
-					count: _findAllState.count
-				});
-			}
-			_findAllState.count = 0;
-		}
-	}
-}
-
-async function findAll_searchRecusive_someInnerFunction(absolutePathOfChild) {
-	const readableStream = fs.createReadStream(absolutePathOfChild, { encoding: 'utf8' });
-	readableStream.on('data', findAll_searchRecursive_on_data);
-	readableStream.on('end', () => { resolve(_findAllState.count); });
-	readableStream.on('error', (error) => { reject(error); });
 }
 
 /**
