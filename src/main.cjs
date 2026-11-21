@@ -42,6 +42,7 @@ let workspaceDirectories = null;
 const FIND_ALL_IGNORED_DIRS = new Set(['.vs', '.vscode', '.git', 'node_modules', 'bin', 'obj', 'out', 'build', 'preprocessor']);
 let _findAllGetPositions_lambda_one_state = null;
 let _findAllState = null;
+let _findAllStack = [];
 /*
 if (childList[i].name === 'node_modules') {
 	console.log('do not recurse into node_modules');
@@ -664,14 +665,126 @@ async function readClipboard(event) {
  * 
  * I still don't think that's all too great but it is probably better than whatever this is...
  * 
- * Maybe if you streamed it an the UI supported that it could be good.
+ * Maybe if you streamed it and the UI supported that it could be good.
  * But I'm 99% sure the UI locks up anyways at the moment
  */
-async function findAll(event, search, matchWord) {
+function findAll(event, search, matchWord) {
+
+
+	try {
+		if (!openedDirectory && !workspaceDirectories) return;
+
+		let childEntries = null;
+
+		let targetDirectory = null; // The first loop will have this be null.
+
+		const withFileTypesOption = { withFileTypes: true };
+
+		if (openedDirectory) {
+			childEntries = fs.readdirSync(openedDirectory, withFileTypesOption);
+		}
+		else if (workspaceDirectories) {
+			childEntries = new Array(workspaceDirectories.length);
+			for (let i = 0; i < workspaceDirectories.length; i++) {
+				childEntries[i] = workspaceDirectories[i].absolutePath;
+			}
+		}
+		else {
+			throw new Error();
+		}
+
+		if (childEntries.length === 0) {
+			throw new Error();
+		}
+
+		let childIndex = 0;
+
+		while (true) {
+
+			const entry = childEntries[childIndex++];
+
+			if (entry.isDirectory()) {
+				if (FIND_ALL_IGNORED_DIRS.has(entry.name)) continue;
+				let absolutePathOfChild = path.join(entry.parentPath, entry.name); // TODO: Presumably there is an API that would provide this more optimally
+				_findAllStack.push({
+					targetDirectory: targetDirectory,
+					childEntries,
+					childIndex
+				});
+				targetDirectory = absolutePathOfChild;
+				childEntries = fs.readdirSync(targetDirectory, withFileTypesOption);
+
+				//await findAll_searchRecursive(absolutePathOfChild);
+			}
+			else {
+				let absolutePathOfChild = path.join(entry.parentPath, entry.name); // TODO: Presumably there is an API that would provide this more optimally
+
+				//await findAll_searchRecusive_someInnerFunction(absolutePathOfChild); // TODO: Is it possible to allocate a Promise 'one time' and re-use it? this is being done within a loop over all text files and recursively descends from the "workspace directory".
+
+				if (_findAllState.count > 0) {
+					database.addAbsolutePath(absolutePathOfChild, childList[i].name);
+					results.push({
+						filename: childList[i].name,
+						absolutePath: absolutePathOfChild,
+						count: _findAllState.count
+					});
+				}
+				_findAllState.count = 0;
+			}
+
+			//if () {
+//
+			//}
+			_findAllStack.push({
+				targetDirectory: targetDirectory,
+				childEntries,
+				childIndex
+			});
+
+			if (targetDirectory === null || targetDirectory === undefined) {
+				break;
+			}
+		}
+
+
+	
+	
+		const basename = path.basename(absolutePath);
+		const extension = path.extname(absolutePath);
+		const paddingLength = 1024;
+	
+		// 1. Get file stats and open a file descriptor
+		const stat = fs.statSync(absolutePath);
+		const fileSize = stat.size;
+		fd = fs.openSync(absolutePath, 'r');
+	
+		// 2. Allocate ONE single buffer with the exact tail padding built in
+		const totalCapacity = fileSize + paddingLength;
+		const rawBuffer = Buffer.allocUnsafe(totalCapacity);
+	
+		// 3. Read the file bytes directly into the beginning of our padded buffer
+		fs.readSync(fd, rawBuffer, 0, fileSize, 0);
+	}
+	catch (err) {
+		console.error("Error during find-all:", err);
+		return [];
+	}
+
+
+
+
+
+
+
+
+
+
+
+
 	try {
 		// TODO: I need a quickfix list when I { 'Ctrl' + 'Shift' + 'f' }.
 		// TODO: I need to be able to convert my { 'Ctrl' + 'f' } to a quickfix list.
-		if (!openedDirectory && !workspaceDirectories) return;
+		
 
 		if (_findAllState !== null && _findAllState !== undefined) {
 			throw new Error();
@@ -686,23 +799,23 @@ async function findAll(event, search, matchWord) {
 			results: []
 		};
 
-		if (openedDirectory) {
-			await findAll_searchRecursive(openedDirectory);
-			return results;
-		}
-		else if (workspaceDirectories) {
-			for (let i = 0; i < workspaceDirectories.length; i++) {
-				await findAll_searchRecursive(workspaceDirectories[i].absolutePath);
-			}
-			return _findAllState.results;
-		}
+		///if (openedDirectory) {
+		///	await findAll_searchRecursive(openedDirectory);
+		///	return results;
+		///}
+		///else if (workspaceDirectories) {
+		///	for (let i = 0; i < workspaceDirectories.length; i++) {
+		///		await findAll_searchRecursive(workspaceDirectories[i].absolutePath);
+		///	}
+		///	return _findAllState.results;
+		///}
 	}
 	catch (err) {
 		console.error("Error during find-all:", err);
 		return [];
 	}
 	finally {
-		_findAllState = null;
+		_findAllState = null; // this is not gonna work properly
 	}
 }
 
@@ -718,9 +831,9 @@ async function findAll_searchRecursive(absolutePath) {
 		else {
 			let absolutePathOfChild = path.join(entry.parentPath, entry.name); // TODO: Presumably there is an API that would provide this more optimally
 
-			await findAll_searchRecusive_someInnerFunction(); // TODO: Is it possible to allocate a Promise 'one time' and re-use it? this is being done within a loop over all text files and recursively descends from the "workspace directory".
+			await findAll_searchRecusive_someInnerFunction(absolutePathOfChild); // TODO: Is it possible to allocate a Promise 'one time' and re-use it? this is being done within a loop over all text files and recursively descends from the "workspace directory".
 
-			if (count > 0) {
+			if (_findAllState.count > 0) {
 				database.addAbsolutePath(absolutePathOfChild, childList[i].name);
 				results.push({
 					filename: childList[i].name,
@@ -733,10 +846,10 @@ async function findAll_searchRecursive(absolutePath) {
 	}
 }
 
-async function findAll_searchRecusive_someInnerFunction(resolve, reject) {
+async function findAll_searchRecusive_someInnerFunction(absolutePathOfChild) {
 	const readableStream = fs.createReadStream(absolutePathOfChild, { encoding: 'utf8' });
 	readableStream.on('data', findAll_searchRecursive_on_data);
-	readableStream.on('end', () => { resolve(count); });
+	readableStream.on('end', () => { resolve(_findAllState.count); });
 	readableStream.on('error', (error) => { reject(error); });
 }
 
@@ -745,11 +858,14 @@ async function findAll_searchRecusive_someInnerFunction(resolve, reject) {
  * @param {*} chunk 
  */
 async function findAll_searchRecursive_on_data(chunk) {
+	const matchWord = _findAllState.matchWord;
+	const search = _findAllState.search;
+
 	if (matchWord && ((search[0] >= 'a' && search[0] <= 'z') || (search[0] >= 'A' && search[0] <= 'Z') || (search[0] >= '0' && search[0] <= '9') || (search[0] === '_'))) { // if is letter or digit ('a' to 'z') || ('A' to 'Z') || ('0' to '9') || ('_') all bounds inclusive)
 		if (previousChunkNeedsWordVerification) {
 			previousChunkNeedsWordVerification = false;
 			if (chunk.length > 0 && ((chunk[0] >= 'a' && chunk[0] <= 'z') || (chunk[0] >= 'A' && chunk[0] <= 'Z') || (chunk[0] >= '0' && chunk[0] <= '9') || (chunk[0] === '_'))) {
-				count--;
+				_findAllState.count--;
 			}
 		}
 		for (let i = 0; i < chunk.length; i++) {
@@ -767,7 +883,7 @@ async function findAll_searchRecursive_on_data(chunk) {
 										if (i + 1 >= chunk.length) {
 											previousChunkNeedsWordVerification = true;
 										}
-										count++;
+										_findAllState.count++;
 										offset = 0;
 										break;
 									}
@@ -824,7 +940,7 @@ async function findAll_searchRecursive_on_data(chunk) {
 			if (chunk[i] === search[offset]) {
 				offset++;
 				if (offset === search.length) {
-					count++;
+					_findAllState.count++;
 					offset = 0;
 				}
 			}
@@ -851,6 +967,9 @@ async function findAllGetPositions(event, absolutePath, search, matchWord) {
 			throw new Error();
 		}
 		_findAllGetPositions_lambda_one_state = {
+			absolutePath: absolutePath,
+			search: search,
+			matchWord: matchWord,
 			offset: 0,
 			posStartOfMatch: 0,
 			previousChunkNeedsWordVerification: false, // TODO: Come up with a case that verifies this code works...
@@ -867,18 +986,22 @@ async function findAllGetPositions(event, absolutePath, search, matchWord) {
 		return [];
 	}
 	finally {
-		_findAllGetPositions_lambda_one_state = null;
+		_findAllGetPositions_lambda_one_state = null; // this is not gonna work properly
 	}
 }
 
 async function findAllGetPositions_lambda_one(resolve, reject) {
-	const readableStream = fs.createReadStream(absolutePath, { encoding: 'utf8' });
+	const readableStream = fs.createReadStream(_findAllGetPositions_lambda_one_state.absolutePath, { encoding: 'utf8' });
 	readableStream.on('data', findAllGetPositions_lambda_on_data);
 	readableStream.on('end', () => { resolve(results); });
 	readableStream.on('error', (error) => { reject(error); });
 }
 
 async function findAllGetPositions_lambda_on_data(chunk) {
+	const matchWord = _findAllGetPositions_lambda_one_state.matchWord;
+	const search = _findAllGetPositions_lambda_one_state.search;
+	const results = _findAllGetPositions_lambda_one_state.results;
+
 	if (matchWord && ((search[0] >= 'a' && search[0] <= 'z') || (search[0] >= 'A' && search[0] <= 'Z') || (search[0] >= '0' && search[0] <= '9') || (search[0] === '_'))) { // if is letter or digit ('a' to 'z') || ('A' to 'Z') || ('0' to '9') || ('_') all bounds inclusive)
 		if (previousChunkNeedsWordVerification) {
 			previousChunkNeedsWordVerification = false;
