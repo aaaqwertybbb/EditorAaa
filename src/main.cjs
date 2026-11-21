@@ -713,11 +713,13 @@ function findAll(event, search, matchWord) {
 				const absolutePathOfChild = entry.absolutePath ?? path.join(entry.parentPath, entry.name); // TODO: Presumably there is an API that would provide this more optimally
 				const possibleNextEntries = fs.readdirSync(absolutePathOfChild, withFileTypesOption);
 				if (possibleNextEntries.length !== 0) {
-					_findAllStack.push({
-						targetDirectory: targetDirectory,
-						childEntries,
-						childIndex
-					});
+					if (childIndex < childEntries.length) {
+						_findAllStack.push({
+							targetDirectory: targetDirectory,
+							childEntries,
+							childIndex
+						});
+					}
 					targetDirectory = absolutePathOfChild;
 					childEntries = possibleNextEntries;
 					childIndex = 0;
@@ -729,7 +731,7 @@ function findAll(event, search, matchWord) {
 				if (count > 0) {
 					database.addAbsolutePath(absolutePathOfChild, entry.name);
 					results.push({
-						filename: childList[i].name,
+						filename: entry.name,
 						absolutePath: absolutePathOfChild,
 						count: _findAllState.count
 					});
@@ -738,7 +740,7 @@ function findAll(event, search, matchWord) {
 
 			if (childIndex >= childEntries.length) {
 				if (_findAllStack.length > 0) {
-					let stackEntry = _findAllStack.pop();
+					const stackEntry = _findAllStack.pop();
 					targetDirectory = stackEntry.targetDirectory;
 					childEntries = stackEntry.childEntries;
 					childIndex = stackEntry.childIndex;
@@ -774,7 +776,7 @@ function findAll_searchFile(absolutePath, searchArgument, matchWord) {
 		fd = fs.openSync(absolutePath, 'r');
 
 		if (_findAllBuffer === null || _findAllBuffer === undefined || fileSize > _findAllBuffer.length) {
-			_findAllBuffer = Buffer.allocUnsafe(totalCapacity); // TODO: how do you rent a buffer.
+			_findAllBuffer = Buffer.allocUnsafe(fileSize); // TODO: how do you rent a buffer.
 		}
 
 		const buffer = _findAllBuffer; // If I'm going to loop over every character I do feel it reasonable to get the local reference rather than risking the overhead of multiple global scope lookups but to be honest idk
@@ -810,7 +812,7 @@ function findAll_searchFile(absolutePath, searchArgument, matchWord) {
 
 		return count;
 	}
-	catch (error) {
+	catch (err) {
 		console.error("Error during findAll_searchFile:", err);
 		return 0;
 	}
